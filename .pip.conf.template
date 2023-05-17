@@ -1,0 +1,2 @@
+[global]
+index-url=https://@CREDENTIALS@pkgs.dev.azure.com/c-change-labs/EC3/_packaging/python-default/pypi/simple/

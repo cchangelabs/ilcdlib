@@ -1,0 +1,7 @@
+[virtualenvs]
+in-project = true
+create = false
+
+[repositories]
+[repositories.ec3]
+url = "https://pkgs.dev.azure.com/c-change-labs/EC3/_packaging/python-default/pypi/upload/"
