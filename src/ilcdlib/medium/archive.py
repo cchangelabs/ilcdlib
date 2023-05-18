@@ -23,6 +23,7 @@ from zipfile import Path as ZipPath
 from zipfile import ZipFile
 
 from ilcdlib.common import BaseIlcdMediumSpecificReader
+from ilcdlib.const import IlcdDatasetType
 
 
 class ZipIlcdReader(BaseIlcdMediumSpecificReader):
@@ -31,6 +32,14 @@ class ZipIlcdReader(BaseIlcdMediumSpecificReader):
 
     Typically, these objects represent export with all dependencies.
     """
+
+    DATASET_TO_FOLDER: dict[IlcdDatasetType, str] = {
+        IlcdDatasetType.Flows: "flows",
+        IlcdDatasetType.Sources: "sources",
+        IlcdDatasetType.UnitGroups: "unitgroups",
+        IlcdDatasetType.Contacts: "contacts",
+        IlcdDatasetType.Processes: "processes",
+    }
 
     def __init__(self, zip_file: PathLike | IO[bytes]):
         try:
@@ -67,8 +76,8 @@ class ZipIlcdReader(BaseIlcdMediumSpecificReader):
         :param binary: If True, the stream is opened in binary mode, otherwise in text mode.
         :raise: ValueError if the entity does not exist.
         """
-        full_path = self.__get_file_path_for_entity(entity_type, entity_id, entity_version)
-        if not full_path.exists():
+        full_path = self.__resolve_entity_path(entity_type, entity_id, entity_version)
+        if full_path is None or not full_path.exists():
             raise ValueError(f"Could not find entity {entity_type} {entity_id} (version {entity_version}).")
         return full_path.open("rb" if binary else "r")  # type: ignore
 
@@ -85,13 +94,33 @@ class ZipIlcdReader(BaseIlcdMediumSpecificReader):
         full_path = self.__get_file_path_for_entity(entity_type, entity_id, entity_version)
         return full_path.exists()
 
+    def __resolve_entity_path(
+        self, entity_type: str, entity_id: str, entity_version: str | None = None
+    ) -> ZipPath | None:
+        if self.entity_exists(entity_type, entity_id, entity_version=entity_version):
+            return self.__get_file_path_for_entity(entity_type, entity_id, entity_version)
+        else:
+            if isinstance(entity_type, IlcdDatasetType):
+                entity_type_str = self.DATASET_TO_FOLDER.get(entity_type, str(entity_type))
+            else:
+                entity_type_str = entity_type
+            type_dir = self.__ilcd_dir / entity_type_str
+            for x in type_dir.iterdir():
+                if x.is_file() and x.name.startswith(entity_id) and x.name.endswith(".xml"):
+                    return self.__get_file_path_for_entity(entity_type, x.name)
+        return None
+
     def __get_file_path_for_entity(
         self, entity_type: str, entity_id: str, entity_version: str | None = None
     ) -> ZipPath:
+        if isinstance(entity_type, IlcdDatasetType):
+            entity_type = self.DATASET_TO_FOLDER.get(entity_type, str(entity_type))
         if entity_version is None and "." in entity_id:
             file_name = entity_id
-        else:
+        elif entity_version is not None:
             file_name = f"{entity_id}_{entity_version}.xml"
+        else:
+            file_name = f"{entity_id}.xml"
         full_path = self.__ilcd_dir / entity_type / file_name
         return full_path
 
