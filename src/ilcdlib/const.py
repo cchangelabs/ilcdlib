@@ -19,6 +19,8 @@
 #
 from enum import StrEnum
 
+ILCD_IDENTIFICATION: tuple[str] = ("ILCD",)
+
 
 class IlcdContactClass(StrEnum):
     """Enumeration of ILCD contact classes."""

@@ -17,25 +17,20 @@
 #  Charles Pankow Foundation, Microsoft Sustainability Fund, Interface, MKA Foundation, and others.
 #  Find out more at www.BuildingTransparency.org
 #
-from typing import TypeVar
+import re
 
-from ilcdlib import const
-from openepd.model.common import ExternalIdentification
-
-T = TypeVar("T")
+PHONE_REGEX = re.compile(r"\+?[\d\s\-()]+", re.IGNORECASE)
 
 
-def none_throws(optional: T | None, message: str = "Unexpected `None`") -> T:
-    """Convert an optional to its value. Raises an `AssertionError` if the value is `None`."""
-    if optional is None:
-        raise AssertionError(message)
-    return optional
+def cleanup_phone(phone: str | None) -> str | None:
+    """
+    Try to perform cleanup of the given phone number.
 
-
-def create_openepd_identification(
-    identification: ExternalIdentification | None,
-) -> dict[str, ExternalIdentification] | None:
-    """Create a dictionary of OpenEPD identification objects."""
-    if identification is None or not identification.has_values():
+    E.g. if the input is `Tel: +49 (0) 123 456 789 blah`, the output will be ``+49 (0) 123 456 789``.
+    """
+    if phone is None:
         return None
-    return {x: identification for x in const.ILCD_IDENTIFICATION}
+    for m in PHONE_REGEX.findall(phone):
+        if len(m.strip()) > 0:
+            return m.strip()
+    return phone

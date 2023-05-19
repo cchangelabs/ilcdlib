@@ -48,11 +48,11 @@ class ContactReaderTestCase(TestCase):
                     "common:referenceToNameOfReviewerAndInstitution",
                 ),
             ),
-            self.epd_reader.reader,
+            self.epd_reader.data_provider,
         )
 
     def tearDown(self) -> None:
-        self.epd_reader.reader.close()
+        self.epd_reader.data_provider.close()
 
     def test_read_contact_fields(self):
         self.assertEqual(self.contact_reader.get_uuid(), "d111dbec-b024-4be5-86c5-752d6eb2cf95")
@@ -63,3 +63,8 @@ class ContactReaderTestCase(TestCase):
         self.assertEqual(self.contact_reader.get_short_name("de"), "IBU")
         self.assertEqual(self.contact_reader.get_name("de"), "Institut Bauen und Umwelt e. V.")
         self.assertEqual(self.contact_reader.get_address(), "Panoramastr. 1, 10178 Berlin")
+
+    def test_to_openepd(self):
+        openepd_org = self.contact_reader.to_openepd_org("de")
+        if openepd_org:
+            print(openepd_org.json(indent=2))

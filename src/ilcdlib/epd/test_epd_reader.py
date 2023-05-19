@@ -38,7 +38,7 @@ class EpdReaderTestCase(TestCase):
         )
 
     def tearDown(self) -> None:
-        self.epd_reader_industry.reader.close()
+        self.epd_reader_industry.data_provider.close()
 
     def test_read_basic_fields_industry_epd(self):
         self.assertEqual(self.epd_reader_industry.get_product_name(self.LANG), "2-layer parquet")

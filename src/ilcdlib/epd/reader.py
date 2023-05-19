@@ -18,17 +18,27 @@
 #  Find out more at www.BuildingTransparency.org
 #
 import datetime
+from typing import Type
 
 from ilcdlib.common import BaseIlcdMediumSpecificReader, IlcdXmlReader
 from ilcdlib.const import IlcdDatasetType
 from ilcdlib.dto import IlcdReference
+from ilcdlib.entity.contact import IlcdContactReader
 
 
 class IlcdEpdReader(IlcdXmlReader):
     """Reader for ILCD+EPD datasets."""
 
-    def __init__(self, epd_process_id: str, epd_version: str, reader: BaseIlcdMediumSpecificReader, *args, **kwargs):
-        super().__init__(reader)
+    def __init__(
+        self,
+        epd_process_id: str,
+        epd_version: str,
+        data_provider: BaseIlcdMediumSpecificReader,
+        *,
+        contact_reader_cls: Type[IlcdContactReader] = IlcdContactReader,
+    ):
+        super().__init__(data_provider)
+        self.contact_reader_cls = contact_reader_cls
         self.__epd_entity_ref = IlcdReference(IlcdDatasetType.Processes, epd_process_id, epd_version)
         self.epd_el_tree = self.get_xml_tree(*self.__epd_entity_ref, allow_static_datasets=False)
         self.xml_parser.xml_ns["epd2013"] = "http://www.iai.kit.edu/EPD/2013"
@@ -76,3 +86,22 @@ class IlcdEpdReader(IlcdXmlReader):
             self.epd_el_tree,
             ("process:processInformation", "process:time", "common:other", "epd2019:publicationDateOfEPD"),
         )
+
+    def get_external_verifier_reader(self) -> IlcdContactReader | None:
+        """Return the reader for the reviewer."""
+        element = self._get_external_tree(
+            self.epd_el_tree,
+            (
+                "process:modellingAndValidation",
+                "process:validation",
+                "process:review",
+                "common:referenceToNameOfReviewerAndInstitution",
+            ),
+        )
+        if element:
+            return self.contact_reader_cls(
+                element,
+                self.data_provider,
+            )
+        else:
+            return None

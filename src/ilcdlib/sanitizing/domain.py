@@ -17,25 +17,33 @@
 #  Charles Pankow Foundation, Microsoft Sustainability Fund, Interface, MKA Foundation, and others.
 #  Find out more at www.BuildingTransparency.org
 #
-from typing import TypeVar
-
-from ilcdlib import const
-from openepd.model.common import ExternalIdentification
-
-T = TypeVar("T")
+from urllib.parse import urlparse
 
 
-def none_throws(optional: T | None, message: str = "Unexpected `None`") -> T:
-    """Convert an optional to its value. Raises an `AssertionError` if the value is `None`."""
-    if optional is None:
-        raise AssertionError(message)
-    return optional
-
-
-def create_openepd_identification(
-    identification: ExternalIdentification | None,
-) -> dict[str, ExternalIdentification] | None:
-    """Create a dictionary of OpenEPD identification objects."""
-    if identification is None or not identification.has_values():
+def domain_from_url(url: str | None) -> str | None:
+    """Try to extract the domain name (excluding `www` subdomain) from the given URL."""
+    if url is None:
         return None
-    return {x: identification for x in const.ILCD_IDENTIFICATION}
+    if url.startswith("http"):
+        try:
+            netloc = urlparse(url).netloc
+            if ":" in netloc:
+                return netloc.split(":")[0]
+            return netloc.removeprefix("www.")
+        except ValueError:
+            return None
+    else:
+        return url.removeprefix("www.")
+
+
+def cleanup_website(website: str | None) -> str | None:
+    """
+    Try to perform cleanup of the given website address.
+
+    If just domain name is given, add https:// and trailing slash.
+    """
+    if website is None:
+        return None
+    if not website.startswith("http"):
+        return "https://" + website + "/"
+    return website

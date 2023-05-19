@@ -24,6 +24,7 @@ from typing import IO, Literal, Self, Sequence, TextIO, overload
 from ilcdlib.const import IlcdDatasetType
 from ilcdlib.dto import IlcdReference
 from ilcdlib.xml_parser import T_ET, XmlParser
+from openepd.model.orgs import Org
 
 XmlPath = str | tuple[str, ...] | list[str]
 
@@ -96,8 +97,8 @@ class BaseIlcdMediumSpecificReader(metaclass=abc.ABCMeta):
 class IlcdXmlReader:
     """Base class for ILCD xml readers. It provides a set of helper methods to read ILCD data from ILCD xml."""
 
-    def __init__(self, reader: BaseIlcdMediumSpecificReader):
-        self.reader = reader
+    def __init__(self, data_provider: BaseIlcdMediumSpecificReader):
+        self.data_provider = data_provider
         self.xml_parser = XmlParser(
             ns_map=dict(
                 xml="http://www.w3.org/XML/1998/namespace",
@@ -123,7 +124,7 @@ class IlcdXmlReader:
         :raise: ValueError if the entity does not exist.
         """
         # TODO: add static datasets support
-        with self.reader.get_entity_stream(entity_type, entity_id, entity_version) as stream:
+        with self.data_provider.get_entity_stream(entity_type, entity_id, entity_version) as stream:
             return self.xml_parser.get_xml_tree(stream)
 
     def _preprocess_path(self, path: XmlPath) -> str:
@@ -196,3 +197,12 @@ class IlcdXmlReader:
         if ref is None:
             return None
         return self.get_xml_tree(ref.entity_type, ref.entity_id, ref.entity_version, allow_static_datasets=True)
+
+
+class OpenEpdContactSupportReader(metaclass=abc.ABCMeta):
+    """Base class for adding OpenEPD export support."""
+
+    @abc.abstractmethod
+    def to_openepd_org(self, lang: str) -> Org:
+        """Read as OpenEPD Org object."""
+        pass

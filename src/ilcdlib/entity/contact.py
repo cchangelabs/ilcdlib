@@ -17,17 +17,21 @@
 #  Charles Pankow Foundation, Microsoft Sustainability Fund, Interface, MKA Foundation, and others.
 #  Find out more at www.BuildingTransparency.org
 #
-from ilcdlib.common import BaseIlcdMediumSpecificReader, IlcdXmlReader
+from ilcdlib.common import BaseIlcdMediumSpecificReader, IlcdXmlReader, OpenEpdContactSupportReader
 from ilcdlib.const import IlcdContactClass
-from ilcdlib.utils import none_throws
+from ilcdlib.sanitizing.domain import domain_from_url
+from ilcdlib.sanitizing.phone import cleanup_phone
+from ilcdlib.utils import create_openepd_identification, none_throws
 from ilcdlib.xml_parser import T_ET
+from openepd.model.common import ExternalIdentification
+from openepd.model.orgs import Contact, Org
 
 
-class IlcdContactReader(IlcdXmlReader):
+class IlcdContactReader(OpenEpdContactSupportReader, IlcdXmlReader):
     """Reader for ILCD contact data sets."""
 
-    def __init__(self, element: T_ET.Element, reader: BaseIlcdMediumSpecificReader):
-        super().__init__(reader)
+    def __init__(self, element: T_ET.Element, data_provider: BaseIlcdMediumSpecificReader):
+        super().__init__(data_provider)
         self._entity = element
 
     def get_uuid(self) -> str:
@@ -63,8 +67,8 @@ class IlcdContactReader(IlcdXmlReader):
                 "contact:contactInformation",
                 "contact:dataSetInformation",
                 "contact:classificationInformation",
-                "common:classification[not(@class)]",
-                "common:class[@level=0]",
+                "common:classification",  # "common:classification[not(@class)]",
+                "common:class[@level='0']",
             ),
         )
         if ilcd_contact_class is None:
@@ -96,4 +100,22 @@ class IlcdContactReader(IlcdXmlReader):
         """Get the address of the contact described by this data set."""
         return self._get_text(
             self._entity, ("contact:contactInformation", "contact:dataSetInformation", "contact:contactAddress")
+        )
+
+    def to_openepd_org(self, lang: str) -> Org:
+        """Convert this data set to an OpenEPD org object."""
+        open_epd_contact = Contact.construct(
+            email=self.get_email(),
+            phone=cleanup_phone(self.get_phone()),
+            website=self.get_website(),
+        )
+        identification = ExternalIdentification.construct(
+            id=self.get_uuid(),
+            version=self.get_version(),
+        )
+        return Org.construct(
+            name=self.get_name(lang),
+            web_domain=domain_from_url(self.get_website()),
+            contacts=open_epd_contact if open_epd_contact.has_values() else None,
+            identification=create_openepd_identification(identification),
         )
