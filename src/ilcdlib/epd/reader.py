@@ -18,12 +18,13 @@
 #  Find out more at www.BuildingTransparency.org
 #
 import datetime
-from typing import Type
+from typing import Sequence, Type
 
 from ilcdlib.common import BaseIlcdMediumSpecificReader, IlcdXmlReader, OpenEpdEdpSupportReader
 from ilcdlib.const import IlcdDatasetType
 from ilcdlib.dto import IlcdReference, ProductClassDef
 from ilcdlib.entity.contact import IlcdContactReader
+from ilcdlib.type import LangDef
 from ilcdlib.utils import none_throws
 from openepd.model.common import ExternalIdentification
 from openepd.model.epd import Epd
@@ -34,18 +35,34 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
 
     def __init__(
         self,
-        epd_process_id: str,
-        epd_version: str,
+        epd_process_id: str | None,
+        epd_version: str | None,
         data_provider: BaseIlcdMediumSpecificReader,
         *,
         contact_reader_cls: Type[IlcdContactReader] = IlcdContactReader,
     ):
         super().__init__(data_provider)
         self.contact_reader_cls = contact_reader_cls
-        self.__epd_entity_ref = IlcdReference(IlcdDatasetType.Processes, epd_process_id, epd_version)
+        if epd_process_id is None:
+            entities = data_provider.list_entities(IlcdDatasetType.Processes)
+            self.__epd_entity_ref = entities[0]
+        else:
+            self.__epd_entity_ref = IlcdReference(IlcdDatasetType.Processes, epd_process_id, epd_version)
         self.epd_el_tree = self.get_xml_tree(*self.__epd_entity_ref, allow_static_datasets=False)
         self.xml_parser.xml_ns["epd2013"] = "http://www.iai.kit.edu/EPD/2013"
         self.xml_parser.xml_ns["epd2019"] = "http://www.iai.kit.edu/EPD/2019"
+
+    def get_supported_langs(self) -> list[str]:
+        """Return the list of supported languages."""
+        result: list[str] = []
+        elements = self._get_all_els(
+            self.epd_el_tree,
+            ("process:processInformation", "process:dataSetInformation", "process:name", "process:baseName"),
+        )
+        for x in elements:
+            if x.attrib and x.attrib.get(self._LANG_ATTRIB_NAME):
+                result.append(none_throws(x.attrib.get(self._LANG_ATTRIB_NAME)))
+        return result
 
     def get_uuid(self) -> str:
         """Get the UUID of the entity described by this data set."""
@@ -82,7 +99,7 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
             == "average dataset"
         )
 
-    def get_product_name(self, lang: str) -> str | None:
+    def get_product_name(self, lang: LangDef) -> str | None:
         """Return the product name in the given language."""
         return self._get_localized_text(
             self.epd_el_tree,
@@ -90,7 +107,7 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
             lang,
         )
 
-    def get_product_description(self, lang: str) -> str | None:
+    def get_product_description(self, lang: LangDef) -> str | None:
         """Return the product description in the given language."""
         return self._get_localized_text(
             self.epd_el_tree,
@@ -149,7 +166,7 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
                 "common:referenceToNameOfReviewerAndInstitution",
             ),
         )
-        if element:
+        if element is not None:
             return self.contact_reader_cls(
                 element,
                 self.data_provider,
@@ -167,7 +184,7 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
                 "common:referenceToOwnershipOfDataSet",
             ),
         )
-        if element:
+        if element is not None:
             return self.contact_reader_cls(
                 element,
                 self.data_provider,
@@ -185,7 +202,7 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
                 "common:referenceToRegistrationAuthority",
             ),
         )
-        if element:
+        if element is not None:
             return self.contact_reader_cls(
                 element,
                 self.data_provider,
@@ -231,8 +248,11 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
                 result["IBU"] = " >> ".join([none_throws(x.name) for x in class_defs])
         return result
 
-    def to_openepd_epd(self, lang: str) -> Epd:
+    def to_openepd_epd(self, lang: LangDef) -> Epd:
         """Return the EPD as OpenEPD object."""
+        lang_code = lang if isinstance(lang, str) else None
+        if isinstance(lang, Sequence):
+            lang_code = lang[0] if len(lang) > 0 else None
         identification = ExternalIdentification.construct(
             id=self.get_uuid(),
             version=self.get_version(),
@@ -245,6 +265,7 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
         external_verifier = external_verifier_reader.to_openepd_org(lang) if external_verifier_reader else None
         return Epd.construct(
             doctype="ILCD_EPD",
+            language=lang_code,
             identified=identification,
             name=self.get_product_name(lang),
             description=self.get_product_description(lang),

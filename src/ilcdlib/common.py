@@ -23,6 +23,7 @@ from typing import IO, Literal, Self, Sequence, TextIO, overload
 
 from ilcdlib.const import IlcdDatasetType
 from ilcdlib.dto import IlcdReference
+from ilcdlib.type import LangDef, LocalizedStr
 from ilcdlib.xml_parser import T_ET, XmlParser
 from openepd.model.epd import Epd
 from openepd.model.orgs import Org
@@ -88,6 +89,15 @@ class BaseIlcdMediumSpecificReader(metaclass=abc.ABCMeta):
         """
         pass
 
+    @abc.abstractmethod
+    def list_entities(self, entity_type: str) -> Sequence[IlcdReference]:
+        """
+        List all entities of the given type.
+
+        :param entity_type: The type of the entity. e.g. "process", "contact", "flow", etc.
+        """
+        pass
+
     def __enter__(self) -> Self:
         return self
 
@@ -97,6 +107,8 @@ class BaseIlcdMediumSpecificReader(metaclass=abc.ABCMeta):
 
 class IlcdXmlReader:
     """Base class for ILCD xml readers. It provides a set of helper methods to read ILCD data from ILCD xml."""
+
+    _LANG_ATTRIB_NAME = "{http://www.w3.org/XML/1998/namespace}lang"
 
     def __init__(self, data_provider: BaseIlcdMediumSpecificReader):
         self.data_provider = data_provider
@@ -188,8 +200,8 @@ class IlcdXmlReader:
         return default_value
 
     def _get_localized_text(
-        self, root: T_ET.Element, path: XmlPath, lang: str | Sequence[str], default_value: str | None = None
-    ) -> str | None:
+        self, root: T_ET.Element, path: XmlPath, lang: LangDef, default_value: LocalizedStr | None = None
+    ) -> LocalizedStr | None:
         """
         Get the element text for the given language.
 
@@ -197,13 +209,19 @@ class IlcdXmlReader:
         :param lang: The language to get the text for.
         :return: The localized text for the given language or None if not found.
         """
-        if isinstance(lang, str):
+        if isinstance(lang, str) or lang is None:
             lang = [lang]
         for x in lang:
-            xpath = f"{self._preprocess_path(path)}[@xml:lang='{x}']"
-            res = self.xml_parser.get_el_text(root, xpath, None)
-            if res is not None:
-                return res
+            xpath = self._preprocess_path(path)
+            xpath += f"[@xml:lang='{x}']" if x is not None else "[1]"
+            el = self.xml_parser.get_el(root, xpath)
+            if el is not None:
+                res = el.text
+                if res and el.attrib and el.attrib.get(self._LANG_ATTRIB_NAME):
+                    return LocalizedStr(res, el.attrib.get(self._LANG_ATTRIB_NAME))
+                return LocalizedStr(res) if res else default_value
+            else:
+                continue
         return default_value
 
     def _get_reference(
@@ -234,7 +252,7 @@ class OpenEpdContactSupportReader(metaclass=abc.ABCMeta):
     """Base class for adding OpenEPD export support."""
 
     @abc.abstractmethod
-    def to_openepd_org(self, lang: str) -> Org:
+    def to_openepd_org(self, lang: LangDef) -> Org:
         """Read as OpenEPD Org object."""
         pass
 
@@ -243,6 +261,6 @@ class OpenEpdEdpSupportReader(metaclass=abc.ABCMeta):
     """Base class for adding OpenEPD export support to EPD documents."""
 
     @abc.abstractmethod
-    def to_openepd_epd(self, lang: str) -> Epd:
+    def to_openepd_epd(self, lang: LangDef) -> Epd:
         """Read as OpenEPD EPD object."""
         pass

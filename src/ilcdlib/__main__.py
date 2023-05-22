@@ -17,4 +17,7 @@
 #  Charles Pankow Foundation, Microsoft Sustainability Fund, Interface, MKA Foundation, and others.
 #  Find out more at www.BuildingTransparency.org
 #
-VERSION = "0.1.0"
+from ilcdlib import cli
+
+if __name__ == "__main__":
+    cli.entrypoint()

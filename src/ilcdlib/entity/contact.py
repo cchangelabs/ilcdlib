@@ -21,6 +21,7 @@ from ilcdlib.common import BaseIlcdMediumSpecificReader, IlcdXmlReader, OpenEpdC
 from ilcdlib.const import IlcdContactClass
 from ilcdlib.sanitizing.domain import domain_from_url
 from ilcdlib.sanitizing.phone import cleanup_phone
+from ilcdlib.type import LangDef
 from ilcdlib.utils import create_openepd_identification, none_throws
 from ilcdlib.xml_parser import T_ET
 from openepd.model.common import ExternalIdentification
@@ -47,13 +48,13 @@ class IlcdContactReader(OpenEpdContactSupportReader, IlcdXmlReader):
             ("contact:administrativeInformation", "contact:publicationAndOwnership", "common:dataSetVersion"),
         )
 
-    def get_name(self, lang: str) -> str | None:
+    def get_name(self, lang: LangDef) -> str | None:
         """Get the name of the entity described by this data set."""
         return self._get_localized_text(
             self._entity, ("contact:contactInformation", "contact:dataSetInformation", "common:name"), lang
         )
 
-    def get_short_name(self, lang: str) -> str | None:
+    def get_short_name(self, lang: LangDef) -> str | None:
         """Get the short name of the entity described by this data set."""
         return self._get_localized_text(
             self._entity, ("contact:contactInformation", "contact:dataSetInformation", "common:shortName"), lang
@@ -102,7 +103,7 @@ class IlcdContactReader(OpenEpdContactSupportReader, IlcdXmlReader):
             self._entity, ("contact:contactInformation", "contact:dataSetInformation", "contact:contactAddress")
         )
 
-    def to_openepd_org(self, lang: str) -> Org:
+    def to_openepd_org(self, lang: LangDef) -> Org:
         """Convert this data set to an OpenEPD org object."""
         open_epd_contact = Contact.construct(
             email=self.get_email(),

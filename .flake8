@@ -44,6 +44,7 @@ per-file-ignores =
     __init__.py: F401,
     test_*.py: D104, D100, D101, D102, D106
     __version__.py: D104, D100, D101, D102
+    cli.py: D101, D102, D103
 
 deny-imports =
     # Don't allow `cqd_datamodel` to import etl and etl_impl

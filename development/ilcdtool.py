@@ -1,3 +1,5 @@
+#!/bin/env python3
+# -*- coding: utf-8 -*-
 #
 #  Copyright 2023 by C Change Labs Inc. www.c-change-labs.com
 #
@@ -17,4 +19,13 @@
 #  Charles Pankow Foundation, Microsoft Sustainability Fund, Interface, MKA Foundation, and others.
 #  Find out more at www.BuildingTransparency.org
 #
-VERSION = "0.1.0"
+import re
+import sys
+
+sys.path.append("$SRC_DIR")
+
+from ilcdlib import cli
+
+if __name__ == "__main__":
+    sys.argv[0] = re.sub(r"(-script\.pyw|\.exe)?$", "", sys.argv[0])
+    sys.exit(cli.entrypoint())

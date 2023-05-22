@@ -16,13 +16,14 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 readme = "README.md"
-packages = [{include = "ilcdlib", from = "src"}]
+packages = [{ include = "ilcdlib", from = "src" }]
 
 [tool.poetry.dependencies]
 python = "^3.11"
 
 # Optional dependencies
 lxml = { version = "~=4.9.2", optional = true }
+cli-rack = { version = ">=1.0.6", optional = true }
 
 [tool.poetry.dev-dependencies]
 platformdirs = "~=2.6.2"    # Remove this as soon as poetry supports 3.x version
@@ -51,6 +52,7 @@ types-deprecated = ">=1.2.9"
 
 [tool.poetry.extras]
 lxml = ["lxml"]
+cli = ["cli-rack"]
 
 [[tool.poetry.source]]
 name = "ec3"
@@ -129,6 +131,6 @@ exclude = ["test_.*\\.py$", ]
 
 [[tool.mypy.overrides]]
 # External libs which doesn't have type hints (py.typed marker)
-module = []
+module = ["cli_rack.*"]
 ignore_missing_imports = true
 follow_imports = "skip"

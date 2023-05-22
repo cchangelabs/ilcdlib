@@ -28,7 +28,8 @@ setup: verify-prerequisites venv deps
 	@( \
 		if [ -z $(SKIP_VENV) ]; then source $(VIRTUAL_ENV_PATH)/bin/activate; fi; \
 		pre-commit install; \
-		echo "Pre-commit hooks installed" \
+		echo "Pre-commit hooks installed"; \
+		./development/install-cli-commands.sh "$(VIRTUAL_ENV_PATH)" "$(SRC_ROOT)"; \
 		echo "DONE: setup" \
 	)
 

@@ -18,12 +18,13 @@
 #  Find out more at www.BuildingTransparency.org
 #
 from os import PathLike
-from typing import IO, Literal, TextIO, overload
+from typing import IO, Literal, Sequence, TextIO, overload
 from zipfile import Path as ZipPath
 from zipfile import ZipFile
 
 from ilcdlib.common import BaseIlcdMediumSpecificReader
 from ilcdlib.const import IlcdDatasetType
+from ilcdlib.dto import IlcdReference
 
 
 class ZipIlcdReader(BaseIlcdMediumSpecificReader):
@@ -93,6 +94,29 @@ class ZipIlcdReader(BaseIlcdMediumSpecificReader):
         """
         full_path = self.__get_file_path_for_entity(entity_type, entity_id, entity_version)
         return full_path.exists()
+
+    def list_entities(self, entity_type: str) -> Sequence[IlcdReference]:
+        """
+        List all entities of the given type.
+
+        :param entity_type: The type of the entity. e.g. "process", "contact", "flow", etc.
+        """
+        if isinstance(entity_type, IlcdDatasetType):
+            entity_type_str = self.DATASET_TO_FOLDER.get(entity_type, str(entity_type))
+        else:
+            entity_type_str = entity_type
+        type_dir = self.__ilcd_dir / entity_type_str
+        if not type_dir.is_dir():
+            return []
+        return [
+            IlcdReference(
+                entity_type=entity_type,
+                entity_id=x.name.split("_")[0],
+                entity_version=x.name.split("_")[1].replace(".xml", ""),
+            )
+            for x in type_dir.iterdir()
+            if x.is_file() and x.name.endswith(".xml")
+        ]
 
     def __resolve_entity_path(
         self, entity_type: str, entity_id: str, entity_version: str | None = None
