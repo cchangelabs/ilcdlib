@@ -24,8 +24,9 @@ from ilcdlib.common import BaseIlcdMediumSpecificReader, IlcdXmlReader, OpenEpdE
 from ilcdlib.const import IlcdDatasetType
 from ilcdlib.dto import IlcdReference, ProductClassDef
 from ilcdlib.entity.contact import IlcdContactReader
+from ilcdlib.entity.pcr import IlcdPcrReader
 from ilcdlib.type import LangDef
-from ilcdlib.utils import none_throws
+from ilcdlib.utils import create_openepd_identification, none_throws
 from openepd.model.common import ExternalIdentification
 from openepd.model.epd import Epd
 
@@ -40,9 +41,11 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
         data_provider: BaseIlcdMediumSpecificReader,
         *,
         contact_reader_cls: Type[IlcdContactReader] = IlcdContactReader,
+        pcr_reader_cls: Type[IlcdPcrReader] = IlcdPcrReader,
     ):
         super().__init__(data_provider)
         self.contact_reader_cls = contact_reader_cls
+        self.pcr_reader_cls = pcr_reader_cls
         if epd_process_id is None:
             entities = data_provider.list_entities(IlcdDatasetType.Processes)
             self.__epd_entity_ref = entities[0]
@@ -166,13 +169,7 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
                 "common:referenceToNameOfReviewerAndInstitution",
             ),
         )
-        if element is not None:
-            return self.contact_reader_cls(
-                element,
-                self.data_provider,
-            )
-        else:
-            return None
+        return self.contact_reader_cls(element, self.data_provider) if element is not None else None
 
     def get_manufacturer_reader(self) -> IlcdContactReader | None:
         """Return the reader for the manufacturer."""
@@ -184,13 +181,19 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
                 "common:referenceToOwnershipOfDataSet",
             ),
         )
-        if element is not None:
-            return self.contact_reader_cls(
-                element,
-                self.data_provider,
-            )
-        else:
-            return None
+        return self.contact_reader_cls(element, self.data_provider) if element is not None else None
+
+    def get_pcr_reader(self) -> IlcdPcrReader | None:
+        """Return the reader for the PCR."""
+        element = self._get_external_tree(
+            self.epd_el_tree,
+            (
+                "process:modellingAndValidation",
+                "process:LCIMethodAndAllocation",
+                "process:referenceToLCAMethodDetails",
+            ),
+        )
+        return self.pcr_reader_cls(element, self.data_provider) if element is not None else None
 
     def get_program_operator_reader(self) -> IlcdContactReader | None:
         """Return the reader for the program operator."""
@@ -263,10 +266,12 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
         program_operator = program_operator_reader.to_openepd_org(lang) if program_operator_reader else None
         external_verifier_reader = self.get_external_verifier_reader()
         external_verifier = external_verifier_reader.to_openepd_org(lang) if external_verifier_reader else None
+        pcr_reader = self.get_pcr_reader()
+        pcr = pcr_reader.to_openepd_pcr(lang) if pcr_reader else None
         return Epd.construct(
             doctype="ILCD_EPD",
             language=lang_code,
-            identified=identification,
+            identified=create_openepd_identification(identification),
             name=self.get_product_name(lang),
             description=self.get_product_description(lang),
             date_published=self.get_date_published(),
@@ -276,4 +281,5 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
             program_operator=program_operator,
             product_class=self._product_classes_to_openepd_org(self.get_product_classes()),
             third_party_verifier=external_verifier,
+            pcr=pcr,
         )

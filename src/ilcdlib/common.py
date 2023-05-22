@@ -27,6 +27,7 @@ from ilcdlib.type import LangDef, LocalizedStr
 from ilcdlib.xml_parser import T_ET, XmlParser
 from openepd.model.epd import Epd
 from openepd.model.orgs import Org
+from openepd.model.pcr import Pcr
 
 XmlPath = str | tuple[str, ...] | list[str]
 
@@ -254,6 +255,15 @@ class OpenEpdContactSupportReader(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def to_openepd_org(self, lang: LangDef) -> Org:
         """Read as OpenEPD Org object."""
+        pass
+
+
+class OpenEpdPcrSupportReader(metaclass=abc.ABCMeta):
+    """Base class for adding OpenEPD export support."""
+
+    @abc.abstractmethod
+    def to_openepd_pcr(self, lang: LangDef) -> Pcr:
+        """Read as OpenEPD Pcr object."""
         pass
 
 
