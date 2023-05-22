@@ -59,3 +59,8 @@ class XmlParser(object):
         if el is None:
             return None
         return el
+
+    def get_all_els(self, parent: T_ET.Element, xpath: str) -> list[T_ET.Element]:
+        """Get all xml elements by xpath."""
+        el = parent.findall(xpath, self.xml_ns)
+        return el

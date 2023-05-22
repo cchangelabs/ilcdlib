@@ -117,5 +117,5 @@ class IlcdContactReader(OpenEpdContactSupportReader, IlcdXmlReader):
             name=self.get_name(lang),
             web_domain=domain_from_url(self.get_website()),
             contacts=open_epd_contact if open_epd_contact.has_values() else None,
-            identification=create_openepd_identification(identification),
+            identified=create_openepd_identification(identification),
         )

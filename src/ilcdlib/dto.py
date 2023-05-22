@@ -26,3 +26,10 @@ class IlcdReference(NamedTuple):
     entity_type: str
     entity_id: str
     entity_version: str | None
+
+
+class ProductClassDef(NamedTuple):
+    """A product class definition."""
+
+    id: str | None
+    name: str | None

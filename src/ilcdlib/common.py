@@ -24,6 +24,7 @@ from typing import IO, Literal, Self, Sequence, TextIO, overload
 from ilcdlib.const import IlcdDatasetType
 from ilcdlib.dto import IlcdReference
 from ilcdlib.xml_parser import T_ET, XmlParser
+from openepd.model.epd import Epd
 from openepd.model.orgs import Org
 
 XmlPath = str | tuple[str, ...] | list[str]
@@ -134,6 +135,21 @@ class IlcdXmlReader:
             str_path = path
         return str_path
 
+    def _get_el(
+        self, root: T_ET.Element, path: XmlPath, default_value: T_ET.Element | None = None
+    ) -> T_ET.Element | None:
+        """Get the element matching the given xpath or `default_value` if no element is found."""
+        xpath = self._preprocess_path(path)
+        el = self.xml_parser.get_el(root, xpath)
+        if el is None:
+            return default_value
+        return el
+
+    def _get_all_els(self, root: T_ET.Element, path: XmlPath) -> list[T_ET.Element]:
+        """Get all elements matching the given xpath."""
+        xpath = self._preprocess_path(path)
+        return self.xml_parser.get_all_els(root, xpath)
+
     def _get_text(self, root: T_ET.Element, path: XmlPath, default_value: str | None = None) -> str | None:
         """
         Get the element text.
@@ -144,17 +160,32 @@ class IlcdXmlReader:
         xpath = self._preprocess_path(path)
         return self.xml_parser.get_el_text(root, xpath, default_value)
 
-    def _get_date(self, root: T_ET.Element, path: XmlPath, default_value: str | None = None) -> datetime.date | None:
+    def _get_date(
+        self, root: T_ET.Element, path: XmlPath, default_value: datetime.date | None = None
+    ) -> datetime.date | None:
         """
-        Get the element text.
+        Get the element value as date.
 
         :param root: The element to get the text from.
         :return: The text or None if not found.
         """
-        text = self._get_text(root, path, default_value)
+        text = self._get_text(root, path, None)
         if text is not None:
-            return datetime.date.fromisoformat(text)
-        return None
+            try:
+                return datetime.date.fromisoformat(text)
+            except ValueError:
+                return default_value
+        return default_value
+
+    def _get_int(self, root: T_ET.Element, path: XmlPath, default_value: int | None = None) -> int | None:
+        """Get the element value as integer."""
+        text = self._get_text(root, path, None)
+        if text is not None:
+            try:
+                return int(text)
+            except ValueError:
+                return default_value
+        return default_value
 
     def _get_localized_text(
         self, root: T_ET.Element, path: XmlPath, lang: str | Sequence[str], default_value: str | None = None
@@ -205,4 +236,13 @@ class OpenEpdContactSupportReader(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def to_openepd_org(self, lang: str) -> Org:
         """Read as OpenEPD Org object."""
+        pass
+
+
+class OpenEpdEdpSupportReader(metaclass=abc.ABCMeta):
+    """Base class for adding OpenEPD export support to EPD documents."""
+
+    @abc.abstractmethod
+    def to_openepd_epd(self, lang: str) -> Epd:
+        """Read as OpenEPD EPD object."""
         pass

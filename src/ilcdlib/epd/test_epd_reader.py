@@ -17,6 +17,7 @@
 #  Charles Pankow Foundation, Microsoft Sustainability Fund, Interface, MKA Foundation, and others.
 #  Find out more at www.BuildingTransparency.org
 #
+import datetime
 from pathlib import Path
 from unittest import TestCase
 
@@ -45,3 +46,18 @@ class EpdReaderTestCase(TestCase):
         self.assertIsNotNone(self.epd_reader_industry.get_product_description(self.LANG))
         self.assertTrue(self.epd_reader_industry.is_epd())
         self.assertTrue(self.epd_reader_industry.is_industry_epd())
+
+        classes = self.epd_reader_industry.get_product_classes()
+        self.assertEqual(classes.get("OEKOBAU.DAT")[-1].id, "3.3.02")
+        self.assertEqual(classes.get("OEKOBAU.DAT")[-1].name, "Parkett")
+        self.assertEqual(
+            [x.name for x in classes.get("IBUCategories")],
+            ["02 Bauprodukte", "Produkte aus Bauholz", "Vollholzprodukte"],
+        )
+        self.assertEqual(self.epd_reader_industry.get_program_operator_id(), "EPD-HAM-20220202-ICD1-DE")
+        self.assertEqual(self.epd_reader_industry.get_date_published(), datetime.date.fromisoformat("2022-10-10"))
+
+    def test_to_openepd(self):
+        openepd_org = self.epd_reader_industry.to_openepd_epd("de")
+        if openepd_org:
+            print(openepd_org.json(indent=2))
