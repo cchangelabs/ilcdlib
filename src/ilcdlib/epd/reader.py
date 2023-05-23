@@ -24,10 +24,11 @@ from ilcdlib.common import BaseIlcdMediumSpecificReader, IlcdXmlReader, OpenEpdE
 from ilcdlib.const import IlcdDatasetType
 from ilcdlib.dto import IlcdReference, ProductClassDef
 from ilcdlib.entity.contact import IlcdContactReader
+from ilcdlib.entity.flow import IlcdExchangeDto, IlcdFlowReader
 from ilcdlib.entity.pcr import IlcdPcrReader
 from ilcdlib.type import LangDef
 from ilcdlib.utils import create_openepd_identification, none_throws
-from openepd.model.common import ExternalIdentification
+from openepd.model.common import Amount, ExternalIdentification
 from openepd.model.epd import Epd
 
 
@@ -42,10 +43,12 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
         *,
         contact_reader_cls: Type[IlcdContactReader] = IlcdContactReader,
         pcr_reader_cls: Type[IlcdPcrReader] = IlcdPcrReader,
+        flow_reader_cls: Type[IlcdFlowReader] = IlcdFlowReader,
     ):
         super().__init__(data_provider)
         self.contact_reader_cls = contact_reader_cls
         self.pcr_reader_cls = pcr_reader_cls
+        self.flow_reader_cls = flow_reader_cls
         if epd_process_id is None:
             entities = data_provider.list_entities(IlcdDatasetType.Processes)
             self.__epd_entity_ref = entities[0]
@@ -205,13 +208,7 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
                 "common:referenceToRegistrationAuthority",
             ),
         )
-        if element is not None:
-            return self.contact_reader_cls(
-                element,
-                self.data_provider,
-            )
-        else:
-            return None
+        return self.contact_reader_cls(element, self.data_provider) if element is not None else None
 
     def get_product_classes(self) -> dict[str, list[ProductClassDef]]:
         """Return all product classes the product classes."""
@@ -234,6 +231,48 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
                 cls_name = x.text if x.text else None
                 classes.append(ProductClassDef(cls_id, cls_name))
         return result
+
+    def get_ref_to_product_flow_dataset(self) -> int | None:
+        """
+        Return the reference to the flow dataset.
+
+        This number should be used to identify flow in the list of exchanges.
+        """
+        return self._get_int(
+            self.epd_el_tree,
+            ("process:processInformation", "process:quantitativeReference", "process:referenceToReferenceFlow"),
+        )
+
+    def get_declared_unit(self) -> Amount | None:
+        """Return the reader for the flow."""
+        ref_id = self.get_ref_to_product_flow_dataset()
+        if ref_id is None:
+            return None
+        exchange_element = self._get_el(
+            self.epd_el_tree,
+            (
+                "process:exchanges",
+                f"process:exchange[@dataSetInternalID='{ref_id}']",
+            ),
+        )
+        if exchange_element is None:
+            return None
+        flow_dataset_el = self._get_external_tree(exchange_element, ("process:referenceToFlowDataSet",))
+        if flow_dataset_el is None:
+            return None
+        exchange_dto = IlcdExchangeDto(
+            mean_value=self._get_float(exchange_element, ("process:meanAmount",)),
+            flow_dataset_reader=self.flow_reader_cls(flow_dataset_el, self.data_provider),
+        )
+        reference_flow_property = none_throws(exchange_dto.flow_dataset_reader).get_reference_flow_property()
+        if reference_flow_property is None:
+            return None
+        unit_group_reader = reference_flow_property.dataset_reader.get_unit_group_reader()
+        unit = unit_group_reader.get_reference_unit() if unit_group_reader is not None else None
+        if unit is None:
+            return None
+        amount = (exchange_dto.mean_value or 1.0) * (reference_flow_property.mean_value or 1.0) * unit.mean_value
+        return Amount(qty=amount, unit=unit.name)
 
     def get_program_operator_id(self) -> str | None:
         """Get document identifier assigned by program operator."""
@@ -268,6 +307,7 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
         external_verifier = external_verifier_reader.to_openepd_org(lang) if external_verifier_reader else None
         pcr_reader = self.get_pcr_reader()
         pcr = pcr_reader.to_openepd_pcr(lang) if pcr_reader else None
+        declared_unit = self.get_declared_unit()
         return Epd.construct(
             doctype="ILCD_EPD",
             language=lang_code,
@@ -282,4 +322,5 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
             product_class=self._product_classes_to_openepd_org(self.get_product_classes()),
             third_party_verifier=external_verifier,
             pcr=pcr,
+            declared_unit=declared_unit,
         )

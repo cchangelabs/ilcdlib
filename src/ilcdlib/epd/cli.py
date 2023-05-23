@@ -121,4 +121,4 @@ class ConvertEpdCliExtension(CliExtension):
         CLI.print_info("Language priority: " + ",".join([x if x is not None else "any other" for x in lang_list]))
 
         open_epd = epd_reader.to_openepd_epd(lang_list)
-        CLI.print_data(open_epd.json(indent=2))
+        CLI.print_data(open_epd.json(indent=2, exclude_none=True, exclude_unset=True))

@@ -40,6 +40,7 @@ class ZipIlcdReader(BaseIlcdMediumSpecificReader):
         IlcdDatasetType.UnitGroups: "unitgroups",
         IlcdDatasetType.Contacts: "contacts",
         IlcdDatasetType.Processes: "processes",
+        IlcdDatasetType.FlowProperty: "flowproperties",
     }
 
     def __init__(self, zip_file: PathLike | IO[bytes]):
@@ -129,6 +130,8 @@ class ZipIlcdReader(BaseIlcdMediumSpecificReader):
             else:
                 entity_type_str = entity_type
             type_dir = self.__ilcd_dir / entity_type_str
+            if not type_dir.is_dir():
+                return None
             for x in type_dir.iterdir():
                 if x.is_file() and x.name.startswith(entity_id) and x.name.endswith(".xml"):
                     return self.__get_file_path_for_entity(entity_type, x.name)

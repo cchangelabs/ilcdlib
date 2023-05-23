@@ -17,24 +17,22 @@
 #  Charles Pankow Foundation, Microsoft Sustainability Fund, Interface, MKA Foundation, and others.
 #  Find out more at www.BuildingTransparency.org
 #
-from enum import StrEnum
+__all__ = ("get_ilcd_epd_reference_data_provider",)
 
-ILCD_IDENTIFICATION: tuple[str] = ("ILCD",)
+from pathlib import Path
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from ilcdlib.medium.archive import ZipIlcdReader
+
+_CACHE: dict[str, "ZipIlcdReader"] = {}
 
 
-class IlcdContactClass(StrEnum):
-    """Enumeration of ILCD contact classes."""
+def get_ilcd_epd_reference_data_provider() -> "ZipIlcdReader":
+    """Get the ILCD+EPD reference data from the ILCD format."""
+    cache_key = "ilcd_epd_ref"
+    if cache_key not in _CACHE:
+        from ilcdlib.medium.archive import ZipIlcdReader
 
-    Person = "Persons"
-    Company = "Organisations"
-
-
-class IlcdDatasetType(StrEnum):
-    """Enumeration of ILCD datasets."""
-
-    Contacts = "contact data set"
-    Sources = "source data set"
-    Flows = "flow data set"
-    Processes = "process data set"
-    UnitGroups = "unit group data set"
-    FlowProperty = "flow property data set"
+        _CACHE[cache_key] = ZipIlcdReader(Path(__file__).parent / "data" / "ilcd_epd_ref.zip")
+    return _CACHE[cache_key]

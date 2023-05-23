@@ -23,6 +23,7 @@ from typing import IO, Literal, Self, Sequence, TextIO, overload
 
 from ilcdlib.const import IlcdDatasetType
 from ilcdlib.dto import IlcdReference
+from ilcdlib.reference_data import get_ilcd_epd_reference_data_provider
 from ilcdlib.type import LangDef, LocalizedStr
 from ilcdlib.xml_parser import T_ET, XmlParser
 from openepd.model.epd import Epd
@@ -113,6 +114,9 @@ class IlcdXmlReader:
 
     def __init__(self, data_provider: BaseIlcdMediumSpecificReader):
         self.data_provider = data_provider
+        self.reference_data_providers: dict[str, BaseIlcdMediumSpecificReader] = {
+            "epd_ref_data": get_ilcd_epd_reference_data_provider()
+        }
         self.xml_parser = XmlParser(
             ns_map=dict(
                 xml="http://www.w3.org/XML/1998/namespace",
@@ -121,6 +125,8 @@ class IlcdXmlReader:
                 flow="http://lca.jrc.it/ILCD/Flow",
                 process="http://lca.jrc.it/ILCD/Process",
                 source="http://lca.jrc.it/ILCD/Source",
+                ug="http://lca.jrc.it/ILCD/UnitGroup",
+                fp="http://lca.jrc.it/ILCD/FlowProperty",
             )
         )
 
@@ -137,9 +143,16 @@ class IlcdXmlReader:
                                       exist in the given one.
         :raise: ValueError if the entity does not exist.
         """
-        # TODO: add static datasets support
-        with self.data_provider.get_entity_stream(entity_type, entity_id, entity_version) as stream:
-            return self.xml_parser.get_xml_tree(stream)
+        try:
+            with self.data_provider.get_entity_stream(entity_type, entity_id, entity_version) as stream:
+                return self.xml_parser.get_xml_tree(stream)
+        except ValueError:
+            if allow_static_datasets:
+                for dataset_name, dataset_provider in self.reference_data_providers.items():
+                    if dataset_provider.entity_exists(entity_type, entity_id, entity_version):
+                        with dataset_provider.get_entity_stream(entity_type, entity_id, entity_version) as stream:
+                            return self.xml_parser.get_xml_tree(stream)
+        raise ValueError(f"Entity {entity_id} version {entity_version} (type: {entity_type}) does not exist.")
 
     def _preprocess_path(self, path: XmlPath) -> str:
         if not isinstance(path, str):
@@ -196,6 +209,16 @@ class IlcdXmlReader:
         if text is not None:
             try:
                 return int(text)
+            except ValueError:
+                return default_value
+        return default_value
+
+    def _get_float(self, root: T_ET.Element, path: XmlPath, default_value: float | None = None) -> float | None:
+        """Get the element value as float."""
+        text = self._get_text(root, path, None)
+        if text is not None:
+            try:
+                return float(text)
             except ValueError:
                 return default_value
         return default_value
