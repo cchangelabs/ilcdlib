@@ -113,6 +113,19 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
             lang,
         )
 
+    def get_quantitative_product_props_str(self, lang: LangDef) -> str | None:
+        """Return the quantitative product properties in the given language."""
+        return self._get_localized_text(
+            self.epd_el_tree,
+            (
+                "process:processInformation",
+                "process:dataSetInformation",
+                "process:name",
+                "process:functionalUnitFlowProperties",
+            ),
+            lang,
+        )
+
     def get_product_description(self, lang: LangDef) -> str | None:
         """Return the product description in the given language."""
         return self._get_localized_text(
@@ -308,11 +321,15 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
         pcr_reader = self.get_pcr_reader()
         pcr = pcr_reader.to_openepd_pcr(lang) if pcr_reader else None
         declared_unit = self.get_declared_unit()
+        quantitative_props = self.get_quantitative_product_props_str(lang)
+        product_name = self.get_product_name(lang)
+        if product_name and quantitative_props:
+            product_name += "; " + quantitative_props
         return Epd.construct(
             doctype="ILCD_EPD",
             language=lang_code,
             identified=create_openepd_identification(identification),
-            name=self.get_product_name(lang),
+            name=product_name,
             description=self.get_product_description(lang),
             date_published=self.get_date_published(),
             valid_until=self.get_validity_ends_date(),
