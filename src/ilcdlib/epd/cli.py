@@ -25,6 +25,7 @@ from cli_rack.modular import CliExtension
 
 from ilcdlib.epd.factory import EpdReaderFactory
 from ilcdlib.medium.archive import ZipIlcdReader
+from ilcdlib.medium.soda4lca import Soda4LcaZipReader
 
 SUPPORTED_INPUT_FORMATS = ("ilcd+epd",)
 SUPPORTED_OUTPUT_FORMATS = ("openEPD",)
@@ -93,15 +94,16 @@ class ConvertEpdCliExtension(CliExtension):
             CLI.fail(f"Output format {out_format} is not supported.", 1)
         if in_format.lower() == out_format.lower():
             CLI.fail(f"Input format {in_format} and output format {out_format} are the same.", 1)
-        if not doc_ref.endswith(".zip"):
-            CLI.fail(f"Input document {doc_ref} is not a zip file.", 2)
+        # if not doc_ref.endswith(".zip"):
+        #     CLI.fail(f"Input document {doc_ref} is not a zip file.", 2)
         epd_reader_factory = EpdReaderFactory()
         if dialect is not None and not epd_reader_factory.is_dialect_supported(dialect):
             CLI.fail(f"Dialect {dialect} is not supported.", 3)
         CLI.print_info(f"Converting document {doc_ref} from {in_format} to {out_format}.")
         reader_cls = epd_reader_factory.get_reader_class(dialect)
         CLI.print_info("Effective dialect: " + (dialect if dialect is not None else "Generic"))
-        epd_reader = reader_cls(None, None, ZipIlcdReader(Path(doc_ref)))
+        medium = Soda4LcaZipReader(doc_ref) if doc_ref.startswith("http") else ZipIlcdReader(Path(doc_ref))
+        epd_reader = reader_cls(None, None, medium)
         supported_langs = epd_reader.get_supported_langs()
         if len(supported_langs) == 0:
             CLI.fail(f"Input document {doc_ref} Doesn't seem to be correct. No language information detected.", 4)
