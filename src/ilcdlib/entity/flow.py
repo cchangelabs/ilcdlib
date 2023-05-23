@@ -21,6 +21,7 @@ from dataclasses import dataclass
 from typing import Optional, Type
 
 from ilcdlib.common import BaseIlcdMediumSpecificReader, IlcdXmlReader
+from ilcdlib.entity.material import MatMlReader
 from ilcdlib.entity.unit import IlcdUnitGroupReader
 from ilcdlib.type import LangDef
 from ilcdlib.utils import none_throws
@@ -94,10 +95,12 @@ class IlcdFlowReader(IlcdXmlReader):
         data_provider: BaseIlcdMediumSpecificReader,
         *,
         flow_property_reader_cls: Type[IlcdFlowPropertyReader] = IlcdFlowPropertyReader,
+        mat_ml_reader_cls: Type[MatMlReader] = MatMlReader,
     ):
         super().__init__(data_provider)
         self._entity = element
         self.flow_property_reader_cls = flow_property_reader_cls
+        self.mat_ml_reader_cls = mat_ml_reader_cls
 
     def get_uuid(self) -> str:
         """Get the UUID of the entity described by this data set."""
@@ -124,6 +127,19 @@ class IlcdFlowReader(IlcdXmlReader):
             self._entity,
             ("flow:flowInformation", "flow:quantitativeReference", "flow:referenceToReferenceFlowProperty"),
         )
+
+    def get_material_reader(self) -> MatMlReader | None:
+        """Get the reader for the material properties."""
+        element = self._get_el(
+            self._entity,
+            (
+                "flow:flowInformation",
+                "flow:dataSetInformation",
+                "common:other",
+                "mm:MatML_Doc",
+            ),
+        )
+        return self.mat_ml_reader_cls(element) if element is not None else None
 
     def get_reference_flow_property(
         self,

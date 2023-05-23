@@ -25,6 +25,7 @@ from ilcdlib.const import IlcdDatasetType
 from ilcdlib.dto import IlcdReference, ProductClassDef
 from ilcdlib.entity.contact import IlcdContactReader
 from ilcdlib.entity.flow import IlcdExchangeDto, IlcdFlowReader
+from ilcdlib.entity.material import MatMlMaterial
 from ilcdlib.entity.pcr import IlcdPcrReader
 from ilcdlib.type import LangDef
 from ilcdlib.utils import create_openepd_identification, none_throws
@@ -256,8 +257,18 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
             ("process:processInformation", "process:quantitativeReference", "process:referenceToReferenceFlow"),
         )
 
-    def get_declared_unit(self) -> Amount | None:
-        """Return the reader for the flow."""
+    def get_material_properties(self) -> MatMlMaterial | None:
+        """Return the material properties."""
+        product_flow_dto = self.get_product_flow()
+        if product_flow_dto is None or product_flow_dto.flow_dataset_reader is None:
+            return None
+        material_reader = product_flow_dto.flow_dataset_reader.get_material_reader()
+        if material_reader is None:
+            return None
+        return material_reader.get_material()
+
+    def get_product_flow(self) -> IlcdExchangeDto | None:
+        """Return the product flow (includes mean value and ilcd flow reader)."""
         ref_id = self.get_ref_to_product_flow_dataset()
         if ref_id is None:
             return None
@@ -277,6 +288,13 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
             mean_value=self._get_float(exchange_element, ("process:meanAmount",)),
             flow_dataset_reader=self.flow_reader_cls(flow_dataset_el, self.data_provider),
         )
+        return exchange_dto
+
+    def get_declared_unit(self) -> Amount | None:
+        """Return the reader for the flow."""
+        exchange_dto = self.get_product_flow()
+        if exchange_dto is None:
+            return None
         reference_flow_property = none_throws(exchange_dto.flow_dataset_reader).get_reference_flow_property()
         if reference_flow_property is None:
             return None
@@ -325,6 +343,7 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
         product_name = self.get_product_name(lang)
         if product_name and quantitative_props:
             product_name += "; " + quantitative_props
+        # material_properties = self.get_material_properties()
         return Epd.construct(
             doctype="ILCD_EPD",
             language=lang_code,

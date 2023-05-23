@@ -74,7 +74,7 @@ class Soda4LcaZipReader(ZipIlcdReader):
         original_path = parsed_url.path or ""
         if original_path.endswith(".xhtml"):
             resource_type_name = original_path.rsplit("/", 1)[-1].replace(".xhtml", "").lower()
-            resource_type_name = resource_type_name.replace("process", "processes").replace("showprocess", "processes")
+            resource_type_name = cls.__map_type_name(resource_type_name)
             uuid = parsed_qs.pop("uuid", [None])[0]  # type: ignore
             if "/datasetdetail" in original_path:
                 url_path = original_path.split("/datasetdetail", 1)[0] + url_path
@@ -105,3 +105,11 @@ class Soda4LcaZipReader(ZipIlcdReader):
         if response.status == 200:
             return io.BytesIO(response.data)
         raise ValueError(f"Could not download zip archive from {url}. Status code: {response.status}")
+
+    @staticmethod
+    def __map_type_name(in_: str) -> str:
+        match in_:
+            case "process" | "showprocess":
+                return "processes"
+            case _:
+                return in_

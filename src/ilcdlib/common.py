@@ -127,6 +127,7 @@ class IlcdXmlReader:
                 source="http://lca.jrc.it/ILCD/Source",
                 ug="http://lca.jrc.it/ILCD/UnitGroup",
                 fp="http://lca.jrc.it/ILCD/FlowProperty",
+                mm="http://www.matml.org/",
             )
         )
 
