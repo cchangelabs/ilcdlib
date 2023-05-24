@@ -24,14 +24,13 @@ ilcdtool = { callable = "ilcdlib:cli.entrypoint", extras = ["cli"] }
 
 [tool.poetry.dependencies]
 python = "^3.11"
-urllib3 = { version = ">=2.0.2" }
+urllib3 = { version = ">=1.26.16,<2.0.0" }
 
 # Optional dependencies
 lxml = { version = "~=4.9.2", optional = true }
 cli-rack = { version = ">=1.0.6", optional = true }
 
 [tool.poetry.dev-dependencies]
-platformdirs = "~=2.6.2"    # Remove this as soon as poetry supports 3.x version
 # Unit tests
 coverage = { version = "=6.5", extras = ["toml"] }
 pytest = "~=7.2"
@@ -54,16 +53,11 @@ commitizen = "~=2.42.1"
 # Type checking
 types-dateparser = ">=1.1.3"
 types-deprecated = ">=1.2.9"
+types-urllib3 = ">=1.26.2"
 
 [tool.poetry.extras]
 lxml = ["lxml"]
 cli = ["cli-rack"]
-
-[[tool.poetry.source]]
-name = "ec3"
-url = "https://pkgs.dev.azure.com/c-change-labs/EC3/_packaging/python-default/pypi/simple/"
-default = true
-secondary = false
 
 [tool.commitizen]
 version = "0.2.0"

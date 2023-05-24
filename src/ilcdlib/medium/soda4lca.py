@@ -29,6 +29,8 @@ from ilcdlib.dto import IlcdReference
 from ilcdlib.medium.archive import ZipIlcdReader
 from ilcdlib.utils import none_throws
 
+http = urllib3.PoolManager()
+
 
 @dataclass(kw_only=True)
 class IlcdRemotePointer:
@@ -101,7 +103,7 @@ class Soda4LcaZipReader(ZipIlcdReader):
     def dowload_zip_archive(self, url: str) -> IO[bytes]:
         """Download a zip archive from a URL."""
         # TODO: Move this to dedicated class
-        response = urllib3.request("GET", url)
+        response = http.request("GET", url)
         if response.status == 200:
             return io.BytesIO(response.data)
         raise ValueError(f"Could not download zip archive from {url}. Status code: {response.status}")
