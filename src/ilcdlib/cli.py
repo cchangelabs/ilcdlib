@@ -18,7 +18,6 @@
 #  Find out more at www.BuildingTransparency.org
 #
 import argparse
-from inspect import isabstract
 import sys
 
 from cli_rack import CLI
@@ -63,10 +62,10 @@ def main(argv: list[str]):
     )
     app_manager.parse_and_handle_global()
     app_manager.register_extension(VersionCliExtension)
-    extensions = app_manager.discovery_manager.discover_cli_extensions("ilcdlib")
-    for e in extensions:
-        if not isabstract(e.cli_extension):
-            app_manager.register_extension(e.cli_extension)
+    # Temporary declared extension, should be replaced with discovery
+    from ilcdlib.epd import cli as epd_cli
+
+    app_manager.register_extension(epd_cli.ConvertEpdCliExtension)
     app_manager.setup()
     try:
         # Parse arguments

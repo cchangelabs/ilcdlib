@@ -19,6 +19,9 @@ readme = "README.md"
 packages = [{ include = "ilcdlib", from = "src" }]
 exclude = ["**/test_*.py"]
 
+[tool.poetry.scripts]
+ilcdtool = { callable = "ilcdlib:cli.entrypoint", extras = ["cli"] }
+
 [tool.poetry.dependencies]
 python = "^3.11"
 urllib3 = { version = ">=2.0.2" }
