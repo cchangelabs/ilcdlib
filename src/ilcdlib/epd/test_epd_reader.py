@@ -37,6 +37,7 @@ class EpdReaderTestCase(TestCase):
             "00.01.000",
             ZipIlcdReader(self.TEST_DATA_BASE / "ibu_with_dependencies.zip"),
         )
+        self.epd_reader_industry.xml_parser.xml_ns["epd2019"] = "http://www.indata.network/EPD/2019"
 
     def tearDown(self) -> None:
         self.epd_reader_industry.data_provider.close()
