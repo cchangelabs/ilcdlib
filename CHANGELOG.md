@@ -1,3 +1,9 @@
+## 0.2.1 (2023-05-24)
+
+### Fix
+
+- add release openepd as a dependency
+
 ## 0.2.0 (2023-05-24)
 
 ### Feat
