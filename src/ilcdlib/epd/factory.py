@@ -20,6 +20,7 @@
 from typing import Type
 
 from ilcdlib.epd.dialect.environdec import EnvirondecIlcdXmlEpdReader
+from ilcdlib.epd.dialect.indata import IndataIlcdXmlEpdReader
 from ilcdlib.epd.reader import IlcdEpdReader
 
 
@@ -28,6 +29,7 @@ class EpdReaderFactory:
 
     __DIALECTS: dict[str, Type[IlcdEpdReader]] = {
         "environdec": EnvirondecIlcdXmlEpdReader,
+        "indata": IndataIlcdXmlEpdReader,
     }
     DEFAULT_READER_CLASS = IlcdEpdReader
 

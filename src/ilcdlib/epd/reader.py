@@ -58,6 +58,15 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
         self.epd_el_tree = self.get_xml_tree(*self.__epd_entity_ref, allow_static_datasets=False)
         self.xml_parser.xml_ns["epd2013"] = "http://www.iai.kit.edu/EPD/2013"
         self.xml_parser.xml_ns["epd2019"] = "http://www.iai.kit.edu/EPD/2019"
+        self.post_init()
+
+    def post_init(self):
+        """
+        Post-initialization actions, will be executed as a last step in constructor.
+
+        It could be overriden by subclasses to perform additional initialization actions.
+        """
+        pass
 
     def get_supported_langs(self) -> list[str]:
         """Return the list of supported languages."""
