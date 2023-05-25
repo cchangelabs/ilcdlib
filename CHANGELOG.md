@@ -1,3 +1,10 @@
+## 0.2.2 (2023-05-25)
+
+### Fix
+
+- upgrade openepd library
+- fix dependency name
+
 ## 0.2.1 (2023-05-24)
 
 ### Fix
