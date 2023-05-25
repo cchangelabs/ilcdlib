@@ -19,8 +19,9 @@
 #
 from typing import TypeVar
 
-from ilcdlib import const
 from openepd.model.common import ExternalIdentification
+
+from ilcdlib import const
 
 T = TypeVar("T")
 

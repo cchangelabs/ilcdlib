@@ -19,13 +19,14 @@
 #
 from typing import Type
 
+from openepd.model.common import ExternalIdentification
+from openepd.model.pcr import Pcr
+
 from ilcdlib.common import BaseIlcdMediumSpecificReader, IlcdXmlReader, OpenEpdPcrSupportReader
 from ilcdlib.entity.contact import IlcdContactReader
 from ilcdlib.type import LangDef
 from ilcdlib.utils import create_openepd_identification, none_throws
 from ilcdlib.xml_parser import T_ET
-from openepd.model.common import ExternalIdentification
-from openepd.model.pcr import Pcr
 
 
 class IlcdPcrReader(OpenEpdPcrSupportReader, IlcdXmlReader):

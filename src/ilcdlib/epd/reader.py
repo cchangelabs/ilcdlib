@@ -20,6 +20,9 @@
 import datetime
 from typing import Sequence, Type
 
+from openepd.model.common import Amount, ExternalIdentification
+from openepd.model.epd import Epd
+
 from ilcdlib.common import BaseIlcdMediumSpecificReader, IlcdXmlReader, OpenEpdEdpSupportReader
 from ilcdlib.const import IlcdDatasetType
 from ilcdlib.dto import IlcdReference, ProductClassDef
@@ -29,8 +32,6 @@ from ilcdlib.entity.material import MatMlMaterial
 from ilcdlib.entity.pcr import IlcdPcrReader
 from ilcdlib.type import LangDef
 from ilcdlib.utils import create_openepd_identification, none_throws
-from openepd.model.common import Amount, ExternalIdentification
-from openepd.model.epd import Epd
 
 
 class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):

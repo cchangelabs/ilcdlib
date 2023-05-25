@@ -21,14 +21,15 @@ import abc
 import datetime
 from typing import IO, Literal, Self, Sequence, TextIO, overload
 
+from openepd.model.epd import Epd
+from openepd.model.org import Org
+from openepd.model.pcr import Pcr
+
 from ilcdlib.const import IlcdDatasetType
 from ilcdlib.dto import IlcdReference
 from ilcdlib.reference_data import get_ilcd_epd_reference_data_provider
 from ilcdlib.type import LangDef, LocalizedStr
 from ilcdlib.xml_parser import T_ET, XmlParser
-from openepd.model.epd import Epd
-from openepd.model.org import Org
-from openepd.model.pcr import Pcr
 
 XmlPath = str | tuple[str, ...] | list[str]
 

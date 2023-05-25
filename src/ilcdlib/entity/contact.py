@@ -17,6 +17,9 @@
 #  Charles Pankow Foundation, Microsoft Sustainability Fund, Interface, MKA Foundation, and others.
 #  Find out more at www.BuildingTransparency.org
 #
+from openepd.model.common import ExternalIdentification
+from openepd.model.org import Contact, Org
+
 from ilcdlib.common import BaseIlcdMediumSpecificReader, IlcdXmlReader, OpenEpdContactSupportReader
 from ilcdlib.const import IlcdContactClass
 from ilcdlib.sanitizing.domain import domain_from_url
@@ -24,8 +27,6 @@ from ilcdlib.sanitizing.phone import cleanup_phone
 from ilcdlib.type import LangDef
 from ilcdlib.utils import create_openepd_identification, none_throws
 from ilcdlib.xml_parser import T_ET
-from openepd.model.common import ExternalIdentification
-from openepd.model.org import Contact, Org
 
 
 class IlcdContactReader(OpenEpdContactSupportReader, IlcdXmlReader):
