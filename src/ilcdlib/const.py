@@ -17,4 +17,24 @@
 #  Charles Pankow Foundation, Microsoft Sustainability Fund, Interface, MKA Foundation, and others.
 #  Find out more at www.BuildingTransparency.org
 #
-VERSION = "0.2.2"
+from enum import StrEnum
+
+ILCD_IDENTIFICATION: tuple[str] = ("ILCD",)
+
+
+class IlcdContactClass(StrEnum):
+    """Enumeration of ILCD contact classes."""
+
+    Person = "Persons"
+    Company = "Organisations"
+
+
+class IlcdDatasetType(StrEnum):
+    """Enumeration of ILCD datasets."""
+
+    Contacts = "contact data set"
+    Sources = "source data set"
+    Flows = "flow data set"
+    Processes = "process data set"
+    UnitGroups = "unit group data set"
+    FlowProperty = "flow property data set"

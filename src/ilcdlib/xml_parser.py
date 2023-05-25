@@ -46,9 +46,21 @@ class XmlParser(object):
         else:
             return ET.parse(file_stream_or_str).getroot()
 
-    def get_el_text(self, parent: T_ET.Element, tag: str, default_val: str | None = None) -> str | None:
+    def get_el_text(self, parent: T_ET.Element, xpath: str, default_val: str | None = None) -> str | None:
         """Get the text of an element."""
-        el = parent.find(tag, self.xml_ns)
+        el = parent.find(xpath, self.xml_ns)
         if el is None:
             return default_val
         return el.text
+
+    def get_el(self, parent: T_ET.Element, xpath: str) -> T_ET.Element | None:
+        """Get an xml element by xpath."""
+        el = parent.find(xpath, self.xml_ns)
+        if el is None:
+            return None
+        return el
+
+    def get_all_els(self, parent: T_ET.Element, xpath: str) -> list[T_ET.Element]:
+        """Get all xml elements by xpath."""
+        el = parent.findall(xpath, self.xml_ns)
+        return el

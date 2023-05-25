@@ -28,7 +28,8 @@ setup: verify-prerequisites venv deps
 	@( \
 		if [ -z $(SKIP_VENV) ]; then source $(VIRTUAL_ENV_PATH)/bin/activate; fi; \
 		pre-commit install; \
-		echo "Pre-commit hooks installed" \
+		echo "Pre-commit hooks installed"; \
+		./development/install-cli-commands.sh "$(VIRTUAL_ENV_PATH)" "$(SRC_ROOT)"; \
 		echo "DONE: setup" \
 	)
 
@@ -37,14 +38,6 @@ deps:
 		set -e; \
 		if [ -z $(SKIP_VENV) ]; then source $(VIRTUAL_ENV_PATH)/bin/activate; fi; \
 		$(PYTHON) -m pip install -r ./requirements-dev.txt; \
-		if [ ! -f $(VIRTUAL_ENV_PATH)/pip.conf ]; then \
-		  cp .pip.conf.template $(VIRTUAL_ENV_PATH)/pip.conf; \
-		  if [ ! -z $(AZURE_PAT) ]; then \
-		    sed -i "s|@CREDENTIALS|:$(AZURE_PAT)|g" $(VIRTUAL_ENV_PATH)/pip.conf; \
-		  else \
-		    sed -i "s|@CREDENTIALS@||g" $(VIRTUAL_ENV_PATH)/pip.conf; \
-		  fi; \
-		fi; \
 		poetry install --all-extras; \
 	)
 
@@ -148,8 +141,17 @@ publish: build
 		echo "Publishing packages"; \
 		set -e; \
 		if [ -z $(SKIP_VENV) ]; then source $(VIRTUAL_ENV_PATH)/bin/activate; fi; \
-		poetry publish -r ec3; \
+		poetry publish -r pypi; \
 		echo "DONE: Publishing packages"; \
+	)
+
+ test-publish: build
+	@( \
+		echo "Publishing packages to the TEST PYPI"; \
+		set -e; \
+		if [ -z $(SKIP_VENV) ]; then source $(VIRTUAL_ENV_PATH)/bin/activate; fi; \
+		poetry publish -r test-pypi; \
+		echo "DONE: Publishing packages (TEST PYPI)"; \
 	)
 
 coverage:

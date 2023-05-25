@@ -17,4 +17,12 @@
 #  Charles Pankow Foundation, Microsoft Sustainability Fund, Interface, MKA Foundation, and others.
 #  Find out more at www.BuildingTransparency.org
 #
-VERSION = "0.2.2"
+from ilcdlib.epd.reader import IlcdEpdReader
+
+
+class IndataIlcdXmlEpdReader(IlcdEpdReader):
+    """Reader for EPDs in the Indata specific ILCD XML format."""
+
+    def post_init(self):
+        """Configure Indata specific settings."""
+        self.xml_parser.xml_ns["epd2019"] = "http://www.indata.network/EPD/2019"

@@ -17,4 +17,22 @@
 #  Charles Pankow Foundation, Microsoft Sustainability Fund, Interface, MKA Foundation, and others.
 #  Find out more at www.BuildingTransparency.org
 #
-VERSION = "0.2.2"
+__all__ = ("get_ilcd_epd_reference_data_provider",)
+
+from pathlib import Path
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from ilcdlib.medium.archive import ZipIlcdReader
+
+_CACHE: dict[str, "ZipIlcdReader"] = {}
+
+
+def get_ilcd_epd_reference_data_provider() -> "ZipIlcdReader":
+    """Get the ILCD+EPD reference data from the ILCD format."""
+    cache_key = "ilcd_epd_ref"
+    if cache_key not in _CACHE:
+        from ilcdlib.medium.archive import ZipIlcdReader
+
+        _CACHE[cache_key] = ZipIlcdReader(Path(__file__).parent / "data" / "ilcd_epd_ref.zip")
+    return _CACHE[cache_key]

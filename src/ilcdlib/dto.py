@@ -17,4 +17,19 @@
 #  Charles Pankow Foundation, Microsoft Sustainability Fund, Interface, MKA Foundation, and others.
 #  Find out more at www.BuildingTransparency.org
 #
-VERSION = "0.2.2"
+from typing import NamedTuple
+
+
+class IlcdReference(NamedTuple):
+    """A reference to an ILCD entity."""
+
+    entity_type: str
+    entity_id: str
+    entity_version: str | None
+
+
+class ProductClassDef(NamedTuple):
+    """A product class definition."""
+
+    id: str | None
+    name: str | None

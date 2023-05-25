@@ -17,4 +17,10 @@
 #  Charles Pankow Foundation, Microsoft Sustainability Fund, Interface, MKA Foundation, and others.
 #  Find out more at www.BuildingTransparency.org
 #
-VERSION = "0.2.2"
+from ilcdlib.epd.reader import IlcdEpdReader
+
+
+class OekobauDatIlcdXmlEpdReader(IlcdEpdReader):
+    """Reader for EPDs in the Oekobau.DAT specific ILCD XML format."""
+
+    pass

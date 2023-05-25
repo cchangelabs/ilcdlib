@@ -17,4 +17,20 @@
 #  Charles Pankow Foundation, Microsoft Sustainability Fund, Interface, MKA Foundation, and others.
 #  Find out more at www.BuildingTransparency.org
 #
-VERSION = "0.2.2"
+import re
+
+PHONE_REGEX = re.compile(r"\+?[\d\s\-()]+", re.IGNORECASE)
+
+
+def cleanup_phone(phone: str | None) -> str | None:
+    """
+    Try to perform cleanup of the given phone number.
+
+    E.g. if the input is `Tel: +49 (0) 123 456 789 blah`, the output will be ``+49 (0) 123 456 789``.
+    """
+    if phone is None:
+        return None
+    for m in PHONE_REGEX.findall(phone):
+        if len(m.strip()) > 0:
+            return m.strip()
+    return phone

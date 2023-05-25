@@ -17,4 +17,26 @@
 #  Charles Pankow Foundation, Microsoft Sustainability Fund, Interface, MKA Foundation, and others.
 #  Find out more at www.BuildingTransparency.org
 #
-VERSION = "0.2.2"
+from typing import TypeVar
+
+from openepd.model.common import ExternalIdentification
+
+from ilcdlib import const
+
+T = TypeVar("T")
+
+
+def none_throws(optional: T | None, message: str = "Unexpected `None`") -> T:
+    """Convert an optional to its value. Raises an `AssertionError` if the value is `None`."""
+    if optional is None:
+        raise AssertionError(message)
+    return optional
+
+
+def create_openepd_identification(
+    identification: ExternalIdentification | None,
+) -> dict[str, ExternalIdentification] | None:
+    """Create a dictionary of OpenEPD identification objects."""
+    if identification is None or not identification.has_values():
+        return None
+    return {x: identification for x in const.ILCD_IDENTIFICATION}
