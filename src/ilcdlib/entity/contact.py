@@ -25,7 +25,7 @@ from ilcdlib.type import LangDef
 from ilcdlib.utils import create_openepd_identification, none_throws
 from ilcdlib.xml_parser import T_ET
 from openepd.model.common import ExternalIdentification
-from openepd.model.orgs import Contact, Org
+from openepd.model.org import Contact, Org
 
 
 class IlcdContactReader(OpenEpdContactSupportReader, IlcdXmlReader):
