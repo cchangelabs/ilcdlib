@@ -19,13 +19,13 @@
 #
 from typing import Type
 
-from openepd.model.common import ExternalIdentification
 from openepd.model.pcr import Pcr
 
 from ilcdlib.common import BaseIlcdMediumSpecificReader, IlcdXmlReader, OpenEpdPcrSupportReader
+from ilcdlib.dto import IlcdReference
 from ilcdlib.entity.contact import IlcdContactReader
 from ilcdlib.type import LangDef
-from ilcdlib.utils import create_openepd_identification, none_throws
+from ilcdlib.utils import create_openepd_attachments, none_throws
 from ilcdlib.xml_parser import T_ET
 
 
@@ -42,6 +42,10 @@ class IlcdPcrReader(OpenEpdPcrSupportReader, IlcdXmlReader):
         super().__init__(data_provider)
         self.contact_reader_cls = contact_reader_cls
         self._entity = element
+
+    def get_own_reference(self) -> IlcdReference | None:
+        """Get the reference to this data set."""
+        return IlcdReference(entity_type="sources", entity_id=self.get_uuid(), entity_version=self.get_version())
 
     def get_uuid(self) -> str:
         """Get the UUID of the entity described by this data set."""
@@ -74,16 +78,12 @@ class IlcdPcrReader(OpenEpdPcrSupportReader, IlcdXmlReader):
         )
         return self.contact_reader_cls(element, self.data_provider) if element is not None else None
 
-    def to_openepd_pcr(self, lang: LangDef) -> Pcr:
+    def to_openepd_pcr(self, lang: LangDef, base_url: str | None = None) -> Pcr:
         """Read as OpenEPD Pcr object."""
-        identification = ExternalIdentification.construct(
-            id=self.get_uuid(),
-            version=self.get_version(),
-        )
         issuer_reader = self.get_reference_to_contact_reader()
         issuer = issuer_reader.to_openepd_org(lang) if issuer_reader is not None else None
         return Pcr.construct(
             name=self.get_name(lang),
             issuer=issuer,
-            identified=create_openepd_identification(identification),
+            attachments=create_openepd_attachments(self.get_own_reference(), base_url),
         )

@@ -281,7 +281,7 @@ class OpenEpdContactSupportReader(metaclass=abc.ABCMeta):
     """Base class for adding OpenEPD export support."""
 
     @abc.abstractmethod
-    def to_openepd_org(self, lang: LangDef) -> Org:
+    def to_openepd_org(self, lang: LangDef, base_url: str | None = None) -> Org:
         """Read as openEPD Org object."""
         pass
 
@@ -290,7 +290,7 @@ class OpenEpdPcrSupportReader(metaclass=abc.ABCMeta):
     """Base class for adding openEPD export support."""
 
     @abc.abstractmethod
-    def to_openepd_pcr(self, lang: LangDef) -> Pcr:
+    def to_openepd_pcr(self, lang: LangDef, base_url: str | None = None) -> Pcr:
         """Read as openEPD Pcr object."""
         pass
 
@@ -299,7 +299,7 @@ class OpenEpdEdpSupportReader(metaclass=abc.ABCMeta):
     """Base class for adding openEPD export support to EPD documents."""
 
     @abc.abstractmethod
-    def to_openepd_epd(self, lang: LangDef) -> Epd:
+    def to_openepd_epd(self, lang: LangDef, base_url: str | None = None) -> Epd:
         """Read as OpenEPD EPD object."""
         pass
 
@@ -308,6 +308,6 @@ class OpenEpdImpactSetSupportReader(metaclass=abc.ABCMeta):
     """Base class for adding openEPD export support to LCIAResults."""
 
     @abc.abstractmethod
-    def to_openepd_impact_set(self, lang: LangDef) -> ImpactSet:
+    def to_openepd_impact_set(self, lang: LangDef, base_url: str | None = None) -> ImpactSet:
         """Read as openEPD ImpactSet object."""
         pass

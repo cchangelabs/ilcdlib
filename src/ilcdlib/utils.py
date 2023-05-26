@@ -22,6 +22,7 @@ from typing import TypeVar
 from openepd.model.common import ExternalIdentification
 
 from ilcdlib import const
+from ilcdlib.dto import IlcdReference
 
 T = TypeVar("T")
 
@@ -40,3 +41,10 @@ def create_openepd_identification(
     if identification is None or not identification.has_values():
         return None
     return {x: identification for x in const.ILCD_IDENTIFICATION}
+
+
+def create_openepd_attachments(reference: IlcdReference | None, base_url: str | None = None) -> dict[str, str] | None:
+    """Create a dictionary of OpenEPD attachments."""
+    if reference is None:
+        return None
+    return {x: reference.to_url(base_url) for x in const.ILCD_IDENTIFICATION}

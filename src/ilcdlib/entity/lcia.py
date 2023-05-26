@@ -127,7 +127,7 @@ class IlcdLciaResultsReader(OpenEpdImpactSetSupportReader, IlcdXmlReader):
             del impacts["ext"]
         return ImpactSet.construct(**impacts)  # type: ignore
 
-    def to_openepd_impact_set(self, lang: LangDef) -> ImpactSet:
+    def to_openepd_impact_set(self, lang: LangDef, base_url: str | None = None) -> ImpactSet:
         """Read as openEPD ImpactSet object."""
         return self.get_impacts()
 

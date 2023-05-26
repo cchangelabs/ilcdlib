@@ -17,15 +17,15 @@
 #  Charles Pankow Foundation, Microsoft Sustainability Fund, Interface, MKA Foundation, and others.
 #  Find out more at www.BuildingTransparency.org
 #
-from openepd.model.common import ExternalIdentification
 from openepd.model.org import Contact, Org
 
 from ilcdlib.common import BaseIlcdMediumSpecificReader, IlcdXmlReader, OpenEpdContactSupportReader
 from ilcdlib.const import IlcdContactClass
+from ilcdlib.dto import IlcdReference
 from ilcdlib.sanitizing.domain import domain_from_url
 from ilcdlib.sanitizing.phone import cleanup_phone
 from ilcdlib.type import LangDef
-from ilcdlib.utils import create_openepd_identification, none_throws
+from ilcdlib.utils import create_openepd_attachments, none_throws
 from ilcdlib.xml_parser import T_ET
 
 
@@ -35,6 +35,10 @@ class IlcdContactReader(OpenEpdContactSupportReader, IlcdXmlReader):
     def __init__(self, element: T_ET.Element, data_provider: BaseIlcdMediumSpecificReader):
         super().__init__(data_provider)
         self._entity = element
+
+    def get_own_reference(self) -> IlcdReference | None:
+        """Get the reference to this data set."""
+        return IlcdReference(entity_type="contacts", entity_id=self.get_uuid(), entity_version=self.get_version())
 
     def get_uuid(self) -> str:
         """Get the UUID of the entity described by this data set."""
@@ -104,20 +108,16 @@ class IlcdContactReader(OpenEpdContactSupportReader, IlcdXmlReader):
             self._entity, ("contact:contactInformation", "contact:dataSetInformation", "contact:contactAddress")
         )
 
-    def to_openepd_org(self, lang: LangDef) -> Org:
+    def to_openepd_org(self, lang: LangDef, base_url: str | None = None) -> Org:
         """Convert this data set to an OpenEPD org object."""
         open_epd_contact = Contact.construct(
             email=self.get_email(),
             phone=cleanup_phone(self.get_phone()),
             website=self.get_website(),
         )
-        identification = ExternalIdentification.construct(
-            id=self.get_uuid(),
-            version=self.get_version(),
-        )
         return Org.construct(
             name=self.get_name(lang),
             web_domain=domain_from_url(self.get_website()),
             contacts=open_epd_contact if open_epd_contact.has_values() else None,
-            identified=create_openepd_identification(identification),
+            attachments=create_openepd_attachments(self.get_own_reference(), base_url),
         )

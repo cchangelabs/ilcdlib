@@ -19,7 +19,7 @@
 #
 from enum import StrEnum
 
-ILCD_IDENTIFICATION: tuple[str] = ("ILCD",)
+ILCD_IDENTIFICATION: tuple[str] = ("ILCD_EPD",)
 
 
 class IlcdContactClass(StrEnum):

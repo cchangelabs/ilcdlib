@@ -20,7 +20,7 @@
 import datetime
 from typing import Sequence, Type
 
-from openepd.model.common import Amount, ExternalIdentification
+from openepd.model.common import Amount
 from openepd.model.epd import Epd
 from openepd.model.lcia import ImpactSet
 
@@ -33,7 +33,7 @@ from ilcdlib.entity.lcia import IlcdLciaResultsReader
 from ilcdlib.entity.material import MatMlMaterial
 from ilcdlib.entity.pcr import IlcdPcrReader
 from ilcdlib.type import LangDef
-from ilcdlib.utils import create_openepd_identification, none_throws
+from ilcdlib.utils import create_openepd_attachments, none_throws
 
 
 class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
@@ -82,6 +82,10 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
             if x.attrib and x.attrib.get(self._LANG_ATTRIB_NAME):
                 result.append(none_throws(x.attrib.get(self._LANG_ATTRIB_NAME)))
         return result
+
+    def get_own_reference(self) -> IlcdReference | None:
+        """Get the reference to this data set."""
+        return IlcdReference(entity_type="processes", entity_id=self.get_uuid(), entity_version=self.get_version())
 
     def get_uuid(self) -> str:
         """Get the UUID of the entity described by this data set."""
@@ -348,15 +352,11 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
                 result["IBU"] = " >> ".join([none_throws(x.name) for x in class_defs])
         return result
 
-    def to_openepd_epd(self, lang: LangDef) -> Epd:
+    def to_openepd_epd(self, lang: LangDef, base_url: str | None = None) -> Epd:
         """Return the EPD as OpenEPD object."""
         lang_code = lang if isinstance(lang, str) else None
         if isinstance(lang, Sequence):
             lang_code = lang[0] if len(lang) > 0 else None
-        identification = ExternalIdentification.construct(
-            id=self.get_uuid(),
-            version=self.get_version(),
-        )
         manufacturer_reader = self.get_manufacturer_reader()
         manufacturer = manufacturer_reader.to_openepd_org(lang) if manufacturer_reader else None
         program_operator_reader = self.get_program_operator_reader()
@@ -372,9 +372,9 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
             product_name += "; " + quantitative_props
         # material_properties = self.get_material_properties()
         return Epd.construct(
-            doctype="ILCD_EPD",
+            doctype="openEPD",
             language=lang_code,
-            identified=create_openepd_identification(identification),
+            attachments=create_openepd_attachments(self.get_own_reference(), base_url),
             name=product_name,
             description=self.get_product_description(lang),
             date_published=self.get_date_published(),
