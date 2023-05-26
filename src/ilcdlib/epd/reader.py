@@ -22,12 +22,14 @@ from typing import Sequence, Type
 
 from openepd.model.common import Amount, ExternalIdentification
 from openepd.model.epd import Epd
+from openepd.model.lcia import ImpactSet
 
 from ilcdlib.common import BaseIlcdMediumSpecificReader, IlcdXmlReader, OpenEpdEdpSupportReader
 from ilcdlib.const import IlcdDatasetType
 from ilcdlib.dto import IlcdReference, ProductClassDef
 from ilcdlib.entity.contact import IlcdContactReader
 from ilcdlib.entity.flow import IlcdExchangeDto, IlcdFlowReader
+from ilcdlib.entity.lcia import IlcdLciaResultsReader
 from ilcdlib.entity.material import MatMlMaterial
 from ilcdlib.entity.pcr import IlcdPcrReader
 from ilcdlib.type import LangDef
@@ -46,19 +48,19 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
         contact_reader_cls: Type[IlcdContactReader] = IlcdContactReader,
         pcr_reader_cls: Type[IlcdPcrReader] = IlcdPcrReader,
         flow_reader_cls: Type[IlcdFlowReader] = IlcdFlowReader,
+        lcia_results_reader_cls: Type[IlcdLciaResultsReader] = IlcdLciaResultsReader,
     ):
         super().__init__(data_provider)
         self.contact_reader_cls = contact_reader_cls
         self.pcr_reader_cls = pcr_reader_cls
         self.flow_reader_cls = flow_reader_cls
+        self.lcia_results_reader_cls = lcia_results_reader_cls
         if epd_process_id is None:
             entities = data_provider.list_entities(IlcdDatasetType.Processes)
             self.__epd_entity_ref = entities[0]
         else:
             self.__epd_entity_ref = IlcdReference(IlcdDatasetType.Processes, epd_process_id, epd_version)
         self.epd_el_tree = self.get_xml_tree(*self.__epd_entity_ref, allow_static_datasets=False)
-        self.xml_parser.xml_ns["epd2013"] = "http://www.iai.kit.edu/EPD/2013"
-        self.xml_parser.xml_ns["epd2019"] = "http://www.iai.kit.edu/EPD/2019"
         self.post_init()
 
     def post_init(self):
@@ -322,6 +324,21 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
             ("process:administrativeInformation", "process:publicationAndOwnership", "common:registrationNumber"),
         )
 
+    def get_lcia_results_reader(self) -> IlcdLciaResultsReader | None:
+        """Return the LCIA results reader."""
+        element = self._get_el(
+            self.epd_el_tree,
+            ("process:LCIAResults",),
+        )
+        return self.lcia_results_reader_cls(element, self.data_provider) if element is not None else None
+
+    def get_lcia_results(self) -> ImpactSet | None:
+        """Return the LCIA results."""
+        reader = self.get_lcia_results_reader()
+        if reader is None:
+            return None
+        return reader.get_impacts()
+
     def _product_classes_to_openepd_org(self, classes: dict[str, list[ProductClassDef]]) -> dict[str, str]:
         result: dict[str, str] = {}
         for classification_name, class_defs in classes.items():
@@ -369,4 +386,5 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
             third_party_verifier=external_verifier,
             pcr=pcr,
             declared_unit=declared_unit,
+            impacts=self.get_lcia_results(),
         )

@@ -32,6 +32,7 @@ class UnitsUUIDMapper(SimpleDataMapper):
         "b5c629d6-def3-11e6-bf01-fe55135034f3": "kgCFC11e",
         "b5c611c6-def3-11e6-bf01-fe55135034f3": "kgSO2e",
         "01c26c17-9a76-406e-8295-f17b55fd909e": "kgC2H4e",
+        "67b5401d-873c-485f-bcf3-6ae83b918822": "kgPO4e",
     }
 
 
