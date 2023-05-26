@@ -19,8 +19,6 @@
 #
 from typing import TypeVar
 
-from openepd.model.common import ExternalIdentification
-
 from ilcdlib import const
 from ilcdlib.dto import IlcdReference
 
@@ -32,15 +30,6 @@ def none_throws(optional: T | None, message: str = "Unexpected `None`") -> T:
     if optional is None:
         raise AssertionError(message)
     return optional
-
-
-def create_openepd_identification(
-    identification: ExternalIdentification | None,
-) -> dict[str, ExternalIdentification] | None:
-    """Create a dictionary of OpenEPD identification objects."""
-    if identification is None or not identification.has_values():
-        return None
-    return {x: identification for x in const.ILCD_IDENTIFICATION}
 
 
 def create_openepd_attachments(reference: IlcdReference | None, base_url: str | None = None) -> dict[str, str] | None:
