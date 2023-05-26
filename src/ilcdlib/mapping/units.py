@@ -30,9 +30,11 @@ class UnitsUUIDMapper(SimpleDataMapper):
         "6ae2df01-888e-46c8-b17d-49fa3869b476": "m3AWARE",
         "1ebf3012-d0db-4de2-aefd-ef30cedb0be1": "kgCO2e",
         "b5c629d6-def3-11e6-bf01-fe55135034f3": "kgCFC11e",
+        "88054749-b0a6-47ea-a82b-dc5b29326512": "kgCFC11e",
         "b5c611c6-def3-11e6-bf01-fe55135034f3": "kgSO2e",
         "01c26c17-9a76-406e-8295-f17b55fd909e": "kgC2H4e",
         "67b5401d-873c-485f-bcf3-6ae83b918822": "kgPO4e",
+        "b4274add-93b7-4905-a5e4-2e878c4e4216": "kgSO2e",
     }
 
 
