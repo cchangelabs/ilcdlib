@@ -17,7 +17,7 @@
 #  Charles Pankow Foundation, Microsoft Sustainability Fund, Interface, MKA Foundation, and others.
 #  Find out more at www.BuildingTransparency.org
 #
-from typing import TypeVar
+from typing import Any, TypeVar
 
 from ilcdlib import const
 from ilcdlib.dto import IlcdReference
@@ -37,3 +37,10 @@ def create_openepd_attachments(reference: IlcdReference | None, base_url: str | 
     if reference is None:
         return None
     return {x: reference.to_url(base_url) for x in const.ILCD_IDENTIFICATION}
+
+
+def create_ext(data: Any) -> dict[str, Any] | None:
+    """Create a dictionary of OpenEPD ext field."""
+    if data is None:
+        return None
+    return {x: data for x in const.ILCD_IDENTIFICATION}

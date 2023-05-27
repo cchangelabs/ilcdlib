@@ -18,9 +18,22 @@
 #  Find out more at www.BuildingTransparency.org
 #
 import dataclasses
+from enum import StrEnum
 from typing import IO, Literal
 
 from ilcdlib.xml_parser import T_ET, XmlParser
+
+
+class IlcdStandardMatProperties(StrEnum):
+    """Represent ILCD standard material properties."""
+
+    GrossDensity = "gross density"
+    BulkDensity = "bulk density"
+    LinearDensity = "linear density"
+    ConversionToKgFactor = "conversion factor to 1 kg"
+    Grammage = "grammage"
+    LayerThickness = "layer thickness"
+    Productiveness = "productiveness"
 
 
 @dataclasses.dataclass
@@ -31,6 +44,16 @@ class MatMlMaterialProperty:
     data_format: Literal["float", "integer", "string", "exponential", "mixed"]
     unit: str | None = None
     internal_id: str | None = None
+
+    def to_unit_string(self) -> str | None:
+        """Get unit string."""
+        if self.value is not None and self.unit is not None:
+            return f"{self.value} {self.unit}"
+        if self.unit is None and self.value is not None:
+            return str(self.value)
+        if self.data_format == "string" and self.value is not None:
+            return str(self.value)
+        return None
 
 
 @dataclasses.dataclass

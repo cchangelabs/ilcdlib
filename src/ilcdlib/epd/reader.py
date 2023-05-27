@@ -23,6 +23,7 @@ from typing import Sequence, Type
 from openepd.model.common import Amount
 from openepd.model.epd import Epd
 from openepd.model.lcia import ImpactSet
+from openepd.model.specs import Specs
 
 from ilcdlib.common import BaseIlcdMediumSpecificReader, IlcdXmlReader, OpenEpdEdpSupportReader
 from ilcdlib.const import IlcdDatasetType
@@ -33,7 +34,7 @@ from ilcdlib.entity.lcia import IlcdLciaResultsReader
 from ilcdlib.entity.material import MatMlMaterial
 from ilcdlib.entity.pcr import IlcdPcrReader
 from ilcdlib.type import LangDef
-from ilcdlib.utils import create_openepd_attachments, none_throws
+from ilcdlib.utils import create_ext, create_openepd_attachments, none_throws
 
 
 class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
@@ -370,7 +371,11 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
         product_name = self.get_product_name(lang)
         if product_name and quantitative_props:
             product_name += "; " + quantitative_props
-        # material_properties = self.get_material_properties()
+        material_properties = self.get_material_properties()
+        if material_properties:
+            specs = Specs(ext=create_ext({n: v.to_unit_string() for n, v in material_properties.properties.items()}))
+        else:
+            specs = Specs()
         return Epd.construct(
             doctype="openEPD",
             language=lang_code,
@@ -387,4 +392,5 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
             pcr=pcr,
             declared_unit=declared_unit,
             impacts=self.get_lcia_results(),
+            specs=specs,
         )
