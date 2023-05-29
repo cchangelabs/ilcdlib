@@ -27,6 +27,13 @@ class IlcdReference(NamedTuple):
     entity_id: str
     entity_version: str | None
 
+    def to_url(self, base_url: str | None) -> str:
+        """Convert the reference to a URL."""
+        prefix = base_url if base_url is not None else "https://unknown.tld"
+        if prefix.endswith("/"):
+            prefix = prefix[:-1]
+        return f"{prefix}/resource/{self.entity_type}/{self.entity_id}?version={self.entity_version}"
+
 
 class ProductClassDef(NamedTuple):
     """A product class definition."""

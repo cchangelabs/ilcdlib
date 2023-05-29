@@ -46,6 +46,7 @@ class ZipIlcdReader(BaseIlcdMediumSpecificReader):
     def __init__(self, zip_file: PathLike | IO[bytes]):
         try:
             self._zip_file = ZipFile(zip_file, "r")
+            self._zip_file
         except Exception:
             raise ValueError("Could not open zip file. Please check if this is a valid zip file.")
         self.__ilcd_dir = ZipPath(self._zip_file) / "ILCD"
@@ -158,3 +159,11 @@ class ZipIlcdReader(BaseIlcdMediumSpecificReader):
         This method is called automatically when used in a context manager.
         """
         self._zip_file.close()
+
+    def save_to(self, p: PathLike):
+        """Save underling the zip file to the given path."""
+        if self._zip_file.fp is None:
+            raise ValueError("Cannot save closed zip file.")
+        with open(p, "wb") as f:
+            self._zip_file.fp.seek(0)
+            f.write(self._zip_file.fp.read())

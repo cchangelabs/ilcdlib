@@ -17,11 +17,10 @@
 #  Charles Pankow Foundation, Microsoft Sustainability Fund, Interface, MKA Foundation, and others.
 #  Find out more at www.BuildingTransparency.org
 #
-from typing import TypeVar
-
-from openepd.model.common import ExternalIdentification
+from typing import Any, TypeVar
 
 from ilcdlib import const
+from ilcdlib.dto import IlcdReference
 
 T = TypeVar("T")
 
@@ -33,10 +32,15 @@ def none_throws(optional: T | None, message: str = "Unexpected `None`") -> T:
     return optional
 
 
-def create_openepd_identification(
-    identification: ExternalIdentification | None,
-) -> dict[str, ExternalIdentification] | None:
-    """Create a dictionary of OpenEPD identification objects."""
-    if identification is None or not identification.has_values():
+def create_openepd_attachments(reference: IlcdReference | None, base_url: str | None = None) -> dict[str, str] | None:
+    """Create a dictionary of OpenEPD attachments."""
+    if reference is None:
         return None
-    return {x: identification for x in const.ILCD_IDENTIFICATION}
+    return {x: reference.to_url(base_url) for x in const.ILCD_IDENTIFICATION}
+
+
+def create_ext(data: Any) -> dict[str, Any] | None:
+    """Create a dictionary of OpenEPD ext field."""
+    if data is None:
+        return None
+    return {x: data for x in const.ILCD_IDENTIFICATION}

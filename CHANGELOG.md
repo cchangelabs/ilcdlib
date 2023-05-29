@@ -1,3 +1,22 @@
+## 0.3.0 (2023-05-29)
+
+### Feat
+
+- add ability to extract and safe pdf document (epd format extension 2019)
+- extend CLI with ability to preserve input and output on the file system
+- add ILCD material properties to openEPD object
+- generate openEPD attachments
+- add basic impacts extraction support
+- add basic mapping layer
+
+### Fix
+
+- preserve unknown classification
+- add extrac mapping for `kgSO2e` unit
+- remove `ExternalIdentification` model
+- add mapping for CFC11e
+- add typing marker
+
 ## 0.2.2 (2023-05-25)
 
 ### Fix

@@ -22,6 +22,7 @@ import datetime
 from typing import IO, Literal, Self, Sequence, TextIO, overload
 
 from openepd.model.epd import Epd
+from openepd.model.lcia import ImpactSet
 from openepd.model.org import Org
 from openepd.model.pcr import Pcr
 
@@ -129,6 +130,8 @@ class IlcdXmlReader:
                 ug="http://lca.jrc.it/ILCD/UnitGroup",
                 fp="http://lca.jrc.it/ILCD/FlowProperty",
                 mm="http://www.matml.org/",
+                epd2013="http://www.iai.kit.edu/EPD/2013",
+                epd2019="http://www.iai.kit.edu/EPD/2019",
             )
         )
 
@@ -273,29 +276,44 @@ class IlcdXmlReader:
             return None
         return self.get_xml_tree(ref.entity_type, ref.entity_id, ref.entity_version, allow_static_datasets=True)
 
+    def _get_external_binary(self, root: T_ET.Element, path: XmlPath) -> IO[bytes] | None:
+        ref = self._get_reference(root, path)
+        if ref is None:
+            return None
+        return self.data_provider.get_entity_stream(ref.entity_type, ref.entity_id, ref.entity_version, binary=True)
+
 
 class OpenEpdContactSupportReader(metaclass=abc.ABCMeta):
     """Base class for adding OpenEPD export support."""
 
     @abc.abstractmethod
-    def to_openepd_org(self, lang: LangDef) -> Org:
-        """Read as OpenEPD Org object."""
+    def to_openepd_org(self, lang: LangDef, base_url: str | None = None) -> Org:
+        """Read as openEPD Org object."""
         pass
 
 
 class OpenEpdPcrSupportReader(metaclass=abc.ABCMeta):
-    """Base class for adding OpenEPD export support."""
+    """Base class for adding openEPD export support."""
 
     @abc.abstractmethod
-    def to_openepd_pcr(self, lang: LangDef) -> Pcr:
-        """Read as OpenEPD Pcr object."""
+    def to_openepd_pcr(self, lang: LangDef, base_url: str | None = None) -> Pcr:
+        """Read as openEPD Pcr object."""
         pass
 
 
 class OpenEpdEdpSupportReader(metaclass=abc.ABCMeta):
-    """Base class for adding OpenEPD export support to EPD documents."""
+    """Base class for adding openEPD export support to EPD documents."""
 
     @abc.abstractmethod
-    def to_openepd_epd(self, lang: LangDef) -> Epd:
+    def to_openepd_epd(self, lang: LangDef, base_url: str | None = None) -> Epd:
         """Read as OpenEPD EPD object."""
+        pass
+
+
+class OpenEpdImpactSetSupportReader(metaclass=abc.ABCMeta):
+    """Base class for adding openEPD export support to LCIAResults."""
+
+    @abc.abstractmethod
+    def to_openepd_impact_set(self, lang: LangDef, base_url: str | None = None) -> ImpactSet:
+        """Read as openEPD ImpactSet object."""
         pass
