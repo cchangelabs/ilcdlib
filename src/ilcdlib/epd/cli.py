@@ -22,8 +22,11 @@ from pathlib import Path
 
 from cli_rack import CLI
 from cli_rack.modular import CliExtension
+from cli_rack.utils import ensure_dir
+from openepd.model.epd import Epd
 
 from ilcdlib.epd.factory import EpdReaderFactory
+from ilcdlib.epd.reader import IlcdEpdReader
 from ilcdlib.medium.archive import ZipIlcdReader
 from ilcdlib.medium.soda4lca import Soda4LcaZipReader
 
@@ -75,6 +78,15 @@ class ConvertEpdCliExtension(CliExtension):
             default=None,
         )
         parser.add_argument(
+            "--save",
+            "-s",
+            dest="save",
+            action="store_true",
+            help="Preserve the source document downloaded from remote location as well as the output.",
+            required=False,
+            default=False,
+        )
+        parser.add_argument(
             "doc",
             metavar="doc",
             type=str,
@@ -88,6 +100,7 @@ class ConvertEpdCliExtension(CliExtension):
         doc_ref: str = args.doc
         lang: str | None = args.lang
         dialect: str | None = args.dialect
+        save: bool = args.save
         if in_format.lower() != "ilcd+epd":
             CLI.fail(f"Input format {in_format} is not supported.", 1)
         if out_format.lower() != "openepd":
@@ -121,6 +134,16 @@ class ConvertEpdCliExtension(CliExtension):
         if prioritize_english:
             lang_list.insert(0, "en")
         CLI.print_info("Language priority: " + ",".join([x if x is not None else "any other" for x in lang_list]))
-
         open_epd = epd_reader.to_openepd_epd(lang_list)
         CLI.print_data(open_epd.json(indent=2, exclude_none=True, exclude_unset=True))
+        if save:
+            self.save_results(epd_reader, open_epd)
+
+    def save_results(self, epd_reader: IlcdEpdReader, result: Epd):
+        output_dir = Path(epd_reader.get_uuid())
+        ensure_dir(output_dir)
+        with open(output_dir / "openEPD.json", "w") as f:
+            f.write(result.json(indent=2, exclude_none=True, exclude_unset=True))
+        if isinstance(epd_reader.data_provider, ZipIlcdReader):
+            epd_reader.data_provider.save_to(output_dir / "ilcd_epd.zip")
+        CLI.print_info("Output saved to " + str(output_dir.absolute()))
