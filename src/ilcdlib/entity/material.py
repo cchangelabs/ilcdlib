@@ -99,14 +99,24 @@ class MatMlReader:
             prop_name = self.xml_parser.get_el_text(prop_meta, "mm:Name")
             if prop_name is None:
                 continue
+            prop_name = prop_name.lower()
             units_obj = self.xml_parser.get_el(prop_meta, "mm:Units")
             if units_obj is None:
                 continue
-            unit = units_obj.attrib.get("name") if units_obj.attrib else None
+            unit = self.__map_unit_name(units_obj.attrib.get("name")) if units_obj.attrib else None
             result.properties[prop_name] = MatMlMaterialProperty(
                 value=prop_value, data_format=prop_format, unit=unit, internal_id=prop_ref  # type: ignore
             )
         return result
+
+    def __map_unit_name(self, unit_name: str | None) -> str | None:
+        if unit_name is None:
+            return None
+        match unit_name.strip():
+            case "-":
+                return None
+            case _:
+                return unit_name
 
     def __parse_prop_data(
         self, prop_data

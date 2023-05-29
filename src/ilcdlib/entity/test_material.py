@@ -34,6 +34,9 @@ class MeterialMlParserTestCase(unittest.TestCase):
          <PropertyData property="pr2">
             <Data format="float">138.696</Data>
          </PropertyData>
+         <PropertyData property="pr3">
+            <Data format="float">123.0</Data>
+         </PropertyData>
       </BulkDetails>
    </Material>
    <Metadata>
@@ -48,6 +51,14 @@ class MeterialMlParserTestCase(unittest.TestCase):
             </Unit>
          </Units>
       </PropertyDetails>
+      <PropertyDetails id="pr3">
+         <Name>conversion factor to 1 kg</Name>
+         <Units name="-" description="Without Unit">
+            <Unit>
+               <Name>-</Name>
+            </Unit>
+         </Units>
+      </PropertyDetails>
    </Metadata>
 </mm:MatML_Doc>
             """,
@@ -56,7 +67,10 @@ class MeterialMlParserTestCase(unittest.TestCase):
                     properties={
                         "gross density": MatMlMaterialProperty(
                             value=138.696, unit="kg/m^3", data_format="float", internal_id="pr2"
-                        )
+                        ),
+                        "conversion factor to 1 kg": MatMlMaterialProperty(
+                            value=123.0, unit=None, data_format="float", internal_id="pr3"
+                        ),
                     },
                 ),
             ),
