@@ -70,3 +70,17 @@ class EpdReaderFactory:
         if dialect not in self.__DIALECTS:
             raise ValueError(f"Unknown dialect: {dialect}.")
         return self.__DIALECTS[dialect]
+
+    def autodiscover_by_url(self, url: str) -> tuple[Type[IlcdEpdReader], str]:
+        """
+        Return the reader class for the dialect.
+
+        If nothing recognized, return the default reader class.
+
+        @:return tuple of reader class and dialect name
+        """
+        if url.startswith("http"):
+            for name, cls in self.__DIALECTS.items():
+                if cls.is_known_url(url):
+                    return cls, name
+        return self.DEFAULT_READER_CLASS, "default"

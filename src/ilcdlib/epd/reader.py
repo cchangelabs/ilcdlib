@@ -413,3 +413,13 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
             impacts=self.get_lcia_results(),
             specs=specs,
         )
+
+    @classmethod
+    def is_known_url(cls, url: str) -> bool:
+        """
+        Return whether the URL recognized by this particular reader.
+
+        This method should be overriden by the dialect and return true if the input URL is know url for this dialect.
+        """
+
+        return False

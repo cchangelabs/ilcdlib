@@ -49,6 +49,11 @@ class EnvirondecIlcdXmlEpdReader(IlcdEpdReader):
                 pass
         return super().get_date_published()
 
+    @classmethod
+    def is_known_url(cls, url: str) -> bool:
+        """Return whether the URL recognized as a known Environdec URL."""
+        return "environdec" in url.lower()
+
     def __get_time_repr_description(self) -> str | None:
         return self._get_localized_text(
             self.epd_el_tree,
