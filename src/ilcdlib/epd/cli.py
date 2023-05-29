@@ -99,6 +99,7 @@ class ConvertEpdCliExtension(CliExtension):
             "doc",
             metavar="doc",
             type=str,
+            nargs="+",
             help="Reference to the input document. Can be a file path or URL "
             "depending on supported converter capabilities.",
         )
@@ -106,7 +107,7 @@ class ConvertEpdCliExtension(CliExtension):
     def handle(self, args: argparse.Namespace):
         in_format: str = args.in_format
         out_format: str = args.out_format
-        doc_ref: str = args.doc
+        doc_refs: str = args.doc
         lang: str | None = args.lang
         dialect: str | None = args.dialect
         save: bool = args.save
@@ -124,6 +125,30 @@ class ConvertEpdCliExtension(CliExtension):
         epd_reader_factory = EpdReaderFactory()
         if dialect is not None and not epd_reader_factory.is_dialect_supported(dialect):
             CLI.fail(f"Dialect {dialect} is not supported.", 3)
+        for doc in doc_refs:
+            self.process_single_doc(
+                doc,
+                epd_reader_factory,
+                dialect=dialect,
+                extract_pdf=extract_pdf,
+                in_format=in_format,
+                lang=lang,
+                out_format=out_format,
+                save=save,
+            )
+
+    def process_single_doc(
+        self,
+        doc_ref: str,
+        epd_reader_factory: EpdReaderFactory,
+        *,
+        dialect: str | None,
+        in_format: str,
+        out_format: str,
+        lang: str | None = None,
+        extract_pdf: bool = False,
+        save: bool = False,
+    ) -> None:
         CLI.print_info(f"Converting document {doc_ref} from {in_format} to {out_format}.")
         reader_cls = epd_reader_factory.get_reader_class(dialect)
         CLI.print_info("Effective dialect: " + (dialect if dialect is not None else "Generic"))
