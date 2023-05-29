@@ -376,13 +376,15 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
         if isinstance(lang, Sequence):
             lang_code = lang[0] if len(lang) > 0 else None
         manufacturer_reader = self.get_manufacturer_reader()
-        manufacturer = manufacturer_reader.to_openepd_org(lang) if manufacturer_reader else None
+        manufacturer = manufacturer_reader.to_openepd_org(lang, base_url) if manufacturer_reader else None
         program_operator_reader = self.get_program_operator_reader()
-        program_operator = program_operator_reader.to_openepd_org(lang) if program_operator_reader else None
+        program_operator = program_operator_reader.to_openepd_org(lang, base_url) if program_operator_reader else None
         external_verifier_reader = self.get_external_verifier_reader()
-        external_verifier = external_verifier_reader.to_openepd_org(lang) if external_verifier_reader else None
+        external_verifier = (
+            external_verifier_reader.to_openepd_org(lang, base_url) if external_verifier_reader else None
+        )
         pcr_reader = self.get_pcr_reader()
-        pcr = pcr_reader.to_openepd_pcr(lang) if pcr_reader else None
+        pcr = pcr_reader.to_openepd_pcr(lang, base_url) if pcr_reader else None
         declared_unit = self.get_declared_unit()
         quantitative_props = self.get_quantitative_product_props_str(lang)
         product_name = self.get_product_name(lang)

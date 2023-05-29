@@ -107,7 +107,7 @@ class ConvertEpdCliExtension(CliExtension):
     def handle(self, args: argparse.Namespace):
         in_format: str = args.in_format
         out_format: str = args.out_format
-        doc_refs: str = args.doc
+        doc_refs: list[str] = args.doc
         lang: str | None = args.lang
         dialect: str | None = args.dialect
         save: bool = args.save
@@ -171,7 +171,8 @@ class ConvertEpdCliExtension(CliExtension):
         if prioritize_english:
             lang_list.insert(0, "en")
         CLI.print_info("Language priority: " + ",".join([x if x is not None else "any other" for x in lang_list]))
-        open_epd = epd_reader.to_openepd_epd(lang_list)
+        base_url = self.__extract_base_url(doc_ref)
+        open_epd = epd_reader.to_openepd_epd(lang_list, base_url=base_url)
         CLI.print_data(open_epd.json(indent=2, exclude_none=True, exclude_unset=True))
         if save:
             self.save_results(epd_reader, open_epd, extract_pdf=extract_pdf)
@@ -189,3 +190,15 @@ class ConvertEpdCliExtension(CliExtension):
                 with open(output_dir / "original.pdf", "wb") as f:
                     f.write(pdf_stream.read())
         CLI.print_info("Output saved to " + str(output_dir.absolute()))
+
+    def __extract_base_url(self, doc_ref: str) -> str | None:
+        if doc_ref.startswith("http"):
+            if "/datasetdetail/" in doc_ref:
+                return doc_ref.split("/datasetdetail/", 1)[0]
+            elif "/resource/" in doc_ref:
+                return doc_ref.split("/resource/", 1)[0]
+            elif "/showProcess.xhtml" in doc_ref:
+                return doc_ref.split("/showProcess.xhtml", 1)[0]
+            return None
+        else:
+            return None
