@@ -17,20 +17,20 @@
 #  Charles Pankow Foundation, Microsoft Sustainability Fund, Interface, MKA Foundation, and others.
 #  Find out more at www.BuildingTransparency.org
 #
-import re
+from unittest import TestCase
 
-PHONE_REGEX = re.compile(r"[+\d\s\-()]+", re.IGNORECASE)
+from ilcdlib.sanitizing.phone import cleanup_phone
 
 
-def cleanup_phone(phone: str | None) -> str | None:
-    """
-    Try to perform cleanup of the given phone number.
-
-    E.g. if the input is `Tel: +49 (0) 123 456 789 blah`, the output will be ``+49 (0) 123 456 789``.
-    """
-    if phone is None:
-        return None
-    for m in sorted(PHONE_REGEX.findall(phone), key=lambda x: len(x), reverse=True):
-        if len(m.strip()) > 0:
-            return m.strip()
-    return phone
+class PhoneSanitizingTestCase(TestCase):
+    def test_sanitizing(self):
+        test_cases = [
+            ("+1 263 232432", "+1 263 232432"),
+            ("tel: +1 263 232432", "+1 263 232432"),
+            ("Contact us at +1 263 232432", "+1 263 232432"),
+            ("(+49) 521 93447681", "(+49) 521 93447681"),
+            ("Tel (mobile): (+49) (521) 93447681", "(+49) (521) 93447681"),
+        ]
+        for input_, expected in test_cases:
+            actual = cleanup_phone(input_)
+            self.assertEqual(expected, actual)
