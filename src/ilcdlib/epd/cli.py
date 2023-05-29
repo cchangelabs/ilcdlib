@@ -87,6 +87,15 @@ class ConvertEpdCliExtension(CliExtension):
             default=False,
         )
         parser.add_argument(
+            "--extract-pdf",
+            "-e",
+            dest="extract_pdf",
+            action="store_true",
+            help="If possible extract PDF file from the input document and save it as a separate file.",
+            required=False,
+            default=False,
+        )
+        parser.add_argument(
             "doc",
             metavar="doc",
             type=str,
@@ -101,12 +110,15 @@ class ConvertEpdCliExtension(CliExtension):
         lang: str | None = args.lang
         dialect: str | None = args.dialect
         save: bool = args.save
+        extract_pdf: bool = args.extract_pdf
         if in_format.lower() != "ilcd+epd":
             CLI.fail(f"Input format {in_format} is not supported.", 1)
         if out_format.lower() != "openepd":
             CLI.fail(f"Output format {out_format} is not supported.", 1)
         if in_format.lower() == out_format.lower():
             CLI.fail(f"Input format {in_format} and output format {out_format} are the same.", 1)
+        if extract_pdf and not save:
+            CLI.fail("Extracting PDF requires saving the input document. Consider adding -s flag", 1)
         # if not doc_ref.endswith(".zip"):
         #     CLI.fail(f"Input document {doc_ref} is not a zip file.", 2)
         epd_reader_factory = EpdReaderFactory()
@@ -137,13 +149,18 @@ class ConvertEpdCliExtension(CliExtension):
         open_epd = epd_reader.to_openepd_epd(lang_list)
         CLI.print_data(open_epd.json(indent=2, exclude_none=True, exclude_unset=True))
         if save:
-            self.save_results(epd_reader, open_epd)
+            self.save_results(epd_reader, open_epd, extract_pdf=extract_pdf)
 
-    def save_results(self, epd_reader: IlcdEpdReader, result: Epd):
+    def save_results(self, epd_reader: IlcdEpdReader, result: Epd, *, extract_pdf: bool = False):
         output_dir = Path(epd_reader.get_uuid())
         ensure_dir(output_dir)
         with open(output_dir / "openEPD.json", "w") as f:
             f.write(result.json(indent=2, exclude_none=True, exclude_unset=True))
         if isinstance(epd_reader.data_provider, ZipIlcdReader):
             epd_reader.data_provider.save_to(output_dir / "ilcd_epd.zip")
+        if extract_pdf:
+            pdf_stream = epd_reader.get_epd_document_stream()
+            if pdf_stream is not None:
+                with open(output_dir / "original.pdf", "wb") as f:
+                    f.write(pdf_stream.read())
         CLI.print_info("Output saved to " + str(output_dir.absolute()))

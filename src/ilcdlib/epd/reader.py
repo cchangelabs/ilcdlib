@@ -18,7 +18,7 @@
 #  Find out more at www.BuildingTransparency.org
 #
 import datetime
-from typing import Sequence, Type
+from typing import IO, Sequence, Type
 
 from openepd.model.common import Amount
 from openepd.model.epd import Epd
@@ -121,6 +121,18 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
                 ("process:modellingAndValidation", "process:LCIMethodAndAllocation", "common:other", "epd2013:subType"),
             )
             == "average dataset"
+        )
+
+    def get_epd_document_stream(self) -> IO[bytes] | None:
+        """Extract the EPD document."""
+        return self._get_external_binary(
+            self.epd_el_tree,
+            (
+                "process:modellingAndValidation",
+                "process:dataSourcesTreatmentAndRepresentativeness",
+                "common:other",
+                "epd2019:referenceToOriginalEPD",
+            ),
         )
 
     def get_product_name(self, lang: LangDef) -> str | None:

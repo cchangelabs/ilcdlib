@@ -276,6 +276,12 @@ class IlcdXmlReader:
             return None
         return self.get_xml_tree(ref.entity_type, ref.entity_id, ref.entity_version, allow_static_datasets=True)
 
+    def _get_external_binary(self, root: T_ET.Element, path: XmlPath) -> IO[bytes] | None:
+        ref = self._get_reference(root, path)
+        if ref is None:
+            return None
+        return self.data_provider.get_entity_stream(ref.entity_type, ref.entity_id, ref.entity_version, binary=True)
+
 
 class OpenEpdContactSupportReader(metaclass=abc.ABCMeta):
     """Base class for adding OpenEPD export support."""
