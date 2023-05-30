@@ -1,3 +1,18 @@
+## 0.4.0 (2023-05-30)
+
+### Feat
+
+- extract all available product flow properties
+- **cli**: automatically detect the dialect basing on the input url
+- add bulk processing to cli tool
+
+### Fix
+
+- handle `-` unit properly
+- fix phone number sanitizing logic
+- preserve address of the contact
+- **cli**: extract base url from the doc_ref if possible
+
 ## 0.3.0 (2023-05-29)
 
 ### Feat
