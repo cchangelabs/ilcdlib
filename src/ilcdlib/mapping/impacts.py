@@ -20,7 +20,7 @@
 from ilcdlib.mapping.common import SimpleDataMapper
 
 
-class ImpactsUUIDToOpenIdMapper(SimpleDataMapper):
+class ImpactsUUIDToOpenIdMapper(SimpleDataMapper[str]):
     """Map ILCD UUIDs to openEPD impact names."""
 
     DATABASE = {
