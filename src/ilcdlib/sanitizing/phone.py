@@ -19,7 +19,7 @@
 #
 import re
 
-PHONE_REGEX = re.compile(r"\+?[\d\s\-()]+", re.IGNORECASE)
+PHONE_REGEX = re.compile(r"[+\d\s\-()]+", re.IGNORECASE)
 
 
 def cleanup_phone(phone: str | None) -> str | None:
@@ -30,7 +30,7 @@ def cleanup_phone(phone: str | None) -> str | None:
     """
     if phone is None:
         return None
-    for m in PHONE_REGEX.findall(phone):
+    for m in sorted(PHONE_REGEX.findall(phone), key=lambda x: len(x), reverse=True):
         if len(m.strip()) > 0:
             return m.strip()
     return phone

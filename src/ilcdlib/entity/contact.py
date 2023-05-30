@@ -114,6 +114,7 @@ class IlcdContactReader(OpenEpdContactSupportReader, IlcdXmlReader):
             email=self.get_email(),
             phone=cleanup_phone(self.get_phone()),
             website=self.get_website(),
+            address=self.get_address(),
         )
         return Org.construct(
             name=self.get_name(lang),

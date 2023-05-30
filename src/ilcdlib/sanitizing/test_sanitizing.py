@@ -17,4 +17,20 @@
 #  Charles Pankow Foundation, Microsoft Sustainability Fund, Interface, MKA Foundation, and others.
 #  Find out more at www.BuildingTransparency.org
 #
-VERSION = "0.4.0"
+from unittest import TestCase
+
+from ilcdlib.sanitizing.phone import cleanup_phone
+
+
+class PhoneSanitizingTestCase(TestCase):
+    def test_sanitizing(self):
+        test_cases = [
+            ("+1 263 232432", "+1 263 232432"),
+            ("tel: +1 263 232432", "+1 263 232432"),
+            ("Contact us at +1 263 232432", "+1 263 232432"),
+            ("(+49) 521 93447681", "(+49) 521 93447681"),
+            ("Tel (mobile): (+49) (521) 93447681", "(+49) (521) 93447681"),
+        ]
+        for input_, expected in test_cases:
+            actual = cleanup_phone(input_)
+            self.assertEqual(expected, actual)

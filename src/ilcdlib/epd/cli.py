@@ -99,6 +99,7 @@ class ConvertEpdCliExtension(CliExtension):
             "doc",
             metavar="doc",
             type=str,
+            nargs="+",
             help="Reference to the input document. Can be a file path or URL "
             "depending on supported converter capabilities.",
         )
@@ -106,7 +107,7 @@ class ConvertEpdCliExtension(CliExtension):
     def handle(self, args: argparse.Namespace):
         in_format: str = args.in_format
         out_format: str = args.out_format
-        doc_ref: str = args.doc
+        doc_refs: list[str] = args.doc
         lang: str | None = args.lang
         dialect: str | None = args.dialect
         save: bool = args.save
@@ -119,13 +120,39 @@ class ConvertEpdCliExtension(CliExtension):
             CLI.fail(f"Input format {in_format} and output format {out_format} are the same.", 1)
         if extract_pdf and not save:
             CLI.fail("Extracting PDF requires saving the input document. Consider adding -s flag", 1)
-        # if not doc_ref.endswith(".zip"):
-        #     CLI.fail(f"Input document {doc_ref} is not a zip file.", 2)
         epd_reader_factory = EpdReaderFactory()
         if dialect is not None and not epd_reader_factory.is_dialect_supported(dialect):
             CLI.fail(f"Dialect {dialect} is not supported.", 3)
+        for doc in doc_refs:
+            self.process_single_doc(
+                doc,
+                epd_reader_factory,
+                dialect=dialect,
+                extract_pdf=extract_pdf,
+                in_format=in_format,
+                lang=lang,
+                out_format=out_format,
+                save=save,
+            )
+
+    def process_single_doc(
+        self,
+        doc_ref: str,
+        epd_reader_factory: EpdReaderFactory,
+        *,
+        dialect: str | None,
+        in_format: str,
+        out_format: str,
+        lang: str | None = None,
+        extract_pdf: bool = False,
+        save: bool = False,
+    ) -> None:
         CLI.print_info(f"Converting document {doc_ref} from {in_format} to {out_format}.")
-        reader_cls = epd_reader_factory.get_reader_class(dialect)
+        reader_cls, dialect = (
+            (epd_reader_factory.get_reader_class(dialect), dialect)
+            if dialect
+            else epd_reader_factory.autodiscover_by_url(doc_ref)
+        )
         CLI.print_info("Effective dialect: " + (dialect if dialect is not None else "Generic"))
         medium = Soda4LcaZipReader(doc_ref) if doc_ref.startswith("http") else ZipIlcdReader(Path(doc_ref))
         epd_reader = reader_cls(None, None, medium)
@@ -146,7 +173,8 @@ class ConvertEpdCliExtension(CliExtension):
         if prioritize_english:
             lang_list.insert(0, "en")
         CLI.print_info("Language priority: " + ",".join([x if x is not None else "any other" for x in lang_list]))
-        open_epd = epd_reader.to_openepd_epd(lang_list)
+        base_url = self.__extract_base_url(doc_ref)
+        open_epd = epd_reader.to_openepd_epd(lang_list, base_url=base_url)
         CLI.print_data(open_epd.json(indent=2, exclude_none=True, exclude_unset=True))
         if save:
             self.save_results(epd_reader, open_epd, extract_pdf=extract_pdf)
@@ -164,3 +192,15 @@ class ConvertEpdCliExtension(CliExtension):
                 with open(output_dir / "original.pdf", "wb") as f:
                     f.write(pdf_stream.read())
         CLI.print_info("Output saved to " + str(output_dir.absolute()))
+
+    def __extract_base_url(self, doc_ref: str) -> str | None:
+        if doc_ref.startswith("http"):
+            if "/datasetdetail/" in doc_ref:
+                return doc_ref.split("/datasetdetail/", 1)[0]
+            elif "/resource/" in doc_ref:
+                return doc_ref.split("/resource/", 1)[0]
+            elif "/showProcess.xhtml" in doc_ref:
+                return doc_ref.split("/showProcess.xhtml", 1)[0]
+            return None
+        else:
+            return None

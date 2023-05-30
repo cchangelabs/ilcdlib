@@ -26,3 +26,8 @@ class IndataIlcdXmlEpdReader(IlcdEpdReader):
     def post_init(self):
         """Configure Indata specific settings."""
         self.xml_parser.xml_ns["epd2019"] = "http://www.indata.network/EPD/2019"
+
+    @classmethod
+    def is_known_url(cls, url: str) -> bool:
+        """Return whether the URL recognized as a known Environdec URL."""
+        return "indata" in url.lower()

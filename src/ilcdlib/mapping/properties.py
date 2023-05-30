@@ -17,4 +17,16 @@
 #  Charles Pankow Foundation, Microsoft Sustainability Fund, Interface, MKA Foundation, and others.
 #  Find out more at www.BuildingTransparency.org
 #
-VERSION = "0.4.0"
+from ilcdlib.mapping.common import SimpleDataMapper
+
+
+class PropertiesUUIDMapper(SimpleDataMapper[str]):
+    """A data mapper that maps units ILCD UUIDs to standartized names."""
+
+    DATABASE = {
+        "7e18d0ad-e78e-47a0-8e96-1c0a581902e2": "mass",
+        "838aaa23-0117-11db-92e3-0800200c9a66": "length",
+    }
+
+
+default_properties_uuid_mapper = PropertiesUUIDMapper()

@@ -23,4 +23,7 @@ from ilcdlib.epd.reader import IlcdEpdReader
 class OekobauDatIlcdXmlEpdReader(IlcdEpdReader):
     """Reader for EPDs in the Oekobau.DAT specific ILCD XML format."""
 
-    pass
+    @classmethod
+    def is_known_url(cls, url: str) -> bool:
+        """Return whether the URL recognized as a known Environdec URL."""
+        return "oekobaudat" in url.lower()

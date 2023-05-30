@@ -20,7 +20,7 @@
 from ilcdlib.mapping.common import SimpleDataMapper
 
 
-class UnitsUUIDMapper(SimpleDataMapper):
+class UnitsUUIDMapper(SimpleDataMapper[str]):
     """A data mapper that maps units ILCD UUIDs to their symbols."""
 
     DATABASE = {

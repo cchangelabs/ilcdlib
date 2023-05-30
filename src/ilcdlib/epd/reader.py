@@ -20,7 +20,7 @@
 import datetime
 from typing import IO, Sequence, Type
 
-from openepd.model.common import Amount
+from openepd.model.common import Amount, Measurement
 from openepd.model.epd import Epd
 from openepd.model.lcia import ImpactSet
 from openepd.model.specs import Specs
@@ -297,6 +297,27 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
             return None
         return material_reader.get_material()
 
+    def get_product_flow_properties(self, include_ref_flow_prop: bool = False) -> dict[str, Measurement]:
+        """Return product flow properties other than reference property."""
+        exchange_dto = self.get_product_flow()
+        if exchange_dto is None:
+            return {}
+        reference_flow_properties = none_throws(exchange_dto.flow_dataset_reader).get_flow_other_properties(
+            include_ref_flow_prop
+        )
+        result = {}
+        for rfp in reference_flow_properties:
+            unit_group_reader = rfp.dataset_reader.get_unit_group_reader()
+            unit = unit_group_reader.get_reference_unit() if unit_group_reader is not None else None
+            if unit is None:
+                continue
+            amount = (exchange_dto.mean_value or 1.0) * (rfp.mean_value or 1.0) * unit.mean_value
+            prop_name = rfp.dataset_reader.get_name(["en", None])
+            if prop_name is None:
+                continue
+            result[prop_name.lower()] = Measurement(mean=amount, unit=unit.name)
+        return result
+
     def get_product_flow(self) -> IlcdExchangeDto | None:
         """Return the product flow (includes mean value and ilcd flow reader)."""
         ref_id = self.get_ref_to_product_flow_dataset()
@@ -370,27 +391,37 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
                 ).strip()
         return result
 
-    def to_openepd_epd(self, lang: LangDef, base_url: str | None = None) -> Epd:
+    def to_openepd_epd(self, lang: LangDef, base_url: str | None = None) -> Epd:  # NOSONAR
         """Return the EPD as OpenEPD object."""
         lang_code = lang if isinstance(lang, str) else None
         if isinstance(lang, Sequence):
             lang_code = lang[0] if len(lang) > 0 else None
         manufacturer_reader = self.get_manufacturer_reader()
-        manufacturer = manufacturer_reader.to_openepd_org(lang) if manufacturer_reader else None
+        manufacturer = manufacturer_reader.to_openepd_org(lang, base_url) if manufacturer_reader else None
         program_operator_reader = self.get_program_operator_reader()
-        program_operator = program_operator_reader.to_openepd_org(lang) if program_operator_reader else None
+        program_operator = program_operator_reader.to_openepd_org(lang, base_url) if program_operator_reader else None
         external_verifier_reader = self.get_external_verifier_reader()
-        external_verifier = external_verifier_reader.to_openepd_org(lang) if external_verifier_reader else None
+        external_verifier = (
+            external_verifier_reader.to_openepd_org(lang, base_url) if external_verifier_reader else None
+        )
         pcr_reader = self.get_pcr_reader()
-        pcr = pcr_reader.to_openepd_pcr(lang) if pcr_reader else None
+        pcr = pcr_reader.to_openepd_pcr(lang, base_url) if pcr_reader else None
         declared_unit = self.get_declared_unit()
         quantitative_props = self.get_quantitative_product_props_str(lang)
         product_name = self.get_product_name(lang)
         if product_name and quantitative_props:
             product_name += "; " + quantitative_props
         material_properties = self.get_material_properties()
+        other_product_props = self.get_product_flow_properties()
+        product_properties = {}
         if material_properties:
-            specs = Specs(ext=create_ext({n: v.to_unit_string() for n, v in material_properties.properties.items()}))
+            product_properties.update({n: v.to_unit_string() for n, v in material_properties.properties.items()})
+        if other_product_props:
+            product_properties.update(
+                {n: (str(v.mean) + " " + v.unit if v.unit else "").strip() for n, v in other_product_props.items()}
+            )
+        if product_properties:
+            specs = Specs(ext=create_ext(product_properties))
         else:
             specs = Specs()
         return Epd.construct(
@@ -411,3 +442,13 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
             impacts=self.get_lcia_results(),
             specs=specs,
         )
+
+    @classmethod
+    def is_known_url(cls, url: str) -> bool:
+        """
+        Return whether the URL recognized by this particular reader.
+
+        This method should be overriden by the dialect and return true if the input URL is know url for this dialect.
+        """
+
+        return False

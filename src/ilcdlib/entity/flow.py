@@ -23,6 +23,7 @@ from typing import Optional, Type
 from ilcdlib.common import BaseIlcdMediumSpecificReader, IlcdXmlReader
 from ilcdlib.entity.material import MatMlReader
 from ilcdlib.entity.unit import IlcdUnitGroupReader
+from ilcdlib.mapping.properties import PropertiesUUIDMapper, default_properties_uuid_mapper
 from ilcdlib.type import LangDef
 from ilcdlib.utils import none_throws
 from ilcdlib.xml_parser import T_ET
@@ -37,10 +38,12 @@ class IlcdFlowPropertyReader(IlcdXmlReader):
         data_provider: BaseIlcdMediumSpecificReader,
         *,
         unit_group_reader_cls: Type[IlcdUnitGroupReader] = IlcdUnitGroupReader,
+        property_uuid_mapper: PropertiesUUIDMapper = default_properties_uuid_mapper,
     ):
         super().__init__(data_provider)
         self._entity = element
         self.unit_group_reader_cls = unit_group_reader_cls
+        self.property_uuid_mapper = property_uuid_mapper
 
     def get_uuid(self) -> str:
         """Get the UUID of the entity described by this data set."""
@@ -55,11 +58,16 @@ class IlcdFlowPropertyReader(IlcdXmlReader):
             ("fp:flowPropertiesInformation", "fp:publicationAndOwnership", "common:dataSetVersion"),
         )
 
-    def get_name(self, lang: LangDef) -> str | None:
+    def get_name(self, lang: LangDef, use_mapper: bool = True) -> str | None:
         """Get the name of the entity described by this data set."""
-        return self._get_localized_text(
+        name = self._get_localized_text(
             self._entity, ("fp:flowPropertiesInformation", "fp:dataSetInformation", "common:name"), lang
         )
+        if use_mapper:
+            mapped_name = self.property_uuid_mapper.map(self.get_uuid(), name if name else "")
+            return mapped_name if mapped_name is not None else None
+        else:
+            return name
 
     def get_unit_group_reader(self) -> IlcdUnitGroupReader | None:
         """Get the reader for the unit group."""
@@ -164,3 +172,30 @@ class IlcdFlowReader(IlcdXmlReader):
                 mean_value=self._get_float(element, ("flow:meanValue",)),
             )
         return None
+
+    def get_flow_other_properties(self, include_ref_flow_prop: bool = False) -> list[IlcdFlowPropertyDto]:
+        """Get the reader for the other flow properties."""
+        reference_flow_property_id = self.get_ref_to_reference_flow_prop() if include_ref_flow_prop else None
+        flow_elements = self._get_all_els(
+            self._entity,
+            (
+                "flow:flowProperties",
+                "flow:flowProperty",
+            ),
+        )
+        result: list[IlcdFlowPropertyDto] = []
+        for e in flow_elements:
+            if reference_flow_property_id is not None and e.attrib["dataSetInternalID"] == str(
+                reference_flow_property_id
+            ):
+                continue
+            flow_prop_el = self._get_external_tree(e, ("flow:referenceToFlowPropertyDataSet",))
+            if flow_prop_el is None:
+                continue
+            result.append(
+                IlcdFlowPropertyDto(
+                    dataset_reader=self.flow_property_reader_cls(flow_prop_el, self.data_provider),
+                    mean_value=self._get_float(e, ("flow:meanValue",)),
+                )
+            )
+        return result
