@@ -20,9 +20,11 @@
 from io import BytesIO
 from typing import IO, Iterable, Type
 
+from requests import HTTPError
+
 from ilcdlib.dto import Category, IlcdReference, ListResponseMeta, ProcessBasicInfo, ProcessSearchResponse
 from ilcdlib.entity.category import CategorySystemReader
-from ilcdlib.http import BaseApiClient
+from ilcdlib.http_common import BaseApiClient
 
 
 class Soda4LcaXmlApiClient(BaseApiClient):
@@ -85,14 +87,22 @@ class Soda4LcaXmlApiClient(BaseApiClient):
 
         :param str process_uuid: UUID of the process
         :param str version: version of the process (optional)
+        :raise NotFoundError: if the process file does not exist
         """
         params = dict()
         if version is not None:
             params["version"] = version
-        response = self._do_request(
-            "get", f"/processes/{self._urlencode(process_uuid)}/epd", params=params, stream=True
-        )
-        return BytesIO(response.content)
+        try:
+            response = self._do_request(
+                "get", f"/processes/{self._urlencode(process_uuid)}/epd", params=params, stream=True
+            )
+            return BytesIO(response.content)
+        except HTTPError as e:
+            if e.response.status_code == 404:
+                raise FileNotFoundError(
+                    f"Process {process_uuid} (ver={version}) doesn't have EPD document attached"
+                ) from e
+            raise e
 
     def search_processes(
         self, offset: int = 0, page_size: int = 100, lang: str | None = None, **other_params
