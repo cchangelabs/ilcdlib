@@ -18,9 +18,9 @@
 #  Find out more at www.BuildingTransparency.org
 #
 from io import BytesIO
-from typing import IO, Type
+from typing import IO, Iterable, Type
 
-from ilcdlib.dto import Category, IlcdReference
+from ilcdlib.dto import Category, IlcdReference, ListResponseMeta, ProcessBasicInfo, ProcessSearchResponse
 from ilcdlib.entity.category import CategorySystemReader
 from ilcdlib.http import BaseApiClient
 
@@ -93,3 +93,85 @@ class Soda4LcaXmlApiClient(BaseApiClient):
             "get", f"/processes/{self._urlencode(process_uuid)}/epd", params=params, stream=True
         )
         return BytesIO(response.content)
+
+    def search_processes(
+        self, offset: int = 0, page_size: int = 100, lang: str | None = None, **other_params
+    ) -> ProcessSearchResponse:
+        """
+        Filter processes by various criteria.
+
+        :param offset: offset from the beginning of the dataset
+        :param page_size: size of the page
+        :param lang: language code (2 letters)
+        :param other_params: refer to Soda4LCA documentation for other parameters
+        :return:
+        """
+        params = dict(
+            format="json",
+            startIndex=offset,
+            pageSize=page_size,
+            search="true",
+            *other_params,
+        )
+        if lang is not None:
+            params["lang"] = lang
+            params["langFallback"] = True
+        response = self._do_request("get", "/processes", params=params)
+        obj = response.json()
+        meta = ListResponseMeta(
+            offset=obj.get("startIndex", 0),
+            page_size=obj.get("pageSize", 0),
+            total_items_count=obj.get("totalCount", 0),
+        )
+        items = []
+        for x in obj.get("data", []):
+            items.append(
+                ProcessBasicInfo(
+                    uuid=x.get("uuid"),
+                    name=x.get("name"),
+                    version=x.get("version"),
+                    class_id=x.get("classificId"),
+                    class_name=x.get("classific"),
+                    classification_system=x.get("classificSystem"),
+                    type=x.get("type"),
+                    sub_type=x.get("subType"),
+                    original=x,
+                )
+            )
+        return ProcessSearchResponse(meta=meta, items=items)
+
+    def get_processes_iter(
+        self, offset: int = 0, page_size: int = 100, **search_params
+    ) -> tuple[Iterable[ProcessBasicInfo], int]:
+        """
+        Return an iterator over all processes matching the given criteria.
+
+        :param offset: offset from the beginning of the dataset
+        :param page_size: size of the page
+        :param search_params: refer to Soda4LCA documentation for search parameters
+        :return:
+        """
+        response = self.search_processes(0, page_size=1, **search_params)
+        return self._create_process_iterator(offset, page_size, **search_params), response.meta.total_items_count
+
+    def _create_process_iterator(
+        self, offset: int = 0, page_size: int = 100, **search_params
+    ) -> Iterable[ProcessBasicInfo]:
+        """
+        Create an iterator over all processes matching the given criteria.
+
+        :param search_params: refer to Soda4LCA documentation for other parameters
+        :return:
+        """
+        has_next = True
+        while has_next:
+            response = self.search_processes(offset=offset, page_size=page_size, **search_params)
+            for item in response.items:
+                yield item
+            total = response.meta.total_items_count
+            processed_items_count = len(response.items)
+            if processed_items_count == 0:
+                has_next = False
+            else:
+                has_next = offset + processed_items_count <= total
+            offset += processed_items_count

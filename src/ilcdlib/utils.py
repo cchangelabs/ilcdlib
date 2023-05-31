@@ -17,12 +17,14 @@
 #  Charles Pankow Foundation, Microsoft Sustainability Fund, Interface, MKA Foundation, and others.
 #  Find out more at www.BuildingTransparency.org
 #
-from typing import Any, TypeVar
+from typing import TYPE_CHECKING, Any, Optional, TypeVar
 
 from ilcdlib import const
-from ilcdlib.dto import IlcdReference
 
 T = TypeVar("T")
+
+if TYPE_CHECKING:
+    from ilcdlib.dto import IlcdReference
 
 
 def none_throws(optional: T | None, message: str = "Unexpected `None`") -> T:
@@ -39,7 +41,9 @@ def no_trailing_slash(val: str) -> str:
     return val
 
 
-def create_openepd_attachments(reference: IlcdReference | None, base_url: str | None = None) -> dict[str, str] | None:
+def create_openepd_attachments(
+    reference: Optional["IlcdReference"], base_url: str | None = None
+) -> dict[str, str] | None:
     """Create a dictionary of OpenEPD attachments."""
     if reference is None:
         return None
