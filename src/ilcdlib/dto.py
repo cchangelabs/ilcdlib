@@ -17,6 +17,7 @@
 #  Charles Pankow Foundation, Microsoft Sustainability Fund, Interface, MKA Foundation, and others.
 #  Find out more at www.BuildingTransparency.org
 #
+from dataclasses import dataclass
 from typing import NamedTuple
 
 
@@ -40,3 +41,13 @@ class ProductClassDef(NamedTuple):
 
     id: str | None
     name: str | None
+
+
+@dataclass(kw_only=True)
+class Category:
+    """A category DTO."""
+
+    id: str
+    name: str | None = None
+    parent_id: str | None = None
+    full_path: list[str] | None = None

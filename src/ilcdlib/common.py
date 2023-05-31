@@ -109,6 +109,40 @@ class BaseIlcdMediumSpecificReader(metaclass=abc.ABCMeta):
         self.close()
 
 
+class NoopBaseReader(BaseIlcdMediumSpecificReader):
+    """A stub implementation of BaseIlcdMediumSpecificReader that does nothing."""
+
+    @overload
+    def get_entity_stream(
+        self, entity_type: str, entity_id: str, entity_version: str | None = None, *, binary: Literal[True]
+    ) -> IO[bytes]:
+        ...
+
+    @overload
+    def get_entity_stream(
+        self, entity_type: str, entity_id: str, entity_version: str | None = None, *, binary: Literal[False] = False
+    ) -> TextIO:
+        ...
+
+    def get_entity_stream(
+        self, entity_type: str, entity_id: str, entity_version: str | None = None, *, binary: bool = False
+    ) -> IO[bytes] | TextIO:
+        """Generate exception. This class does not support get_entity_stream."""
+        raise ValueError("NoopBaseReader does not support get_entity_stream")
+
+    def entity_exists(self, entity_type: str, entity_id: str, entity_version: str | None = None) -> bool:
+        """Return False regardless of parameters for this implementation."""
+        return False
+
+    def close(self):
+        """Do nothing. This implementation does not need to be closed."""
+        pass
+
+    def list_entities(self, entity_type: str) -> Sequence[IlcdReference]:
+        """Return empty list. NoopBaseReader does not support get_entity_stream."""
+        return []
+
+
 class IlcdXmlReader:
     """Base class for ILCD xml readers. It provides a set of helper methods to read ILCD data from ILCD xml."""
 

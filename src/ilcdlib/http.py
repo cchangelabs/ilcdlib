@@ -215,6 +215,7 @@ class BaseApiClient(metaclass=abc.ABCMeta):
             return response
 
         response.raise_for_status()
+        raise RuntimeError("This line should never be reached")
 
     def _do_xml_request(self, method: str, endpoint: str, **kwargs) -> T_ET.Element:
         response = self._do_request(method, endpoint, **kwargs)
