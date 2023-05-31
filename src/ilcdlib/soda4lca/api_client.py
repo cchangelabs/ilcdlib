@@ -17,9 +17,10 @@
 #  Charles Pankow Foundation, Microsoft Sustainability Fund, Interface, MKA Foundation, and others.
 #  Find out more at www.BuildingTransparency.org
 #
-from typing import Type
+from io import BytesIO
+from typing import IO, Type
 
-from ilcdlib.dto import Category
+from ilcdlib.dto import Category, IlcdReference
 from ilcdlib.entity.category import CategorySystemReader
 from ilcdlib.http import BaseApiClient
 
@@ -57,3 +58,23 @@ class Soda4LcaXmlApiClient(BaseApiClient):
         )
         reader = self.category_reader_cls(xml_doc)
         return reader.get_categories_flat_list(data_type)
+
+    def export_to_zip(self, ref: IlcdReference, stock: str | None = None) -> IO[bytes]:
+        """
+        Export an ILCD entity to a ZIP file.
+
+        :param IlcdReference ref: reference to the entity
+        :param str stock: stock ID (optional)
+        """
+        params = dict(format="zip")
+        if stock is not None:
+            params["stock"] = stock
+        if ref.entity_version is not None:
+            params["version"] = ref.entity_version
+        response = self._do_request(
+            "get",
+            f"/{self._urlencode(ref.entity_type)}/{self._urlencode(ref.entity_id)}/zipexport",
+            params=params,
+            stream=True,
+        )
+        return BytesIO(response.content)
