@@ -23,6 +23,7 @@ from typing import IO, Sequence, Type
 from openepd.model.common import Amount, Measurement
 from openepd.model.epd import Epd
 from openepd.model.lcia import ImpactSet, OutputFlowSet, ResourceUseSet
+from openepd.model.org import Org
 from openepd.model.specs import Specs
 
 from ilcdlib.common import BaseIlcdMediumSpecificReader, IlcdXmlReader, OpenEpdEdpSupportReader
@@ -341,6 +342,26 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
 
         return self.contact_reader_cls(element, self.data_provider) if element is not None else None
 
+    def get_data_entry_by_reader(self) -> IlcdContactReader | None:
+        """Return the reader for the data entry by."""
+        element = self._get_external_tree(
+            self.epd_el_tree,
+            (
+                "process:administrativeInformation",
+                "process:dataEntryBy",
+                "common:referenceToPersonOrEntityEnteringTheData",
+            ),
+        )
+        return self.contact_reader_cls(element, self.data_provider) if element is not None else None
+
+    def get_data_entry_by(self, lang: LangDef, base_url: str | None = None) -> Org | None:
+        """Return the data entry by org."""
+        data_entry_by_reader = self.get_data_entry_by_reader()
+        if data_entry_by_reader is None:
+            return None
+        data_entry_by = data_entry_by_reader.to_openepd_org(lang, base_url) if data_entry_by_reader else None
+        return data_entry_by
+
     def get_pcr_reader(self) -> IlcdPcrReader | None:
         """Return the reader for the PCR."""
         element = self._get_external_tree(
@@ -596,6 +617,7 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
         epd.set_ext_field("is_industry_average", self.is_industry_epd())
         epd.set_ext_field("production_location", self.get_production_location())
         epd.set_ext_field("epd_publisher", publisher)
+        epd.set_ext_field("epd_developer", self.get_data_entry_by(lang, base_url))
         return epd
 
     @classmethod
