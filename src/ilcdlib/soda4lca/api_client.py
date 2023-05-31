@@ -78,3 +78,18 @@ class Soda4LcaXmlApiClient(BaseApiClient):
             stream=True,
         )
         return BytesIO(response.content)
+
+    def download_epd_document(self, process_uuid: str, version: str | None = None) -> IO[bytes]:
+        """
+        Download an EPD document (typically in PDF format).
+
+        :param str process_uuid: UUID of the process
+        :param str version: version of the process (optional)
+        """
+        params = dict()
+        if version is not None:
+            params["version"] = version
+        response = self._do_request(
+            "get", f"/processes/{self._urlencode(process_uuid)}/epd", params=params, stream=True
+        )
+        return BytesIO(response.content)
