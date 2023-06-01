@@ -194,6 +194,7 @@ class IlcdXmlReader:
         raise ValueError(f"Entity {entity_id} version {entity_version} (type: {entity_type}) does not exist.")
 
     def _preprocess_path(self, path: XmlPath) -> str:
+        """Convert XPath defined in a form of tuple or string into a string representation."""
         if not isinstance(path, str):
             str_path = "/".join(path)
         else:
@@ -290,6 +291,15 @@ class IlcdXmlReader:
     def _get_reference(
         self, root: T_ET.Element, path: XmlPath, default_value: IlcdReference | None = None
     ) -> IlcdReference | None:
+        """
+        Extract reference data from XML element specified by XPath.
+
+        If the element doesn't hold reference information of doesn't exist - `default_value` is returned.
+
+        :param root: The root element to search in.
+        :param path: The path to the reference element (xpath in a form of tuple or string).
+        :param default_value: Default value to return if reference is not found.
+        """
         xpath = f"{self._preprocess_path(path)}"
         el = self.xml_parser.get_el(root, xpath)
         if el is None or el.attrib is None:
@@ -305,12 +315,36 @@ class IlcdXmlReader:
         return IlcdReference(ref_type, ref_id, entity_version=None)
 
     def _get_external_tree(self, root: T_ET.Element, path: XmlPath) -> T_ET.Element | None:
+        """
+        Read XML document referenced by given path and return root XML element as result.
+
+        Path param must point to the reference element (xml element with refObjectId, type, [version]) attributes.
+        This method will locate the reference, and then read XML stream and parse it into XML tree.
+        For reading binary objects use _get_external_binary() instead.
+        See also _get_reference() for more details on how reference elements are parsed.
+
+        :param root: The root element to search in.
+        :param path: The path to the reference element (xpath in a form of tuple or string).
+        :return: XML Element or None if not found.
+        """
         ref = self._get_reference(root, path)
         if ref is None:
             return None
         return self.get_xml_tree(ref.entity_type, ref.entity_id, ref.entity_version, allow_static_datasets=True)
 
     def _get_external_binary(self, root: T_ET.Element, path: XmlPath) -> IO[bytes] | None:
+        """
+        Read binary object from element reference.
+
+        Path param must point to the reference element (xml element with refObjectId, type, [version]) attributes.
+        This method will locate the reference, and then read the binary object from the referenced entity.
+        For reading references to XML objects use _get_external_tree() instead.
+        See also _get_reference() for more details on how reference elements are parsed.
+
+        :param root: The root element to search in.
+        :param path: The path to the reference element (xpath in a form of tuple or string).
+        :return: The binary object or None if not found.
+        """
         ref = self._get_reference(root, path)
         if ref is None:
             return None
