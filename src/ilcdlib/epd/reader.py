@@ -89,6 +89,43 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
         """Get the reference to this data set."""
         return IlcdReference(entity_type="processes", entity_id=self.get_uuid(), entity_version=self.get_version())
 
+    def get_lca_discussion(self, lang: LangDef) -> str | None:
+        """Return the product lca discussion in the given language."""
+        advice = self._get_localized_text(
+            self.epd_el_tree,
+            (
+                "process:modellingAndValidation",
+                "process:dataSourcesTreatmentAndRepresentativeness",
+                "process:useAdviceForDataSet",
+            ),
+            lang,
+        )
+
+        advice_str = ""
+        if advice:
+            advice_str = f"""
+# Use Advice
+{advice}
+
+"""
+
+        technology = self._get_localized_text(
+            self.epd_el_tree,
+            ("process:processInformation", "process:technology", "process:technologyDescriptionAndIncludedProcesses"),
+            lang,
+        )
+
+        technology_str = ""
+        if technology:
+            technology_str = f"""
+# Technology Description And Included Processes
+{technology}
+
+"""
+        result = (advice_str + technology_str).strip()
+
+        return result or None
+
     def get_uuid(self) -> str:
         """Get the UUID of the entity described by this data set."""
         return none_throws(
@@ -438,6 +475,7 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
             manufacturer=manufacturer,
             program_operator=program_operator,
             product_class=self._product_classes_to_openepd(self.get_product_classes()),
+            lca_discussion=self.get_lca_discussion(lang),
             third_party_verifier=external_verifier,
             pcr=pcr,
             declared_unit=declared_unit,
