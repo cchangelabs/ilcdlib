@@ -39,9 +39,9 @@ class XmlParser(object):
         """Get the XML namespace map."""
         return self.__xml_ns
 
-    def get_xml_tree(self, file_stream_or_str: IO | str) -> T_ET.Element:
+    def get_xml_tree(self, file_stream_or_str: IO | str | bytes) -> T_ET.Element:
         """Get the XML tree from a file stream or string."""
-        if isinstance(file_stream_or_str, str):
+        if isinstance(file_stream_or_str, (str, bytes)):
             return ET.fromstring(file_stream_or_str)
         else:
             return ET.parse(file_stream_or_str).getroot()

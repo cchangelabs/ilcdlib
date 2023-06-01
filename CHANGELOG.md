@@ -1,3 +1,22 @@
+## 0.5.0 (2023-06-01)
+
+### Feat
+
+- **soda4lca**: add `search processes` method to soda4lca client
+- **soda4lca**: add `download pdf` method to soda4lca client
+- **soda4lca**: add `export to zip` method to soda4lca client
+- **soda4lca**: add `get category list` method to soda4lca client
+- add base api client
+
+### Fix
+
+- **openepd**: add links to declaration and pdf
+- **soda4lca**: add error handling for processes with missing PDFs
+
+### Refactor
+
+- **soda4lca**: rename common http module
+
 ## 0.4.0 (2023-05-30)
 
 ### Feat

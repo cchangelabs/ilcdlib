@@ -408,6 +408,7 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
         pcr = pcr_reader.to_openepd_pcr(lang, base_url) if pcr_reader else None
         declared_unit = self.get_declared_unit()
         quantitative_props = self.get_quantitative_product_props_str(lang)
+        own_ref = self.get_own_reference()
         product_name = self.get_product_name(lang)
         if product_name and quantitative_props:
             product_name += "; " + quantitative_props
@@ -427,7 +428,8 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
         return Epd.construct(
             doctype="openEPD",
             language=lang_code,
-            attachments=create_openepd_attachments(self.get_own_reference(), base_url),
+            attachments=create_openepd_attachments(own_ref, base_url),
+            declaration_url=own_ref.to_url(base_url) if own_ref and base_url else None,
             name=product_name,
             description=self.get_product_description(lang),
             date_published=self.get_date_published(),
