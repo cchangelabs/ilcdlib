@@ -20,6 +20,8 @@
 from dataclasses import dataclass
 from typing import Any, Generic, NamedTuple
 
+from openepd.model.org import Org
+
 from ilcdlib.utils import T
 
 
@@ -97,3 +99,14 @@ class ProcessSearchResponse(BaseSearchResponse[ProcessBasicInfo]):
     """A search response for processes."""
 
     pass
+
+
+@dataclass(kw_only=True)
+class ComplianceDto:
+    """Basic information about a Compliance."""
+
+    uuid: str
+    short_name: str | None
+    name: str | None
+    link: str | None
+    issuer: Org | None
