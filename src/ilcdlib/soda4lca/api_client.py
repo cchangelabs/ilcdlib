@@ -19,6 +19,7 @@
 #
 from io import BytesIO
 from typing import IO, Iterable, Type
+from urllib.parse import urlencode
 
 from requests import HTTPError
 
@@ -81,6 +82,22 @@ class Soda4LcaXmlApiClient(BaseApiClient):
         )
         return BytesIO(response.content)
 
+    def get_download_epd_document_link(self, process_uuid: str, version: str | None = None) -> str | None:
+        """
+        Get link to download an EPD document (typically in PDF format).
+
+        This method performs a check if the document exists and returns None if it doesn't.
+
+        :param str process_uuid: UUID of the process
+        :param str version: version of the process (optional)
+        """
+        params = dict()
+        if version is not None:
+            params["version"] = version
+        url = f"{self.base_url}/processes/{self._urlencode(process_uuid)}/epd" + "?" + urlencode(params)
+        response = self._do_request("head", url, raise_for_status=False)
+        return url if response.ok else None
+
     def download_epd_document(self, process_uuid: str, version: str | None = None) -> IO[bytes]:
         """
         Download an EPD document (typically in PDF format).
@@ -89,13 +106,11 @@ class Soda4LcaXmlApiClient(BaseApiClient):
         :param str version: version of the process (optional)
         :raise NotFoundError: if the process file does not exist
         """
-        params = dict()
-        if version is not None:
-            params["version"] = version
+        url = self.get_download_epd_document_link(process_uuid, version)
+        if url is None:
+            raise FileNotFoundError(f"Process {process_uuid} (ver={version}) doesn't have EPD document attached")
         try:
-            response = self._do_request(
-                "get", f"/processes/{self._urlencode(process_uuid)}/epd", params=params, stream=True
-            )
+            response = self._do_request("get", url, stream=True)
             return BytesIO(response.content)
         except HTTPError as e:
             if e.response.status_code == 404:

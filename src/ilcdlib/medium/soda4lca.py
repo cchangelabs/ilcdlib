@@ -27,6 +27,7 @@ from urllib3.util import parse_url
 
 from ilcdlib.dto import IlcdReference
 from ilcdlib.medium.archive import ZipIlcdReader
+from ilcdlib.soda4lca.api_client import Soda4LcaXmlApiClient
 from ilcdlib.utils import none_throws
 
 http = urllib3.PoolManager()
@@ -48,6 +49,8 @@ class Soda4LcaZipReader(ZipIlcdReader):
         pointer = self.soda_endpoint_to_pointer(endpoint)
         if pointer.ref.entity_type != "processes":
             raise ValueError(f"Invalid endpoint {endpoint}. Must point to the process.")
+        self._soda4lca_client = Soda4LcaXmlApiClient(pointer.base_url)
+        self._ref = pointer.ref
         zip_url = self.create_zip_export_endpoint(pointer)
         zip_file = self.dowload_zip_archive(zip_url)
         super().__init__(zip_file)
@@ -107,6 +110,10 @@ class Soda4LcaZipReader(ZipIlcdReader):
         if response.status == 200:
             return io.BytesIO(response.data)
         raise ValueError(f"Could not download zip archive from {url}. Status code: {response.status}")
+
+    def get_pdf_url(self) -> str | None:
+        """Get the URL to the PDF document if any."""
+        return self._soda4lca_client.get_download_epd_document_link(self._ref.entity_id, self._ref.entity_version)
 
     @staticmethod
     def __map_type_name(in_: str) -> str:

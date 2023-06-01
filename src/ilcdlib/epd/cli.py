@@ -175,6 +175,8 @@ class ConvertEpdCliExtension(CliExtension):
         CLI.print_info("Language priority: " + ",".join([x if x is not None else "any other" for x in lang_list]))
         base_url = self.__extract_base_url(doc_ref)
         open_epd = epd_reader.to_openepd_epd(lang_list, base_url=base_url)
+        if isinstance(medium, Soda4LcaZipReader):
+            open_epd.set_ext_field("ilcd_pdf_url", medium.get_pdf_url())
         CLI.print_data(open_epd.json(indent=2, exclude_none=True, exclude_unset=True))
         if save:
             self.save_results(epd_reader, open_epd, extract_pdf=extract_pdf)
