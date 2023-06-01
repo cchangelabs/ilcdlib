@@ -46,7 +46,6 @@ class ZipIlcdReader(BaseIlcdMediumSpecificReader):
     def __init__(self, zip_file: PathLike | IO[bytes]):
         try:
             self._zip_file = ZipFile(zip_file, "r")
-            self._zip_file
         except Exception:
             raise ValueError("Could not open zip file. Please check if this is a valid zip file.")
         self.__ilcd_dir = ZipPath(self._zip_file) / "ILCD"
