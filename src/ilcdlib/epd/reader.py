@@ -25,10 +25,12 @@ from openepd.model.epd import Epd
 from openepd.model.lcia import ImpactSet, OutputFlowSet, ResourceUseSet
 from openepd.model.org import Org
 from openepd.model.specs import Specs
+from openepd.model.standard import Standard
 
 from ilcdlib.common import BaseIlcdMediumSpecificReader, IlcdXmlReader, OpenEpdEdpSupportReader
 from ilcdlib.const import IlcdDatasetType
-from ilcdlib.dto import IlcdReference, ProductClassDef
+from ilcdlib.dto import ComplianceDto, IlcdReference, ProductClassDef
+from ilcdlib.entity.compliance import IlcdComplianceListReader
 from ilcdlib.entity.contact import IlcdContactReader
 from ilcdlib.entity.exchage import IlcdExchangesReader
 from ilcdlib.entity.flow import IlcdExchangeDto, IlcdFlowReader
@@ -59,12 +61,14 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
         flow_reader_cls: Type[IlcdFlowReader] = IlcdFlowReader,
         lcia_results_reader_cls: Type[IlcdLciaResultsReader] = IlcdLciaResultsReader,
         exchanges_reader_cls: Type[IlcdExchangesReader] = IlcdExchangesReader,
+        compliance_reader_cls: Type[IlcdComplianceListReader] = IlcdComplianceListReader,
     ):
         super().__init__(data_provider)
         self.contact_reader_cls = contact_reader_cls
         self.pcr_reader_cls = pcr_reader_cls
         self.flow_reader_cls = flow_reader_cls
         self.lcia_results_reader_cls = lcia_results_reader_cls
+        self.compliance_reader_cls = compliance_reader_cls
         self.exchanges_reader_cls = exchanges_reader_cls
         if epd_process_id is None:
             entities = data_provider.list_entities(IlcdDatasetType.Processes)
@@ -359,6 +363,38 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
         data_entry_by_reader = self.get_data_entry_by_reader()
         return data_entry_by_reader.to_openepd_org(lang, base_url) if data_entry_by_reader else None
 
+    def get_compliance_reader(self) -> IlcdComplianceListReader | None:
+        """Return the reader for the standard included in compliance declarations."""
+        element = self._get_el(
+            self.epd_el_tree,
+            (
+                "process:modellingAndValidation",
+                "process:complianceDeclarations",
+            ),
+        )
+        return self.compliance_reader_cls(element, self.data_provider) if element is not None else None
+
+    def get_compliance_declarations(self, lang: LangDef, base_url: str | None = None) -> list[ComplianceDto]:
+        """Return list of compliance data."""
+        reader = self.get_compliance_reader()
+        if reader is None:
+            return []
+        return reader.get_compliances(lang, base_url)
+
+    def get_openepd_compliance(self, lang: LangDef, base_url: str | None = None) -> list[Standard]:
+        """Return list of OpenEPD Standards."""
+        result = []
+        for compliance in self.get_compliance_declarations(lang, base_url):
+            result.append(
+                Standard.construct(
+                    short_name=compliance.short_name,
+                    name=compliance.name,
+                    link=compliance.link,  # FIXME: incompatible type "Optional[str]"; expected "Optional[AnyUrl]"
+                    issuer=compliance.issuer,
+                )
+            )
+        return result
+
     def get_pcr_reader(self) -> IlcdPcrReader | None:
         """Return the reader for the PCR."""
         element = self._get_external_tree(
@@ -608,6 +644,7 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
             resource_uses=self.get_resource_uses(),
             output_flows=self.get_output_flows(),
             specs=specs,
+            compliance=self.get_openepd_compliance(lang, base_url),
         )
         if own_ref:
             epd.set_alt_id(provider_domain, own_ref.entity_id)
