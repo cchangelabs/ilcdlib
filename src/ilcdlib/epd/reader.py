@@ -486,7 +486,7 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
             program_operator_doc_id=self.get_program_operator_id(),
             manufacturer=manufacturer,
             program_operator=program_operator,
-            product_class=self._product_classes_to_openepd(self.get_product_classes()),
+            product_classes=self._product_classes_to_openepd(self.get_product_classes()),
             manufacturing_description=self.get_technology_description(lang),
             product_usage_description=self.get_technological_applicability(lang),
             lca_discussion=self.get_lca_discussion(lang),
