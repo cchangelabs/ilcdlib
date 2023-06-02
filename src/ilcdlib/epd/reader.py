@@ -25,7 +25,6 @@ from openepd.model.epd import Epd
 from openepd.model.lcia import ImpactSet
 from openepd.model.specs import Specs
 
-from ilcdlib import const
 from ilcdlib.common import BaseIlcdMediumSpecificReader, IlcdXmlReader, OpenEpdEdpSupportReader
 from ilcdlib.const import IlcdDatasetType
 from ilcdlib.dto import IlcdReference, ProductClassDef
@@ -430,12 +429,8 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
     def _product_classes_to_openepd(self, classes: dict[str, list[ProductClassDef]]) -> dict[str, str]:
         result: dict[str, str] = {}
         for classification_name, class_defs in classes.items():
-            if classification_name.lower() == "oekobau.dat":
-                result["oekobau.dat"] = none_throws(class_defs[-1].id)
-            elif classification_name.lower() == "ibucategories":
-                result["IBU"] = " >> ".join([none_throws(x.name) for x in class_defs])
             if len(class_defs) > 0:
-                result[const.ILCD_IDENTIFICATION[0]] = (
+                result[classification_name] = (
                     (class_defs[-1].id or "") + " " + " / ".join([none_throws(x.name) for x in class_defs])
                 ).strip()
         return result
