@@ -17,7 +17,8 @@
 #  Charles Pankow Foundation, Microsoft Sustainability Fund, Interface, MKA Foundation, and others.
 #  Find out more at www.BuildingTransparency.org
 #
-from typing import TYPE_CHECKING, Any, Optional, TypeVar
+from dataclasses import dataclass
+from typing import TYPE_CHECKING, Any, Optional, Self, TypeVar
 
 from ilcdlib import const
 
@@ -55,3 +56,33 @@ def create_ext(data: Any) -> dict[str, Any] | None:
     if data is None:
         return None
     return {x: data for x in const.ILCD_IDENTIFICATION}
+
+
+class MarkdownSectionBuilder:
+    """
+    A builder for Markdown sections.
+
+    Allows to build a Markdown string from a list of sections (title + content).
+    """
+
+    @dataclass(kw_only=True)
+    class _MdSection:
+        title: str
+        level: int = 1
+        content: str | None = None
+
+    def __init__(self) -> None:
+        self._sections: list[MarkdownSectionBuilder._MdSection] = []
+
+    def add_section(self, title: str, content: str | None = None, level: int = 1) -> Self:
+        """Add a new section to the builder."""
+        self._sections.append(MarkdownSectionBuilder._MdSection(title=title, content=content, level=level))
+        return self
+
+    @staticmethod
+    def _build_section(section: _MdSection) -> str:
+        return f"{'#' * section.level} {section.title}\n\n{section.content or ''}"
+
+    def build(self) -> str:
+        """Build the Markdown string."""
+        return "\n\n".join([self._build_section(x) for x in self._sections if x.content is not None])

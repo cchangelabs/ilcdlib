@@ -35,7 +35,7 @@ from ilcdlib.entity.lcia import IlcdLciaResultsReader
 from ilcdlib.entity.material import MatMlMaterial
 from ilcdlib.entity.pcr import IlcdPcrReader
 from ilcdlib.type import LangDef
-from ilcdlib.utils import create_ext, create_openepd_attachments, none_throws
+from ilcdlib.utils import MarkdownSectionBuilder, create_ext, create_openepd_attachments, none_throws
 
 
 class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
@@ -204,6 +204,55 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
         elif valid_until_year is not None:
             return datetime.date(year=valid_until_year, month=1, day=1)
         return None
+
+    def get_technology_description(self, lang: LangDef) -> str | None:
+        """
+        Return the technology description in the given language.
+
+        Description of the technological characteristics including operating conditions
+        of the process or product system.
+        """
+        return self._get_localized_text(
+            self.epd_el_tree,
+            ("process:processInformation", "process:technology", "process:technologyDescriptionAndIncludedProcesses"),
+            lang,
+        )
+
+    def get_technological_applicability(self, lang: LangDef) -> str | None:
+        """
+        Return the technological applicability in the given language.
+
+        Description of the technological applicability of the process or product system.
+        """
+        return self._get_localized_text(
+            self.epd_el_tree,
+            ("process:processInformation", "process:technology", "process:technologicalApplicability"),
+            lang,
+        )
+
+    def get_dataset_use_advice(self, lang: LangDef) -> str | None:
+        """
+        Return the dataset use advice in the given language.
+
+        Specific methodological advice for use of the data set as application options (e.g. data set shall be used
+        for LCA of buildings) or restrictions (e.g. data set shall not be used for products produced in 'wet process').
+        """
+        return self._get_localized_text(
+            self.epd_el_tree,
+            (
+                "process:modellingAndValidation",
+                "process:dataSourcesTreatmentAndRepresentativeness",
+                "process:useAdviceForDataSet",
+            ),
+            lang,
+        )
+
+    def get_lca_discussion(self, lang: LangDef) -> str | None:
+        """Return the product lca discussion in the given language. See openEPD/lca_discussion field docs."""
+        mb = MarkdownSectionBuilder()
+        mb.add_section("Use Advice", self.get_dataset_use_advice(lang))
+        mb.add_section("Technology Description And Included Processes", self.get_technology_description(lang))
+        return mb.build()
 
     def get_external_verifier_reader(self) -> IlcdContactReader | None:
         """Return the reader for the reviewer."""
@@ -438,6 +487,9 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
             manufacturer=manufacturer,
             program_operator=program_operator,
             product_class=self._product_classes_to_openepd(self.get_product_classes()),
+            manufacturing_description=self.get_technology_description(lang),
+            product_usage_description=self.get_technological_applicability(lang),
+            lca_discussion=self.get_lca_discussion(lang),
             third_party_verifier=external_verifier,
             pcr=pcr,
             declared_unit=declared_unit,
