@@ -675,13 +675,13 @@ setuptools = "*"
 
 [[package]]
 name = "openepd"
-version = "0.5.0"
+version = "0.6.0"
 description = "Python library to work with OpenEPD format"
 optional = false
 python-versions = ">=3.11,<4.0"
 files = [
-    {file = "openepd-0.5.0-py3-none-any.whl", hash = "sha256:49156ff152e17a31b35f8128f5937bed63dc5fb17b5fe2398a9607d6c5905d02"},
-    {file = "openepd-0.5.0.tar.gz", hash = "sha256:e898bb95d0f5430e34d3ffa0b3024825109ea55c0db689f824c3aebba89184a3"},
+    {file = "openepd-0.6.0-py3-none-any.whl", hash = "sha256:ee2a18fef54ac1be01011dc6f6425f56cc36fa12b03f4e36c346957d54d7acd5"},
+    {file = "openepd-0.6.0.tar.gz", hash = "sha256:5c0b065cce2ec854671379bc11292556a35377c2c8c6780e6aa6b6efc3db2dd5"},
 ]
 
 [package.dependencies]
@@ -1212,13 +1212,13 @@ files = [
 
 [[package]]
 name = "typing-extensions"
-version = "4.6.2"
+version = "4.6.3"
 description = "Backported and Experimental Type Hints for Python 3.7+"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "typing_extensions-4.6.2-py3-none-any.whl", hash = "sha256:3a8b36f13dd5fdc5d1b16fe317f5668545de77fa0b8e02006381fd49d731ab98"},
-    {file = "typing_extensions-4.6.2.tar.gz", hash = "sha256:06006244c70ac8ee83fa8282cb188f697b8db25bc8b4df07be1873c43897060c"},
+    {file = "typing_extensions-4.6.3-py3-none-any.whl", hash = "sha256:88a4153d8505aabbb4e13aacb7c486c2b4a33ca3b3f807914a9b4c844c471c26"},
+    {file = "typing_extensions-4.6.3.tar.gz", hash = "sha256:d91d5919357fe7f681a9f2b5b4cb2a5f1ef0a1e9f59c4d8ff0d3491e05c0ffd5"},
 ]
 
 [[package]]
@@ -1275,4 +1275,4 @@ lxml = ["lxml"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "868afd9a86aabc1dfae922d621e717848286bba0047f0488c76b64fdaa5ffa34"
+content-hash = "f1142f20170aff9a892917402ba08945fc6d5f600cb2fd8965fe362343fc847f"
