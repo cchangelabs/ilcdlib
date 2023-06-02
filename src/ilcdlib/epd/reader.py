@@ -474,7 +474,7 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
             specs = Specs(ext=create_ext(product_properties))
         else:
             specs = Specs()
-        return Epd.construct(
+        epd = Epd.construct(
             doctype="openEPD",
             language=lang_code,
             attachments=create_openepd_attachments(own_ref, base_url),
@@ -496,6 +496,8 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
             impacts=self.get_lcia_results(),
             specs=specs,
         )
+        epd.set_ext_field("is_industry_average", self.is_industry_epd())
+        return epd
 
     @classmethod
     def is_known_url(cls, url: str) -> bool:
