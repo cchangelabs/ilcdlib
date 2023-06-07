@@ -23,7 +23,7 @@ from openepd.model.base import BaseOpenEpdSchema
 from openepd.model.common import Measurement
 from openepd.model.lcia import ScopeSet
 
-from ilcdlib.common import BaseIlcdMediumSpecificReader, IlcdXmlReader
+from ilcdlib.common import BaseIlcdMediumSpecificReader, IlcdXmlReader, XmlPath
 from ilcdlib.entity.unit import IlcdUnitGroupReader
 from ilcdlib.mapping.common import SimpleDataMapper
 from ilcdlib.xml_parser import T_ET
@@ -44,7 +44,7 @@ class BaseIlcdScopeSetsReader(IlcdXmlReader):
         self.unit_group_reader_cls = unit_group_reader_cls
 
     def _get_scope_set_for_el(
-        self, el: T_ET.Element, reference_data_set: tuple[str], mapper: SimpleDataMapper[str]
+        self, el: T_ET.Element, reference_data_set: XmlPath, mapper: SimpleDataMapper[str]
     ) -> tuple[ScopeSet, str] | None:
         """Extract all scope set information from element."""
         # Impact name
@@ -123,13 +123,14 @@ class BaseIlcdScopeSetsReader(IlcdXmlReader):
     def _extract_and_set_scope_set(
         self,
         el: T_ET.Element,
+        reference_path: XmlPath,
         scope_set_type: Type[BaseOpenEpdSchema],
         scope_set_dict: dict[str, ScopeSet | dict],
         ext: dict[str, ScopeSet],
         mapper: SimpleDataMapper[str],
     ) -> None:
         """Extract scope set from element and set to its dictionary."""
-        scope_set_and_impact_name = self._get_scope_set_for_el(el, ("process:referenceToLCIAMethodDataSet",), mapper)
+        scope_set_and_impact_name = self._get_scope_set_for_el(el, reference_path, mapper)
         if scope_set_and_impact_name is None:
             return None
         scope_set, impact_name = scope_set_and_impact_name

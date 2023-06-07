@@ -45,7 +45,12 @@ class IlcdLciaResultsReader(OpenEpdImpactSetSupportReader, BaseIlcdScopeSetsRead
         impacts: dict[str, ScopeSet | dict] = {"ext": ext}
         for lr in lcia_results:
             self._extract_and_set_scope_set(
-                el=lr, scope_set_type=ImpactSet, scope_set_dict=impacts, ext=ext, mapper=self.impact_mapper
+                el=lr,
+                reference_path=("process:referenceToLCIAMethodDataSet",),
+                scope_set_type=ImpactSet,
+                scope_set_dict=impacts,
+                ext=ext,
+                mapper=self.impact_mapper,
             )
         if len(ext) == 0:
             del impacts["ext"]
