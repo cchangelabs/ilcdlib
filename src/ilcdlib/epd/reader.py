@@ -258,7 +258,33 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
         mb = MarkdownSectionBuilder()
         mb.add_section("Use Advice", self.get_dataset_use_advice(lang))
         mb.add_section("Technology Description And Included Processes", self.get_technology_description(lang))
+        mb.add_section("Location description of restrictions", self.get_location_description_of_restrictions(lang))
         return mb.build()
+
+    def get_location_description_of_restrictions(self, lang: LangDef) -> str | None:
+        """Return the location description of restrictions in the given language."""
+        return self._get_localized_text(
+            self.epd_el_tree,
+            (
+                "process:processInformation",
+                "process:geography",
+                "process:locationOfOperationSupplyOrProduction",
+                "process:descriptionOfRestrictions",
+            ),
+            lang,
+        )
+
+    def get_production_location(self) -> str | None:
+        """Return production regions in the given language."""
+        el = self._get_el(
+            self.epd_el_tree,
+            ("process:processInformation", "process:geography", "process:locationOfOperationSupplyOrProduction"),
+        )
+
+        if el is None:
+            return None
+
+        return el.attrib.get("location") if el.attrib else None
 
     def get_external_verifier_reader(self) -> IlcdContactReader | None:
         """Return the reader for the reviewer."""
@@ -524,6 +550,7 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
             specs=specs,
         )
         epd.set_ext_field("is_industry_average", self.is_industry_epd())
+        epd.set_ext_field("production_location", self.get_production_location())
         return epd
 
     @classmethod
