@@ -156,13 +156,17 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
             lang,
         )
 
-    def get_product_description(self, lang: LangDef) -> str | None:
-        """Return the product description in the given language."""
+    def get_general_comment(self, lang: LangDef) -> str | None:
+        """Return the general comment in the given language."""
         return self._get_localized_text(
             self.epd_el_tree,
             ("process:processInformation", "process:dataSetInformation", "common:generalComment"),
             lang,
         )
+
+    def get_product_description(self, lang: LangDef) -> str | None:
+        """Return the product description in the given language."""
+        return self.get_general_comment(lang)
 
     def get_date_published(self) -> datetime.date | None:
         """Return the date the EPD was published."""
