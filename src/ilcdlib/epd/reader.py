@@ -22,13 +22,14 @@ from typing import IO, Sequence, Type
 
 from openepd.model.common import Amount, Measurement
 from openepd.model.epd import Epd
-from openepd.model.lcia import ImpactSet
+from openepd.model.lcia import ImpactSet, OutputFlowSet, ResourceUseSet
 from openepd.model.specs import Specs
 
 from ilcdlib.common import BaseIlcdMediumSpecificReader, IlcdXmlReader, OpenEpdEdpSupportReader
 from ilcdlib.const import IlcdDatasetType
 from ilcdlib.dto import IlcdReference, ProductClassDef
 from ilcdlib.entity.contact import IlcdContactReader
+from ilcdlib.entity.exchage import IlcdExchangesReader
 from ilcdlib.entity.flow import IlcdExchangeDto, IlcdFlowReader
 from ilcdlib.entity.lcia import IlcdLciaResultsReader
 from ilcdlib.entity.material import MatMlMaterial
@@ -50,12 +51,14 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
         pcr_reader_cls: Type[IlcdPcrReader] = IlcdPcrReader,
         flow_reader_cls: Type[IlcdFlowReader] = IlcdFlowReader,
         lcia_results_reader_cls: Type[IlcdLciaResultsReader] = IlcdLciaResultsReader,
+        exchanges_reader_cls: Type[IlcdExchangesReader] = IlcdExchangesReader,
     ):
         super().__init__(data_provider)
         self.contact_reader_cls = contact_reader_cls
         self.pcr_reader_cls = pcr_reader_cls
         self.flow_reader_cls = flow_reader_cls
         self.lcia_results_reader_cls = lcia_results_reader_cls
+        self.exchanges_reader_cls = exchanges_reader_cls
         if epd_process_id is None:
             entities = data_provider.list_entities(IlcdDatasetType.Processes)
             self.__epd_entity_ref = entities[0]
@@ -423,12 +426,34 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
         )
         return self.lcia_results_reader_cls(element, self.data_provider) if element is not None else None
 
+    def get_exchanges_reader(self) -> IlcdExchangesReader | None:
+        """Return the LCIA results reader."""
+        element = self._get_el(
+            self.epd_el_tree,
+            ("process:exchanges",),
+        )
+        return self.exchanges_reader_cls(element, self.data_provider) if element is not None else None
+
     def get_lcia_results(self) -> ImpactSet | None:
         """Return the LCIA results."""
         reader = self.get_lcia_results_reader()
         if reader is None:
             return None
         return reader.get_impacts()
+
+    def get_resource_uses(self) -> ResourceUseSet | None:
+        """Return resource uses."""
+        reader = self.get_exchanges_reader()
+        if reader is None:
+            return None
+        return reader.get_resource_uses()
+
+    def get_output_flows(self) -> OutputFlowSet | None:
+        """Return output flows."""
+        reader = self.get_exchanges_reader()
+        if reader is None:
+            return None
+        return reader.get_output_flows()
 
     def _product_classes_to_openepd(self, classes: dict[str, list[ProductClassDef]]) -> dict[str, str]:
         result: dict[str, str] = {}
@@ -473,6 +498,7 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
             specs = Specs(ext=create_ext(product_properties))
         else:
             specs = Specs()
+
         epd = Epd.construct(
             doctype="openEPD",
             language=lang_code,
@@ -493,6 +519,8 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
             pcr=pcr,
             declared_unit=declared_unit,
             impacts=self.get_lcia_results(),
+            resource_uses=self.get_resource_uses(),
+            output_flows=self.get_output_flows(),
             specs=specs,
         )
         epd.set_ext_field("is_industry_average", self.is_industry_epd())
