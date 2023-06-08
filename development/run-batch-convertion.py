@@ -33,7 +33,8 @@ F_STANDARD = "Standard"
 F_COMMENT = "Comment"
 F_UUID = "UUID"
 F_URL = "Url"
-CSV_FIELDS = (F_GROUP, F_STANDARD, F_COMMENT, F_UUID, F_URL)
+F_DATASET_TYPE = "Dataset Type"
+CSV_FIELDS = (F_GROUP, F_STANDARD, F_DATASET_TYPE, F_COMMENT, F_UUID, F_URL)
 
 
 def run_ilcd_conversion(links: list[str], target_dir: Path, provider_domain: str | None = None):
