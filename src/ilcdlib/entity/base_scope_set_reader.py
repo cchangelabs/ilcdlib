@@ -21,7 +21,7 @@ from typing import Type
 
 from openepd.model.base import BaseOpenEpdSchema
 from openepd.model.common import Measurement
-from openepd.model.lcia import ScopeSet
+from openepd.model.lcia import EolScenario, ScopeSet
 
 from ilcdlib.common import BaseIlcdMediumSpecificReader, IlcdXmlReader, XmlPath
 from ilcdlib.entity.unit import IlcdUnitGroupReader
@@ -44,7 +44,11 @@ class BaseIlcdScopeSetsReader(IlcdXmlReader):
         self.unit_group_reader_cls = unit_group_reader_cls
 
     def _get_scope_set_for_el(
-        self, el: T_ET.Element, reference_data_set: XmlPath, mapper: SimpleDataMapper[str]
+        self,
+        el: T_ET.Element,
+        reference_data_set: XmlPath,
+        mapper: SimpleDataMapper[str],
+        scenario_names: dict[str, str],
     ) -> tuple[ScopeSet, str] | None:
         """Extract all scope set information from element."""
         # Impact name
@@ -80,28 +84,34 @@ class BaseIlcdScopeSetsReader(IlcdXmlReader):
         if unit_name is None:
             return None
         # Stages
-        scopes = self.__extract_scopes(el, unit_name)
+        scopes = self.__extract_scopes(el, unit_name, scenario_names)
         return ScopeSet.construct(**scopes), impact_name  # type: ignore
 
-    def __extract_scopes(self, el: T_ET.Element, unit_name: str) -> dict[str, Measurement | dict]:
+    def __extract_scopes(
+        self, el: T_ET.Element, unit_name: str, scenario_names: dict[str, str]
+    ) -> dict[str, Measurement | dict | list]:
         """Extract all scopes from scope set element."""
         ext: dict[str, Measurement] = {}
-        scopes: dict[str, Measurement | dict] = {"ext": ext}
+        scopes: dict[str, Measurement | dict | list] = {"ext": ext}
         for al in self._get_all_els(el, ("common:other", "epd2013:amount")):
-            self.__extract_scope(al, ext, scopes, unit_name)
+            self.__extract_scope(al, ext, scopes, unit_name, scenario_names)
         if len(ext) == 0:
             del scopes["ext"]
         return scopes
 
     def __extract_scope(
-        self, el: T_ET.Element, ext: dict[str, Measurement], scopes: dict[str, Measurement | dict], unit_name: str
+        self,
+        el: T_ET.Element,
+        ext: dict[str, Measurement],
+        scopes: dict[str, Measurement | dict | list],
+        unit_name: str,
+        scenario_names: dict[str, str],
     ) -> None:
         """Extract single scope from given element."""
         module_name = el.attrib.get("{http://www.iai.kit.edu/EPD/2013}module") if el.attrib else None
         module_name = self.__map_module_name(module_name)
         scenario_name = el.attrib.get("{http://www.iai.kit.edu/EPD/2013}scenario") if el.attrib else None
-        if scenario_name is not None:
-            return None  # TODO: Add support for scenarios
+
         if module_name is None or el.text is None:
             return None
         try:
@@ -109,10 +119,23 @@ class BaseIlcdScopeSetsReader(IlcdXmlReader):
         except ValueError:
             return None
         measurement = Measurement(mean=value, unit=unit_name)
-        if ScopeSet.is_allowed_field_name(module_name):  # type: ignore
-            scopes[module_name] = measurement
+
+        if scenario_name is None:
+            if ScopeSet.is_allowed_field_name(module_name):  # type: ignore
+                scopes[module_name] = measurement
+            else:
+                ext[module_name] = measurement
         else:
-            ext[module_name] = measurement
+            if not EolScenario.is_allowed_field_name(module_name) or scenario_name not in scenario_names:
+                return None
+
+            scenarios = scopes.get("C_scenarios") or list()
+            scenario: dict[str, Measurement | str] = dict(
+                name=scenario_names[scenario_name],
+            )
+            scenario[module_name] = measurement
+            scenarios.append(EolScenario.construct(**scenario))  # type: ignore
+            scopes["C_scenarios"] = scenarios
 
     @staticmethod
     def __map_module_name(module_name: str | None) -> str | None:
@@ -128,9 +151,10 @@ class BaseIlcdScopeSetsReader(IlcdXmlReader):
         scope_set_dict: dict[str, ScopeSet | dict],
         ext: dict[str, ScopeSet],
         mapper: SimpleDataMapper[str],
+        scenario_names: dict[str, str],
     ) -> None:
         """Extract scope set from element and set to its dictionary."""
-        scope_set_and_impact_name = self._get_scope_set_for_el(el, reference_path, mapper)
+        scope_set_and_impact_name = self._get_scope_set_for_el(el, reference_path, mapper, scenario_names)
         if scope_set_and_impact_name is None:
             return None
         scope_set, impact_name = scope_set_and_impact_name
