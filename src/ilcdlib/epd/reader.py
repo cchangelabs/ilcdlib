@@ -311,6 +311,30 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
         )
         return self.contact_reader_cls(element, self.data_provider) if element is not None else None
 
+    def get_publisher_reader(self) -> IlcdContactReader | None:
+        """Return the reader for the publisher."""
+        element = self._get_external_tree(
+            self.epd_el_tree,
+            (
+                "process:administrativeInformation",
+                "process:publicationAndOwnership",
+                "common:other",
+                "epd2019:referenceToPublisher",
+            ),
+        )
+
+        if element is None:
+            element = self._get_external_tree(
+                self.epd_el_tree,
+                (
+                    "process:administrativeInformation",
+                    "common:commissionerAndGoal",
+                    "common:referenceToCommissioner",
+                ),
+            )
+
+        return self.contact_reader_cls(element, self.data_provider) if element is not None else None
+
     def get_pcr_reader(self) -> IlcdPcrReader | None:
         """Return the reader for the PCR."""
         element = self._get_external_tree(
@@ -497,6 +521,8 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
             lang_code = lang[0] if len(lang) > 0 else None
         manufacturer_reader = self.get_manufacturer_reader()
         manufacturer = manufacturer_reader.to_openepd_org(lang, base_url) if manufacturer_reader else None
+        publisher_reader = self.get_publisher_reader()
+        publisher = publisher_reader.to_openepd_org(lang, base_url) if publisher_reader else None
         program_operator_reader = self.get_program_operator_reader()
         program_operator = program_operator_reader.to_openepd_org(lang, base_url) if program_operator_reader else None
         external_verifier_reader = self.get_external_verifier_reader()
@@ -551,6 +577,7 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
         )
         epd.set_ext_field("is_industry_average", self.is_industry_epd())
         epd.set_ext_field("production_location", self.get_production_location())
+        epd.set_ext_field("epd_publisher", publisher)
         return epd
 
     @classmethod
