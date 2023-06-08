@@ -21,6 +21,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Optional, Self, TypeVar
 
 from ilcdlib import const
+from ilcdlib.sanitizing.domain import domain_from_url
 
 T = TypeVar("T")
 
@@ -49,6 +50,13 @@ def create_openepd_attachments(
     if reference is None:
         return None
     return {x: reference.to_url(base_url) for x in const.ILCD_IDENTIFICATION}
+
+
+def provider_domain_name_from_url(url: str | None) -> str:
+    """Return provider identifier from the given URL. If the URL is `None`, return the default value."""
+    if url:
+        return none_throws(domain_from_url(url))
+    return const.ILCD_IDENTIFICATION[0]
 
 
 def create_ext(data: Any) -> dict[str, Any] | None:

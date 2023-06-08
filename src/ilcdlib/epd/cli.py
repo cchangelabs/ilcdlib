@@ -105,6 +105,14 @@ class ConvertEpdCliExtension(CliExtension):
             default=False,
         )
         parser.add_argument(
+            "--provider-domain",
+            dest="provider_domain",
+            type=str,
+            help="Domain name of the provider to be used in alt_ids as a key.",
+            required=False,
+            default=None,
+        )
+        parser.add_argument(
             "doc",
             metavar="doc",
             type=str,
@@ -122,6 +130,7 @@ class ConvertEpdCliExtension(CliExtension):
         save: bool = args.save
         extract_pdf: bool = args.extract_pdf
         target_dir: Path = Path(args.target_dir) if args.target_dir is not None else Path.cwd()
+        provider_domain: str | None = args.provider_domain
         if in_format.lower() != "ilcd+epd":
             CLI.fail(f"Input format {in_format} is not supported.", 1)
         if out_format.lower() != "openepd":
@@ -146,6 +155,7 @@ class ConvertEpdCliExtension(CliExtension):
                 out_format=out_format,
                 save=save,
                 target_dir=target_dir,
+                provider_domain=provider_domain,
             )
 
     def process_single_doc(
@@ -160,6 +170,7 @@ class ConvertEpdCliExtension(CliExtension):
         extract_pdf: bool = False,
         save: bool = False,
         target_dir: Path | None = None,
+        provider_domain: str | None = None,
     ) -> None:
         CLI.print_info(f"Converting document {doc_ref} from {in_format} to {out_format}.")
         reader_cls, dialect = (
@@ -188,7 +199,7 @@ class ConvertEpdCliExtension(CliExtension):
             lang_list.insert(0, "en")
         CLI.print_info("Language priority: " + ",".join([x if x is not None else "any other" for x in lang_list]))
         base_url = self.__extract_base_url(doc_ref)
-        open_epd = epd_reader.to_openepd_epd(lang_list, base_url=base_url)
+        open_epd = epd_reader.to_openepd_epd(lang_list, base_url=base_url, provider_domain=provider_domain)
         if isinstance(medium, Soda4LcaZipReader):
             open_epd.set_ext_field("ilcd_pdf_url", medium.get_pdf_url())
         CLI.print_data(open_epd.json(indent=2, exclude_none=True, exclude_unset=True))

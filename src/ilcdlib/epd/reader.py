@@ -35,7 +35,13 @@ from ilcdlib.entity.lcia import IlcdLciaResultsReader
 from ilcdlib.entity.material import MatMlMaterial
 from ilcdlib.entity.pcr import IlcdPcrReader
 from ilcdlib.type import LangDef
-from ilcdlib.utils import MarkdownSectionBuilder, create_ext, create_openepd_attachments, none_throws
+from ilcdlib.utils import (
+    MarkdownSectionBuilder,
+    create_ext,
+    create_openepd_attachments,
+    none_throws,
+    provider_domain_name_from_url,
+)
 
 
 class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
@@ -514,20 +520,30 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
                 ).strip()
         return result
 
-    def to_openepd_epd(self, lang: LangDef, base_url: str | None = None) -> Epd:  # NOSONAR
+    def to_openepd_epd(
+        self, lang: LangDef, base_url: str | None = None, provider_domain: str | None = None
+    ) -> Epd:  # NOSONAR
         """Return the EPD as OpenEPD object."""
+        if provider_domain is None:
+            provider_domain = provider_domain_name_from_url(base_url)
         lang_code = lang if isinstance(lang, str) else None
         if isinstance(lang, Sequence):
             lang_code = lang[0] if len(lang) > 0 else None
         manufacturer_reader = self.get_manufacturer_reader()
-        manufacturer = manufacturer_reader.to_openepd_org(lang, base_url) if manufacturer_reader else None
+        manufacturer = (
+            manufacturer_reader.to_openepd_org(lang, base_url, provider_domain) if manufacturer_reader else None
+        )
         publisher_reader = self.get_publisher_reader()
-        publisher = publisher_reader.to_openepd_org(lang, base_url) if publisher_reader else None
+        publisher = publisher_reader.to_openepd_org(lang, base_url, provider_domain) if publisher_reader else None
         program_operator_reader = self.get_program_operator_reader()
-        program_operator = program_operator_reader.to_openepd_org(lang, base_url) if program_operator_reader else None
+        program_operator = (
+            program_operator_reader.to_openepd_org(lang, base_url, provider_domain) if program_operator_reader else None
+        )
         external_verifier_reader = self.get_external_verifier_reader()
         external_verifier = (
-            external_verifier_reader.to_openepd_org(lang, base_url) if external_verifier_reader else None
+            external_verifier_reader.to_openepd_org(lang, base_url, provider_domain)
+            if external_verifier_reader
+            else None
         )
         pcr_reader = self.get_pcr_reader()
         pcr = pcr_reader.to_openepd_pcr(lang, base_url) if pcr_reader else None
@@ -554,7 +570,7 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
         epd = Epd.construct(
             doctype="openEPD",
             language=lang_code,
-            attachments=create_openepd_attachments(own_ref, base_url),
+            attachments=create_openepd_attachments(own_ref, base_url) if base_url else None,
             declaration_url=own_ref.to_url(base_url) if own_ref and base_url else None,
             product_name=product_name,
             product_description=self.get_product_description(lang),
@@ -575,6 +591,8 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
             output_flows=self.get_output_flows(),
             specs=specs,
         )
+        if own_ref:
+            epd.set_alt_id(provider_domain, own_ref.entity_id)
         epd.set_ext_field("is_industry_average", self.is_industry_epd())
         epd.set_ext_field("production_location", self.get_production_location())
         epd.set_ext_field("epd_publisher", publisher)
