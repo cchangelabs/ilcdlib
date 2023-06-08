@@ -123,6 +123,16 @@ class Soda4LcaZipReader(ZipIlcdReader):
         """Get the URL to the PDF document if any."""
         return self._soda4lca_client.get_download_epd_document_link(self._ref.entity_id, self._ref.entity_version)
 
+    def download_pdf(self) -> IO[bytes] | None:
+        """Download the associated PDF document if any."""
+        url = self.get_pdf_url()
+        if url is None:
+            return None
+        response = http.request("GET", url)
+        if response.status == 200:
+            return io.BytesIO(response.data)
+        raise ValueError(f"Could not download PDF from {url}. Status code: {response.status}")
+
     @staticmethod
     def __map_type_name(in_: str) -> str:
         match in_:

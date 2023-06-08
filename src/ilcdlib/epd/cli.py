@@ -219,6 +219,11 @@ class ConvertEpdCliExtension(CliExtension):
             epd_reader.data_provider.save_to(output_dir / "ilcd_epd.zip")
         if extract_pdf:
             pdf_stream = epd_reader.get_epd_document_stream()
+            if pdf_stream is None and isinstance(epd_reader.data_provider, Soda4LcaZipReader):
+                try:
+                    pdf_stream = epd_reader.data_provider.download_pdf()
+                except ValueError:
+                    pdf_stream = None
             if pdf_stream is not None:
                 with open(output_dir / "original.pdf", "wb") as f:
                     f.write(pdf_stream.read())
