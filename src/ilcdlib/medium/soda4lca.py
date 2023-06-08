@@ -73,10 +73,14 @@ class Soda4LcaZipReader(ZipIlcdReader):
             raise ValueError(f"Invalid endpoint {endpoint}") from e
         host: str = none_throws(parsed_url.scheme) + "://" + none_throws(parsed_url.host)
         base_url = host
-        url_path = "/resource"
         uuid: str | None = None
+        datastock: str | None = None
         resource_type_name: str | None = None
         original_path = parsed_url.path or ""
+        url_path = "/resource"
+        if url_path in original_path:
+            base_path_prefix = original_path.split("/resource", 1)[0]
+            url_path = base_path_prefix + url_path if len(base_path_prefix) > 0 else url_path
         if original_path.endswith(".xhtml"):
             resource_type_name = original_path.rsplit("/", 1)[-1].replace(".xhtml", "").lower()
             resource_type_name = cls.__map_type_name(resource_type_name)
@@ -91,15 +95,19 @@ class Soda4LcaZipReader(ZipIlcdReader):
                         raise ValueError(f"Invalid endpoint {endpoint}")
                     resource_type_name = path_components[i + 1]
                     uuid = path_components[i + 2]
+                    if resource_type_name == "datastocks":
+                        datastock = uuid
+                        resource_type_name = path_components[i + 3]
+                        uuid = path_components[i + 4]
                     break
         if uuid is None or resource_type_name is None:
             raise ValueError(f"Invalid endpoint {endpoint}")
         version: str | None = parsed_qs.pop("version", [None])[0]  # type: ignore
-        stock: str | None = parsed_qs.pop("datastock", [None])[0]  # type: ignore
+        datastock = parsed_qs.pop("datastock", [None])[0] if datastock is None else datastock  # type: ignore
         base_url += url_path
         return IlcdRemotePointer(
             base_url=base_url,
-            stock=stock,
+            stock=datastock,
             ref=IlcdReference(entity_type=resource_type_name, entity_version=version, entity_id=uuid),
         )
 
