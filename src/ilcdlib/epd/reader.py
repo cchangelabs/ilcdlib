@@ -506,6 +506,33 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
         )
         return exchange_dto
 
+    def get_scenario_names(self, lang: LangDef) -> dict[str, str]:
+        """Return dictionary with mapping short scenario names to full names in given language."""
+        scenarios = self._get_all_els(
+            self.epd_el_tree,
+            (
+                "process:processInformation",
+                "process:dataSetInformation",
+                "common:other",
+                "epd2013:scenarios",
+                "epd2013:scenario",
+            ),
+        )
+
+        result: dict[str, str] = dict()
+
+        for scenario in scenarios:
+            if not scenario.attrib:
+                continue
+
+            short_name = scenario.attrib.get("{http://www.iai.kit.edu/EPD/2013}name")
+            name = self._get_localized_text(scenario, ("epd2013:description",), lang)
+
+            if name and short_name:
+                result[short_name] = name
+
+        return result
+
     def get_declared_unit(self) -> Amount | None:
         """Return the reader for the flow."""
         exchange_dto = self.get_product_flow()
@@ -544,26 +571,26 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
         )
         return self.exchanges_reader_cls(element, self.data_provider) if element is not None else None
 
-    def get_lcia_results(self) -> ImpactSet | None:
+    def get_lcia_results(self, scenario_names: dict[str, str]) -> ImpactSet | None:
         """Return the LCIA results."""
         reader = self.get_lcia_results_reader()
         if reader is None:
             return None
-        return reader.get_impacts()
+        return reader.get_impacts(scenario_names)
 
-    def get_resource_uses(self) -> ResourceUseSet | None:
+    def get_resource_uses(self, scenario_names: dict[str, str]) -> ResourceUseSet | None:
         """Return resource uses."""
         reader = self.get_exchanges_reader()
         if reader is None:
             return None
-        return reader.get_resource_uses()
+        return reader.get_resource_uses(scenario_names)
 
-    def get_output_flows(self) -> OutputFlowSet | None:
+    def get_output_flows(self, scenario_names: dict[str, str]) -> OutputFlowSet | None:
         """Return output flows."""
         reader = self.get_exchanges_reader()
         if reader is None:
             return None
-        return reader.get_output_flows()
+        return reader.get_output_flows(scenario_names)
 
     def _product_classes_to_openepd(self, classes: dict[str, list[ProductClassDef]]) -> dict[str, str]:
         result: dict[str, str] = {}
@@ -620,6 +647,7 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
             specs = Specs(ext=create_ext(product_properties))
         else:
             specs = Specs()
+        scenario_names = self.get_scenario_names(lang)
 
         epd = Epd.construct(
             doctype="openEPD",
@@ -640,9 +668,9 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
             third_party_verifier=external_verifier,
             pcr=pcr,
             declared_unit=declared_unit,
-            impacts=self.get_lcia_results(),
-            resource_uses=self.get_resource_uses(),
-            output_flows=self.get_output_flows(),
+            impacts=self.get_lcia_results(scenario_names),
+            resource_uses=self.get_resource_uses(scenario_names),
+            output_flows=self.get_output_flows(scenario_names),
             specs=specs,
             compliance=self.get_openepd_compliance(lang, base_url),
         )

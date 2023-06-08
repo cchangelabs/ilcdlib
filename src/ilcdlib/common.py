@@ -383,7 +383,11 @@ class OpenEpdImpactSetSupportReader(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def to_openepd_impact_set(
-        self, lang: LangDef, base_url: str | None = None, provider_domain: str | None = None
+        self,
+        lang: LangDef,
+        scenario_names: dict[str, str],
+        base_url: str | None = None,
+        provider_domain: str | None = None,
     ) -> ImpactSet:
         """Read as openEPD ImpactSet object."""
         pass

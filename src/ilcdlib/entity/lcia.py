@@ -38,11 +38,12 @@ class IlcdLciaResultsReader(OpenEpdImpactSetSupportReader, BaseIlcdScopeSetsRead
         super().__init__(*args, **kwargs)
         self.impact_mapper = impact_mapper
 
-    def get_impacts(self) -> ImpactSet:
+    def get_impacts(self, scenario_names: dict[str, str]) -> ImpactSet:
         """Get the impacts from the ILCD EPD file."""
         ext: dict[str, ScopeSet] = {}
         lcia_results = self._get_all_els(self._entity, ("process:LCIAResult",))
         impacts: dict[str, ScopeSet | dict] = {"ext": ext}
+
         for lr in lcia_results:
             self._extract_and_set_scope_set(
                 el=lr,
@@ -51,13 +52,18 @@ class IlcdLciaResultsReader(OpenEpdImpactSetSupportReader, BaseIlcdScopeSetsRead
                 scope_set_dict=impacts,
                 ext=ext,
                 mapper=self.impact_mapper,
+                scenario_names=scenario_names,
             )
         if len(ext) == 0:
             del impacts["ext"]
         return ImpactSet.construct(**impacts)  # type: ignore
 
     def to_openepd_impact_set(
-        self, lang: LangDef, base_url: str | None = None, provider_domain: str | None = None
+        self,
+        lang: LangDef,
+        scenario_names: dict[str, str],
+        base_url: str | None = None,
+        provider_domain: str | None = None,
     ) -> ImpactSet:
         """Read as openEPD ImpactSet object."""
-        return self.get_impacts()
+        return self.get_impacts(scenario_names)

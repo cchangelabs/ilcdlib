@@ -50,19 +50,29 @@ class IlcdExchangesReader(BaseIlcdScopeSetsReader):
             return exchange_direction.text
         return None
 
-    def get_resource_uses(self) -> ResourceUseSet:
+    def get_resource_uses(self, scenario_names: dict[str, str]) -> ResourceUseSet:
         """Get resource uses from the ILCD EPD file."""
-        return self.__get_exchanges(direction="Input", scope_set_type=ResourceUseSet, mapper=self.indicator_mapper)
+        return self.__get_exchanges(
+            direction="Input",
+            scope_set_type=ResourceUseSet,
+            mapper=self.indicator_mapper,
+            scenario_names=scenario_names,
+        )
 
-    def get_output_flows(self) -> OutputFlowSet:
-        """Get resource uses from the ILCD EPD file."""
-        return self.__get_exchanges(direction="Output", scope_set_type=OutputFlowSet, mapper=self.flow_mapper)
+    def get_output_flows(self, scenario_names: dict[str, str]) -> OutputFlowSet:
+        """Get output flows from the ILCD EPD file."""
+        return self.__get_exchanges(
+            direction="Output", scope_set_type=OutputFlowSet, mapper=self.flow_mapper, scenario_names=scenario_names
+        )
 
-    def __get_exchanges(self, direction: str, scope_set_type: Type[E], mapper: SimpleDataMapper[str]) -> E:
+    def __get_exchanges(
+        self, direction: str, scope_set_type: Type[E], mapper: SimpleDataMapper[str], scenario_names: dict[str, str]
+    ) -> E:
         """Get indicators or flows from the ILCD EPD file."""
         ext: dict[str, ScopeSet] = {}
         exchanges = self._get_all_els(self._entity, ("process:exchange",))
         scope_sets: dict[str, ScopeSet | dict] = {"ext": ext}
+
         for exchange in exchanges:
             if self.__get_exchange_direction(exchange) == direction:
                 self._extract_and_set_scope_set(
@@ -72,6 +82,7 @@ class IlcdExchangesReader(BaseIlcdScopeSetsReader):
                     scope_set_dict=scope_sets,
                     ext=ext,
                     mapper=mapper,
+                    scenario_names=scenario_names,
                 )
 
         if len(ext) == 0:
