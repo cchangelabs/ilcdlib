@@ -357,10 +357,7 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
     def get_data_entry_by(self, lang: LangDef, base_url: str | None = None) -> Org | None:
         """Return the data entry by org."""
         data_entry_by_reader = self.get_data_entry_by_reader()
-        if data_entry_by_reader is None:
-            return None
-        data_entry_by = data_entry_by_reader.to_openepd_org(lang, base_url) if data_entry_by_reader else None
-        return data_entry_by
+        return data_entry_by_reader.to_openepd_org(lang, base_url) if data_entry_by_reader else None
 
     def get_pcr_reader(self) -> IlcdPcrReader | None:
         """Return the reader for the PCR."""
