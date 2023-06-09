@@ -26,7 +26,7 @@ ilcdtool = { callable = "ilcdlib:cli.entrypoint", extras = ["cli"] }
 python = "^3.11"
 urllib3 = { version = ">=1.26.16,<2.0.0" }
 requests = { version = ">=2.1.0,<3.0.0" }
-openepd = { version = ">=0.8.1,<1.0.0" }
+openepd = { version = ">=0.9.0,<1.0.0" }
 
 # Optional dependencies
 lxml = { version = "~=4.9.2", optional = true }

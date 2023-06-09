@@ -17,13 +17,12 @@
 #  Charles Pankow Foundation, Microsoft Sustainability Fund, Interface, MKA Foundation, and others.
 #  Find out more at www.BuildingTransparency.org
 #
-from openepd.model.lcia import ImpactSet, ScopeSet
+from openepd.model.lcia import Impacts, ImpactSet, ScopeSet
 
 from ilcdlib.common import OpenEpdImpactSetSupportReader
 from ilcdlib.entity.base_scope_set_reader import BaseIlcdScopeSetsReader
 from ilcdlib.mapping.common import SimpleDataMapper
 from ilcdlib.mapping.impacts import default_impacts_uuid_mapper
-from ilcdlib.type import LangDef
 
 
 class IlcdLciaResultsReader(OpenEpdImpactSetSupportReader, BaseIlcdScopeSetsReader):
@@ -38,7 +37,7 @@ class IlcdLciaResultsReader(OpenEpdImpactSetSupportReader, BaseIlcdScopeSetsRead
         super().__init__(*args, **kwargs)
         self.impact_mapper = impact_mapper
 
-    def get_impacts(self, scenario_names: dict[str, str]) -> ImpactSet:
+    def get_impact_set(self, scenario_names: dict[str, str]) -> ImpactSet:
         """Get the impacts from the ILCD EPD file."""
         ext: dict[str, ScopeSet] = {}
         lcia_results = self._get_all_els(self._entity, ("process:LCIAResult",))
@@ -58,12 +57,15 @@ class IlcdLciaResultsReader(OpenEpdImpactSetSupportReader, BaseIlcdScopeSetsRead
             del impacts["ext"]
         return ImpactSet.construct(**impacts)  # type: ignore
 
-    def to_openepd_impact_set(
+    def to_openepd_impacts(
         self,
-        lang: LangDef,
         scenario_names: dict[str, str],
+        lcia_method: str | None = None,
         base_url: str | None = None,
         provider_domain: str | None = None,
-    ) -> ImpactSet:
+    ) -> Impacts:
         """Read as openEPD ImpactSet object."""
-        return self.get_impacts(scenario_names)
+        impact_set = self.get_impact_set(scenario_names)
+        impacts = Impacts()
+        impacts.set_impact_set(lcia_method, impact_set)
+        return impacts

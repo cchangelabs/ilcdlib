@@ -20,13 +20,15 @@
 import datetime
 from typing import IO, Sequence, Type
 
+from openepd.model.base import AnySerializable
 from openepd.model.common import Amount, Measurement
 from openepd.model.epd import Epd
-from openepd.model.lcia import ImpactSet, OutputFlowSet, ResourceUseSet
+from openepd.model.lcia import Impacts, ImpactSet, OutputFlowSet, ResourceUseSet
 from openepd.model.org import Org
 from openepd.model.specs import Specs
 from openepd.model.standard import Standard
 
+from ilcdlib import const
 from ilcdlib.common import BaseIlcdMediumSpecificReader, IlcdXmlReader, OpenEpdEdpSupportReader
 from ilcdlib.const import IlcdDatasetType
 from ilcdlib.dto import ComplianceDto, IlcdReference, ProductClassDef
@@ -37,6 +39,7 @@ from ilcdlib.entity.flow import IlcdExchangeDto, IlcdFlowReader
 from ilcdlib.entity.lcia import IlcdLciaResultsReader
 from ilcdlib.entity.material import MatMlMaterial
 from ilcdlib.entity.pcr import IlcdPcrReader
+from ilcdlib.mapping.compliance import StandardNameToLCIAMethodMapper, default_standard_names_to_lcia_mapper
 from ilcdlib.type import LangDef
 from ilcdlib.utils import (
     MarkdownSectionBuilder,
@@ -62,6 +65,7 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
         lcia_results_reader_cls: Type[IlcdLciaResultsReader] = IlcdLciaResultsReader,
         exchanges_reader_cls: Type[IlcdExchangesReader] = IlcdExchangesReader,
         compliance_reader_cls: Type[IlcdComplianceListReader] = IlcdComplianceListReader,
+        standard_names_to_lcia_mapper: StandardNameToLCIAMethodMapper = default_standard_names_to_lcia_mapper,
     ):
         super().__init__(data_provider)
         self.contact_reader_cls = contact_reader_cls
@@ -70,6 +74,7 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
         self.lcia_results_reader_cls = lcia_results_reader_cls
         self.compliance_reader_cls = compliance_reader_cls
         self.exchanges_reader_cls = exchanges_reader_cls
+        self.standard_names_to_lcia_mapper = standard_names_to_lcia_mapper
         if epd_process_id is None:
             entities = data_provider.list_entities(IlcdDatasetType.Processes)
             self.__epd_entity_ref = entities[0]
@@ -576,7 +581,14 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
         reader = self.get_lcia_results_reader()
         if reader is None:
             return None
-        return reader.get_impacts(scenario_names)
+        return reader.get_impact_set(scenario_names)
+
+    def get_impacts(self, scenario_names: dict[str, str], lca_method: str | None = None) -> Impacts | None:
+        """Return the LCIA results."""
+        reader = self.get_lcia_results_reader()
+        if reader is None:
+            return None
+        return reader.to_openepd_impacts(scenario_names, lcia_method=lca_method)
 
     def get_resource_uses(self, scenario_names: dict[str, str]) -> ResourceUseSet | None:
         """Return resource uses."""
@@ -649,6 +661,14 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
             specs = Specs()
         scenario_names = self.get_scenario_names(lang)
 
+        compliance = self.get_openepd_compliance(lang, base_url)
+        lcia_method: str | None = None
+        for c in compliance:
+            mapped = self.standard_names_to_lcia_mapper.map(c.short_name, None)
+            if mapped:
+                lcia_method = mapped
+                break
+
         epd = Epd.construct(
             doctype="openEPD",
             language=lang_code,
@@ -668,11 +688,11 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
             third_party_verifier=external_verifier,
             pcr=pcr,
             declared_unit=declared_unit,
-            impacts=self.get_lcia_results(scenario_names),
+            impacts=self.get_impacts(scenario_names, lca_method=lcia_method),
             resource_uses=self.get_resource_uses(scenario_names),
             output_flows=self.get_output_flows(scenario_names),
             specs=specs,
-            compliance=self.get_openepd_compliance(lang, base_url),
+            compliance=compliance,
         )
         if own_ref:
             epd.set_alt_id(provider_domain, own_ref.entity_id)

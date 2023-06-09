@@ -675,13 +675,13 @@ setuptools = "*"
 
 [[package]]
 name = "openepd"
-version = "0.8.1"
+version = "0.9.0"
 description = "Python library to work with OpenEPD format"
 optional = false
 python-versions = ">=3.11,<4.0"
 files = [
-    {file = "openepd-0.8.1-py3-none-any.whl", hash = "sha256:62c078a88150e4a3ba7fd5f7b08d4504d3de719bcaf8efed2683f5ca333868bc"},
-    {file = "openepd-0.8.1.tar.gz", hash = "sha256:c2b36781c99297ad232d07e3630596c78ef7b9e37be355d9080e22cdcf521a05"},
+    {file = "openepd-0.9.0-py3-none-any.whl", hash = "sha256:e97c182590d4575cef1cdc4b8a40ec26d8b8f489205d9b355a25f7fd43e512dc"},
+    {file = "openepd-0.9.0.tar.gz", hash = "sha256:0a0fd5b367a029cb617f3fba011e3271202067de5109a8df7f0b9083b463c8ab"},
 ]
 
 [package.dependencies]
@@ -1275,4 +1275,4 @@ lxml = ["lxml"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "c70adc735fab870fb90855fc368c394d7a1fb4dc7b9da6500e59655b4f2ea79a"
+content-hash = "149450a78d5e421302a959aa6199d64fe1226886939a9ddb265d67a347cc8859"

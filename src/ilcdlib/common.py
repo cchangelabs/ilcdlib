@@ -22,7 +22,7 @@ import datetime
 from typing import IO, Literal, Self, Sequence, TextIO, overload
 
 from openepd.model.epd import Epd
-from openepd.model.lcia import ImpactSet
+from openepd.model.lcia import Impacts
 from openepd.model.org import Org
 from openepd.model.pcr import Pcr
 
@@ -396,12 +396,12 @@ class OpenEpdImpactSetSupportReader(metaclass=abc.ABCMeta):
     """Base class for adding openEPD export support to LCIAResults."""
 
     @abc.abstractmethod
-    def to_openepd_impact_set(
+    def to_openepd_impacts(
         self,
-        lang: LangDef,
         scenario_names: dict[str, str],
+        lcia_method: str | None = None,
         base_url: str | None = None,
         provider_domain: str | None = None,
-    ) -> ImpactSet:
+    ) -> Impacts:
         """Read as openEPD ImpactSet object."""
         pass
