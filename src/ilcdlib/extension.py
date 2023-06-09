@@ -17,11 +17,11 @@
 #  Charles Pankow Foundation, Microsoft Sustainability Fund, Interface, MKA Foundation, and others.
 #  Find out more at www.BuildingTransparency.org
 #
-from openepd.model.base import BaseOpenEpdSchema, OpenEpdExtension
-from openepd.model.org import Org
+from openepd.model.base import OpenEpdExtension
 import pydantic as pyd
 
 from ilcdlib import const
+from ilcdlib.dto import IlcdContactInfo, OpenEpdIlcdOrg, ValidationDto
 
 
 class IlcdEpdExtension(OpenEpdExtension):
@@ -31,24 +31,15 @@ class IlcdEpdExtension(OpenEpdExtension):
     dataset_version: str | None = None
     dataset_uuid: str | None = None
     production_location: str | None = None
-    epd_publishers: list["OpenEpdIlcdOrg"] = pyd.Field(default_factory=list, description="List of EPD publishers")
+    epd_publishers: list[OpenEpdIlcdOrg] = pyd.Field(default_factory=list, description="List of EPD publishers")
+    epd_verifiers: list[ValidationDto] = pyd.Field(
+        default_factory=list, description="List of EPD verifiers (both, external and internal)"
+    )
 
     @classmethod
     def get_extension_name(cls) -> str:
         """Return the name of the extension to be used as a key in ext dict."""
         return const.ILCD_IDENTIFICATION[0]
-
-
-class IlcdContactInfo(BaseOpenEpdSchema):
-    """Contact information extracted from ILCD contact."""
-
-    contact_person: str | None = pyd.Field(description="Name of the contact person", example="John Doe", default=None)
-    email: pyd.EmailStr | None = pyd.Field(description="Email", example="contact@c-change-labs.com", default=None)
-    phone: str | None = pyd.Field(description="Phone number", example="+15263327352", default=None)
-    website: pyd.AnyUrl | None = pyd.Field(
-        description="Url of the website", example="http://buildingtransparency.org", default=None
-    )
-    address: str | None = pyd.Field(description="Address", example="123 Main St, San Francisco, CA 94105", default=None)
 
 
 class IlcdOrgExtension(OpenEpdExtension):
@@ -60,12 +51,3 @@ class IlcdOrgExtension(OpenEpdExtension):
     def get_extension_name(cls) -> str:
         """Return the name of the extension to be used as a key in ext dict."""
         return const.ILCD_IDENTIFICATION[0]
-
-
-class OpenEpdIlcdOrg(Org):
-    """Org object with ILCD specific extension."""
-
-    def get_contact(self) -> IlcdContactInfo | None:
-        """Return ILCD contact information from extension field if any."""
-        ext = self.get_ext(IlcdOrgExtension)
-        return ext.contact if ext else None

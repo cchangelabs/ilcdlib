@@ -22,8 +22,8 @@ from openepd.model.common import Location
 
 from ilcdlib.common import BaseIlcdMediumSpecificReader, IlcdXmlReader, OpenEpdContactSupportReader
 from ilcdlib.const import IlcdContactClass
-from ilcdlib.dto import IlcdReference
-from ilcdlib.extension import IlcdContactInfo, IlcdOrgExtension, OpenEpdIlcdOrg
+from ilcdlib.dto import IlcdContactInfo, IlcdReference, OpenEpdIlcdOrg
+from ilcdlib.extension import IlcdOrgExtension
 from ilcdlib.sanitizing.domain import cleanup_website, domain_from_url
 from ilcdlib.sanitizing.phone import cleanup_phone
 from ilcdlib.type import LangDef
