@@ -20,7 +20,6 @@
 import datetime
 from typing import IO, Sequence, Type
 
-from openepd.model.base import AnySerializable
 from openepd.model.common import Amount, Measurement
 from openepd.model.epd import Epd
 from openepd.model.lcia import Impacts, ImpactSet, OutputFlowSet, ResourceUseSet
@@ -28,10 +27,9 @@ from openepd.model.org import Org
 from openepd.model.specs import Specs
 from openepd.model.standard import Standard
 
-from ilcdlib import const
 from ilcdlib.common import BaseIlcdMediumSpecificReader, IlcdXmlReader, OpenEpdEdpSupportReader
 from ilcdlib.const import IlcdDatasetType
-from ilcdlib.dto import ComplianceDto, IlcdReference, ProductClassDef
+from ilcdlib.dto import ComplianceDto, IlcdEpdExtension, IlcdReference, ProductClassDef
 from ilcdlib.entity.compliance import IlcdComplianceListReader
 from ilcdlib.entity.contact import IlcdContactReader
 from ilcdlib.entity.exchage import IlcdExchangesReader
@@ -697,11 +695,14 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
         )
         if own_ref:
             epd.set_alt_id(provider_domain, own_ref.entity_id)
-        ilcd_ext: dict[str, AnySerializable] = {
-            "dataset_type": self.get_dataset_type(),
-            "production_location": self.get_production_location(),
-        }
-        epd.set_ext_field(const.ILCD_IDENTIFICATION[0], ilcd_ext)
+
+        ilcd_ext = IlcdEpdExtension(
+            dataset_type=self.get_dataset_type(),
+            dataset_version=self.get_version(),
+            dataset_uuid=self.get_uuid(),
+            production_location=self.get_production_location(),
+        )
+        epd.set_ext(ilcd_ext)
         epd.set_ext_field("epd_publisher", publisher)
         epd.set_ext_field("epd_developer", self.get_data_entry_by(lang, base_url))
         return epd
