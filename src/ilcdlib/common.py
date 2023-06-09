@@ -26,8 +26,7 @@ from openepd.model.lcia import Impacts
 from openepd.model.pcr import Pcr
 
 from ilcdlib.const import IlcdDatasetType
-from ilcdlib.dto import IlcdReference
-from ilcdlib.extension import OpenEpdIlcdOrg
+from ilcdlib.dto import IlcdReference, OpenEpdIlcdOrg
 from ilcdlib.reference_data import get_ilcd_epd_reference_data_provider
 from ilcdlib.type import LangDef, LocalizedStr
 from ilcdlib.xml_parser import T_ET, XmlParser

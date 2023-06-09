@@ -39,3 +39,14 @@ class IlcdDatasetType(StrEnum):
     Processes = "process data set"
     UnitGroups = "unit group data set"
     FlowProperty = "flow property data set"
+
+
+class IlcdTypeOfReview(StrEnum):
+    """Enumeration of ILCD review types."""
+
+    DependentInternalReview = "Dependent internal review"
+    IndependentInternalReview = "Independent internal review"
+    IndependentExternalReview = "Independent external review"
+    AccreditedThirdPartyReview = "Accredited third party review"
+    IndependentReviewPanel = "Independent review panel"
+    NotReviewed = "Not reviewed"

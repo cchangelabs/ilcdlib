@@ -20,7 +20,11 @@
 from dataclasses import dataclass
 from typing import Any, Generic, NamedTuple
 
-from ilcdlib.extension import OpenEpdIlcdOrg
+from openepd.model.base import BaseOpenEpdSchema
+from openepd.model.org import Org
+import pydantic as pyd
+
+from ilcdlib.const import IlcdTypeOfReview
 from ilcdlib.utils import T
 
 
@@ -100,6 +104,29 @@ class ProcessSearchResponse(BaseSearchResponse[ProcessBasicInfo]):
     pass
 
 
+class IlcdContactInfo(BaseOpenEpdSchema):
+    """Contact information extracted from ILCD contact."""
+
+    contact_person: str | None = pyd.Field(description="Name of the contact person", example="John Doe", default=None)
+    email: pyd.EmailStr | None = pyd.Field(description="Email", example="contact@c-change-labs.com", default=None)
+    phone: str | None = pyd.Field(description="Phone number", example="+15263327352", default=None)
+    website: pyd.AnyUrl | None = pyd.Field(
+        description="Url of the website", example="http://buildingtransparency.org", default=None
+    )
+    address: str | None = pyd.Field(description="Address", example="123 Main St, San Francisco, CA 94105", default=None)
+
+
+class OpenEpdIlcdOrg(Org):
+    """Org object with ILCD specific extension."""
+
+    def get_contact(self) -> IlcdContactInfo | None:
+        """Return ILCD contact information from extension field if any."""
+        from ilcdlib.extension import IlcdOrgExtension
+
+        ext = self.get_ext(IlcdOrgExtension)
+        return ext.contact if ext else None
+
+
 @dataclass(kw_only=True)
 class ComplianceDto:
     """Basic information about a Compliance."""
@@ -109,3 +136,11 @@ class ComplianceDto:
     name: str | None
     link: str | None
     issuer: OpenEpdIlcdOrg | None
+
+
+@dataclass(kw_only=True)
+class ValidationDto:
+    """Basic information about a Compliance."""
+
+    validation_type: IlcdTypeOfReview | None
+    org: OpenEpdIlcdOrg
