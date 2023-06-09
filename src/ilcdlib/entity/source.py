@@ -17,6 +17,7 @@
 #  Charles Pankow Foundation, Microsoft Sustainability Fund, Interface, MKA Foundation, and others.
 #  Find out more at www.BuildingTransparency.org
 #
+from typing import IO
 
 from ilcdlib.common import BaseIlcdMediumSpecificReader, IlcdXmlReader
 from ilcdlib.dto import IlcdReference
@@ -67,3 +68,18 @@ class IlcdSourceReader(IlcdXmlReader):
             ("source:sourceInformation", "source:dataSetInformation", "source:sourceDescriptionOrComment"),
             lang,
         )
+
+    def get_ref_to_digital_file(self) -> str | None:
+        """Get the link to the digital file."""
+        el = self._get_el(
+            self._entity,
+            ("source:sourceInformation", "source:dataSetInformation", "source:referenceToDigitalFile"),
+        )
+        return el.attrib.get("uri") if el is not None and el.attrib is not None else None
+
+    def get_digital_file_stream(self) -> IO[bytes] | None:
+        """Get the stream to the digital file."""
+        ref = self.get_ref_to_digital_file()
+        if ref:
+            return self.data_provider.get_binary_stream_by_name(ref)
+        return None

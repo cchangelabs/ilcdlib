@@ -72,6 +72,16 @@ class BaseIlcdMediumSpecificReader(metaclass=abc.ABCMeta):
         pass
 
     @abc.abstractmethod
+    def get_binary_stream_by_name(self, name: str, entity_type: str | None = None) -> IO[bytes] | None:
+        """
+        Get binary stream for the given file name.
+
+        :param name: The name of the file.
+        :param entity_type: The type of the entity. e.g. "process", "contact", "flow", etc.
+        """
+        pass
+
+    @abc.abstractmethod
     def entity_exists(self, entity_type: str, entity_id: str, entity_version: str | None = None) -> bool:
         """
         Check if the given entity exists.
@@ -129,6 +139,10 @@ class NoopBaseReader(BaseIlcdMediumSpecificReader):
     ) -> IO[bytes] | TextIO:
         """Generate exception. This class does not support get_entity_stream."""
         raise ValueError("NoopBaseReader does not support get_entity_stream")
+
+    def get_binary_stream_by_name(self, name: str, entity_type: str | None = None) -> IO[bytes] | None:
+        """Return None regardless of parameters for this implementation."""
+        return None
 
     def entity_exists(self, entity_type: str, entity_id: str, entity_version: str | None = None) -> bool:
         """Return False regardless of parameters for this implementation."""

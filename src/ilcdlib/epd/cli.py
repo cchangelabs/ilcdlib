@@ -218,6 +218,7 @@ class ConvertEpdCliExtension(CliExtension):
         if isinstance(epd_reader.data_provider, ZipIlcdReader):
             epd_reader.data_provider.save_to(output_dir / "ilcd_epd.zip")
         if extract_pdf:
+            # EPD Pdf
             pdf_stream = epd_reader.get_epd_document_stream()
             if pdf_stream is None and isinstance(epd_reader.data_provider, Soda4LcaZipReader):
                 try:
@@ -225,8 +226,15 @@ class ConvertEpdCliExtension(CliExtension):
                 except ValueError:
                     pdf_stream = None
             if pdf_stream is not None:
-                with open(output_dir / "original.pdf", "wb") as f:
+                with open(output_dir / "original.pdf", "wb") as f, pdf_stream:
                     f.write(pdf_stream.read())
+            # PCR PDF
+            pcr_reader = epd_reader.get_pcr_reader()
+            if pcr_reader:
+                pdf_stream = pcr_reader.get_digital_file_stream()
+                if pdf_stream:
+                    with open(output_dir / "pcr.pdf", "wb") as f, pdf_stream:
+                        f.write(pdf_stream.read())
         CLI.print_info("Output saved to " + str(output_dir.absolute()))
 
     def __extract_base_url(self, doc_ref: str) -> str | None:
