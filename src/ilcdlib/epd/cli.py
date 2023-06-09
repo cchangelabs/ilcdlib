@@ -25,6 +25,7 @@ from cli_rack.modular import CliExtension
 from cli_rack.utils import ensure_dir
 from openepd.model.epd import Epd
 
+from ilcdlib import const
 from ilcdlib.epd.factory import EpdReaderFactory
 from ilcdlib.epd.reader import IlcdEpdReader
 from ilcdlib.medium.archive import ZipIlcdReader
@@ -201,7 +202,7 @@ class ConvertEpdCliExtension(CliExtension):
         base_url = self.__extract_base_url(doc_ref)
         open_epd = epd_reader.to_openepd_epd(lang_list, base_url=base_url, provider_domain=provider_domain)
         if isinstance(medium, Soda4LcaZipReader):
-            open_epd.set_ext_field("ilcd_pdf_url", medium.get_pdf_url())
+            open_epd.get_typed_ext_field(const.ILCD_IDENTIFICATION[0], dict, {})["ilcd_pdf_url"] = medium.get_pdf_url()
         CLI.print_data(open_epd.json(indent=2, exclude_none=True, exclude_unset=True))
         if save:
             self.save_results(epd_reader, open_epd, extract_pdf=extract_pdf, base_dir=target_dir)

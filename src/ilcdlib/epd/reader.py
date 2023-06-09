@@ -132,15 +132,16 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
             == "EPD"
         )
 
+    def get_dataset_type(self) -> str | None:
+        """Return the ILCD dataset type. e.g. 'average dataset', 'industry dataset', 'generic dataset', etc."""
+        return self._get_text(
+            self.epd_el_tree,
+            ("process:modellingAndValidation", "process:LCIMethodAndAllocation", "common:other", "epd2013:subType"),
+        )
+
     def is_industry_epd(self):
         """Return True if the dataset represents an industry EPD."""
-        return (
-            self._get_text(
-                self.epd_el_tree,
-                ("process:modellingAndValidation", "process:LCIMethodAndAllocation", "common:other", "epd2013:subType"),
-            )
-            == "average dataset"
-        )
+        return self.get_dataset_type() == "average dataset"
 
     def get_epd_document_stream(self) -> IO[bytes] | None:
         """Extract the EPD document."""
@@ -696,8 +697,11 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
         )
         if own_ref:
             epd.set_alt_id(provider_domain, own_ref.entity_id)
-        epd.set_ext_field("is_industry_average", self.is_industry_epd())
-        epd.set_ext_field("production_location", self.get_production_location())
+        ilcd_ext: dict[str, AnySerializable] = {
+            "dataset_type": self.get_dataset_type(),
+            "production_location": self.get_production_location(),
+        }
+        epd.set_ext_field(const.ILCD_IDENTIFICATION[0], ilcd_ext)
         epd.set_ext_field("epd_publisher", publisher)
         epd.set_ext_field("epd_developer", self.get_data_entry_by(lang, base_url))
         return epd
