@@ -29,7 +29,7 @@ from openepd.model.standard import Standard
 
 from ilcdlib.common import BaseIlcdMediumSpecificReader, IlcdXmlReader, OpenEpdEdpSupportReader
 from ilcdlib.const import IlcdDatasetType
-from ilcdlib.dto import ComplianceDto, IlcdEpdExtension, IlcdReference, ProductClassDef
+from ilcdlib.dto import ComplianceDto, IlcdReference, ProductClassDef
 from ilcdlib.entity.compliance import IlcdComplianceListReader
 from ilcdlib.entity.contact import IlcdContactReader
 from ilcdlib.entity.exchage import IlcdExchangesReader
@@ -37,6 +37,7 @@ from ilcdlib.entity.flow import IlcdExchangeDto, IlcdFlowReader
 from ilcdlib.entity.lcia import IlcdLciaResultsReader
 from ilcdlib.entity.material import MatMlMaterial
 from ilcdlib.entity.pcr import IlcdPcrReader
+from ilcdlib.extension import Ec3EpdExtension, IlcdEpdExtension
 from ilcdlib.mapping.compliance import StandardNameToLCIAMethodMapper, default_standard_names_to_lcia_mapper
 from ilcdlib.type import LangDef
 from ilcdlib.utils import (
@@ -702,9 +703,12 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
             dataset_uuid=self.get_uuid(),
             production_location=self.get_production_location(),
         )
+        ec3_ext = Ec3EpdExtension.construct(
+            epd_developer=self.get_data_entry_by(lang, base_url),
+            epd_publisher=publisher,
+        )
         epd.set_ext(ilcd_ext)
-        epd.set_ext_field("epd_publisher", publisher)
-        epd.set_ext_field("epd_developer", self.get_data_entry_by(lang, base_url))
+        epd.set_ext(ec3_ext)
         return epd
 
     @classmethod

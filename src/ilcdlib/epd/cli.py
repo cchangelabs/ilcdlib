@@ -25,9 +25,9 @@ from cli_rack.modular import CliExtension
 from cli_rack.utils import ensure_dir
 from openepd.model.epd import Epd
 
-from ilcdlib.dto import IlcdEpdExtension
 from ilcdlib.epd.factory import EpdReaderFactory
 from ilcdlib.epd.reader import IlcdEpdReader
+from ilcdlib.extension import IlcdEpdExtension
 from ilcdlib.medium.archive import ZipIlcdReader
 from ilcdlib.medium.soda4lca import Soda4LcaZipReader
 

@@ -20,11 +20,8 @@
 from dataclasses import dataclass
 from typing import Any, Generic, NamedTuple
 
-from openepd.model.base import OpenEpdExtension
 from openepd.model.org import Org
-import pydantic as pyd
 
-from ilcdlib import const
 from ilcdlib.utils import T
 
 
@@ -113,18 +110,3 @@ class ComplianceDto:
     name: str | None
     link: str | None
     issuer: Org | None
-
-
-class IlcdEpdExtension(OpenEpdExtension):
-    """An ILCD extension for OpenEPD Epd object."""
-
-    dataset_type: str | None = None
-    dataset_version: str | None = None
-    dataset_uuid: str | None = None
-    production_location: str | None = None
-    ilcd_pdf_url: pyd.AnyUrl | None = None
-
-    @classmethod
-    def get_extension_name(cls) -> str:
-        """Return the name of the extension to be used as a key in ext dict."""
-        return const.ILCD_IDENTIFICATION[0]
