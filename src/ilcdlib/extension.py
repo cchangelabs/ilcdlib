@@ -19,7 +19,6 @@
 #
 from openepd.model.base import OpenEpdExtension
 from openepd.model.org import Org
-import pydantic as pyd
 
 from ilcdlib import const
 
@@ -31,7 +30,6 @@ class IlcdEpdExtension(OpenEpdExtension):
     dataset_version: str | None = None
     dataset_uuid: str | None = None
     production_location: str | None = None
-    ilcd_pdf_url: pyd.AnyUrl | None = None
 
     @classmethod
     def get_extension_name(cls) -> str:

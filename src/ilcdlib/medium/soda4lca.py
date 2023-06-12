@@ -133,6 +133,17 @@ class Soda4LcaZipReader(ZipIlcdReader):
             return io.BytesIO(response.data)
         raise ValueError(f"Could not download PDF from {url}. Status code: {response.status}")
 
+    def resolve_entity_url(self, ref: IlcdReference, digital_file: str | None) -> str | None:
+        """
+        Resolve the url of the given entity.
+
+        If `digital_file` parameter is set, the link to the associated digital file is returned.
+
+        :param ref: reference to the entity
+        :param digital_file: optional name of the file, if link to the file is needed.
+        """
+        return self._soda4lca_client.get_entity_url(ref, digital_file=digital_file, verify=False)
+
     @staticmethod
     def __map_type_name(in_: str) -> str:
         match in_:

@@ -27,7 +27,6 @@ from openepd.model.epd import Epd
 
 from ilcdlib.epd.factory import EpdReaderFactory
 from ilcdlib.epd.reader import IlcdEpdReader
-from ilcdlib.extension import IlcdEpdExtension
 from ilcdlib.medium.archive import ZipIlcdReader
 from ilcdlib.medium.soda4lca import Soda4LcaZipReader
 
@@ -201,8 +200,6 @@ class ConvertEpdCliExtension(CliExtension):
         CLI.print_info("Language priority: " + ",".join([x if x is not None else "any other" for x in lang_list]))
         base_url = self.__extract_base_url(doc_ref)
         open_epd = epd_reader.to_openepd_epd(lang_list, base_url=base_url, provider_domain=provider_domain)
-        if isinstance(medium, Soda4LcaZipReader):
-            open_epd.get_ext_or_empty(IlcdEpdExtension).ilcd_pdf_url = medium.get_pdf_url()  # type: ignore
         CLI.print_data(open_epd.json(indent=2, exclude_none=True, exclude_unset=True))
         if save:
             self.save_results(epd_reader, open_epd, extract_pdf=extract_pdf, base_dir=target_dir)

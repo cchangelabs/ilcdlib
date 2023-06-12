@@ -112,6 +112,21 @@ class BaseIlcdMediumSpecificReader(metaclass=abc.ABCMeta):
         """
         pass
 
+    def resolve_entity_url(self, ref: IlcdReference, digital_file: str | None) -> str | None:
+        """
+        Resolve the url of the given entity.
+
+        If `digital_file` parameter is set, the link to the associated digital file is returned.
+
+        :param ref: reference to the entity
+        :param digital_file: optional name of the file, if link to the file is needed.
+        """
+        return None
+
+    def get_pdf_url(self) -> str | None:
+        """Resolve URL to the PDF file associated with this EPD."""
+        return None
+
     def __enter__(self) -> Self:
         return self
 

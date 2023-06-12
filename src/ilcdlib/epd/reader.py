@@ -27,6 +27,7 @@ from openepd.model.org import Org
 from openepd.model.specs import Specs
 from openepd.model.standard import Standard
 
+from ilcdlib import const
 from ilcdlib.common import BaseIlcdMediumSpecificReader, IlcdXmlReader, OpenEpdEdpSupportReader
 from ilcdlib.const import IlcdDatasetType
 from ilcdlib.dto import ComplianceDto, IlcdReference, ProductClassDef
@@ -696,6 +697,9 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
         )
         if own_ref:
             epd.set_alt_id(provider_domain, own_ref.entity_id)
+
+        pdf_url = self.data_provider.get_pdf_url()
+        epd.set_attachment_if_any(const.PDF_ATTACHMENT, pdf_url)
 
         ilcd_ext = IlcdEpdExtension(
             dataset_type=self.get_dataset_type(),

@@ -21,6 +21,7 @@ from typing import Type
 
 from openepd.model.pcr import Pcr
 
+from ilcdlib import const
 from ilcdlib.common import BaseIlcdMediumSpecificReader, OpenEpdPcrSupportReader
 from ilcdlib.entity.contact import IlcdContactReader
 from ilcdlib.entity.source import IlcdSourceReader
@@ -61,16 +62,33 @@ class IlcdPcrReader(OpenEpdPcrSupportReader, IlcdSourceReader):
         )
         return self.contact_reader_cls(element, self.data_provider) if element is not None else None
 
+    def get_references_to_digital_files(self) -> list[str]:
+        """Return the references to digital files."""
+        els = self._get_all_els(
+            self._entity,
+            (
+                "source:sourceInformation",
+                "source:dataSetInformation",
+                "source:referenceToDigitalFile",
+            ),
+        )
+        return [el.attrib["uri"] for el in els if el.attrib and "uri" in el.attrib]
+
     def to_openepd_pcr(self, lang: LangDef, base_url: str | None = None, provider_domain: str | None = None) -> Pcr:
         """Read as OpenEPD Pcr object."""
         issuer_reader = self.get_reference_to_contact_reader()
         issuer = issuer_reader.to_openepd_org(lang) if issuer_reader is not None else None
+        reference = self.get_own_reference()
         pcr = Pcr.construct(
             name=self.get_name(lang),
             issuer=issuer,
-            attachments=create_openepd_attachments(self.get_own_reference(), base_url) if base_url else None,
+            attachments=create_openepd_attachments(reference, base_url) if base_url else None,
         )
         if provider_domain is None:
             provider_domain = provider_domain_name_from_url(base_url)
+        digital_files = self.get_references_to_digital_files()
+        if len(digital_files) > 0 and reference is not None:
+            pdf_url = self.data_provider.resolve_entity_url(reference, digital_files[0])
+            pcr.set_attachment_if_any(const.PDF_ATTACHMENT, pdf_url)
         pcr.set_alt_id(provider_domain, self.get_uuid())
         return pcr
