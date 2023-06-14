@@ -36,7 +36,7 @@ class ImpactsUUIDToOpenIdMapper(SimpleDataMapper[str]):
         "b53ec18f-7377-4ad3-86eb-cc3f4f276b2b": "ep-fresh",
         "f58827d0-b407-4ec6-be75-8b69efb98a0f": "ep-fresh",
         "b5c619fa-def3-11e6-bf01-fe55135034f3": "ep-marine",
-        "b5c614d2-def3-11e6-bf01-fe55135034f3": "ep-terrestrial",
+        "b5c614d2-def3-11e6-bf01-fe55135034f3": "ep-terr",
         "b2ad66ce-c78d-11e6-9d9d-cec0c932ce01": "WDP",
     }
 

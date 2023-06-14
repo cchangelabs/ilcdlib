@@ -17,25 +17,16 @@
 #  Charles Pankow Foundation, Microsoft Sustainability Fund, Interface, MKA Foundation, and others.
 #  Find out more at www.BuildingTransparency.org
 #
-from enum import StrEnum
-
-ILCD_IDENTIFICATION: tuple[str] = ("ILCD_EPD",)
-PDF_ATTACHMENT = "PDF"
+from ilcdlib.mapping.common import SimpleDataMapper
 
 
-class IlcdContactClass(StrEnum):
-    """Enumeration of ILCD contact classes."""
+class StandardNameToLCIAMethodMapper(SimpleDataMapper[str | None]):
+    """Map standard name to LCIA method."""
 
-    Person = "Persons"
-    Company = "Organisations"
+    DATABASE = {
+        "EN 15804+A2": "EF 3.0",
+        "EN 15804+A1": "EF 3.0",
+    }
 
 
-class IlcdDatasetType(StrEnum):
-    """Enumeration of ILCD datasets."""
-
-    Contacts = "contact data set"
-    Sources = "source data set"
-    Flows = "flow data set"
-    Processes = "process data set"
-    UnitGroups = "unit group data set"
-    FlowProperty = "flow property data set"
+default_standard_names_to_lcia_mapper = StandardNameToLCIAMethodMapper()

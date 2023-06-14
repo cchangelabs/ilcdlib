@@ -17,7 +17,9 @@
 #  Charles Pankow Foundation, Microsoft Sustainability Fund, Interface, MKA Foundation, and others.
 #  Find out more at www.BuildingTransparency.org
 #
+from ilcdlib.dto import ProductClassDef
 from ilcdlib.epd.reader import IlcdEpdReader
+from ilcdlib.utils import none_throws
 
 
 class OekobauDatIlcdXmlEpdReader(IlcdEpdReader):
@@ -27,3 +29,17 @@ class OekobauDatIlcdXmlEpdReader(IlcdEpdReader):
     def is_known_url(cls, url: str) -> bool:
         """Return whether the URL recognized as a known Environdec URL."""
         return "oekobaudat" in url.lower()
+
+    def _product_classes_to_openepd(self, classes: dict[str, list[ProductClassDef]]) -> dict[str, str]:
+        """
+        Convert the product classes to OpenEPD format.
+
+        The Oekobau.DAT format according to openEPD is a string containing full id and
+        the name of the most specific class. Example: "1.1.01 Cement"
+        """
+        result = super()._product_classes_to_openepd(classes)
+        for classification_name, class_defs in classes.items():
+            if classification_name.lower() == "oekobau.dat" and len(class_defs) > 0:
+                last_class = class_defs[-1]
+                result["oekobau.dat"] = " ".join((none_throws(last_class.id), none_throws(last_class.name)))
+        return result

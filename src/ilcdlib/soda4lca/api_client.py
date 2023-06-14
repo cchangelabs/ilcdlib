@@ -94,9 +94,25 @@ class Soda4LcaXmlApiClient(BaseApiClient):
         params = dict()
         if version is not None:
             params["version"] = version
-        url = f"{self.base_url}/processes/{self._urlencode(process_uuid)}/epd" + "?" + urlencode(params)
+        url = f"{self.base_url}/processes/{self._urlencode(process_uuid)}/epd"
+        if params:
+            url += "?" + urlencode(params)
         response = self._do_request("head", url, raise_for_status=False)
         return url if response.ok else None
+
+    def get_entity_url(self, ref: IlcdReference, digital_file: str | None, verify: bool = False) -> str | None:
+        """Get URL to download an ILCD entity or a digital file attached to it."""
+        params = dict()
+        if ref.entity_version is not None:
+            params["version"] = ref.entity_version
+        url = f"{self.base_url}/{ref.entity_type}/{self._urlencode(ref.entity_id)}"
+        if digital_file is not None:
+            url += f"/{self._urlencode(digital_file)}"
+        url += "?" + urlencode(params)
+        if verify:
+            response = self._do_request("head", url, raise_for_status=False)
+            return url if response.ok else None
+        return url
 
     def download_epd_document(self, process_uuid: str, version: str | None = None) -> IO[bytes]:
         """

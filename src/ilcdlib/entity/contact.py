@@ -25,7 +25,7 @@ from ilcdlib.dto import IlcdReference
 from ilcdlib.sanitizing.domain import domain_from_url
 from ilcdlib.sanitizing.phone import cleanup_phone
 from ilcdlib.type import LangDef
-from ilcdlib.utils import create_openepd_attachments, none_throws
+from ilcdlib.utils import create_openepd_attachments, none_throws, provider_domain_name_from_url
 from ilcdlib.xml_parser import T_ET
 
 
@@ -108,7 +108,7 @@ class IlcdContactReader(OpenEpdContactSupportReader, IlcdXmlReader):
             self._entity, ("contact:contactInformation", "contact:dataSetInformation", "contact:contactAddress")
         )
 
-    def to_openepd_org(self, lang: LangDef, base_url: str | None = None) -> Org:
+    def to_openepd_org(self, lang: LangDef, base_url: str | None = None, provider_domain: str | None = None) -> Org:
         """Convert this data set to an OpenEPD org object."""
         open_epd_contact = Contact.construct(
             email=self.get_email(),
@@ -116,9 +116,13 @@ class IlcdContactReader(OpenEpdContactSupportReader, IlcdXmlReader):
             website=self.get_website(),
             address=self.get_address(),
         )
-        return Org.construct(
+        org = Org.construct(
             name=self.get_name(lang),
             web_domain=domain_from_url(self.get_website()),
             contacts=open_epd_contact if open_epd_contact.has_values() else None,
-            attachments=create_openepd_attachments(self.get_own_reference(), base_url),
+            attachments=create_openepd_attachments(self.get_own_reference(), base_url) if base_url else None,
         )
+        if provider_domain is None:
+            provider_domain = provider_domain_name_from_url(base_url)
+        org.set_alt_id(provider_domain, self.get_uuid())
+        return org

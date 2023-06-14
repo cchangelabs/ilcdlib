@@ -17,25 +17,24 @@
 #  Charles Pankow Foundation, Microsoft Sustainability Fund, Interface, MKA Foundation, and others.
 #  Find out more at www.BuildingTransparency.org
 #
-from enum import StrEnum
-
-ILCD_IDENTIFICATION: tuple[str] = ("ILCD_EPD",)
-PDF_ATTACHMENT = "PDF"
+from ilcdlib.mapping.common import SimpleDataMapper
 
 
-class IlcdContactClass(StrEnum):
-    """Enumeration of ILCD contact classes."""
+class IndicatorsUUIDToOpenIdMapper(SimpleDataMapper[str]):
+    """Map ILCD UUIDs to openEPD indicator names."""
 
-    Person = "Persons"
-    Company = "Organisations"
+    DATABASE = {
+        "3cf952c8-f3a4-461d-8c96-96456ca62246": "fw",
+        "ac857178-2b45-46ec-892a-a9a4332f0372": "penre",
+        "1421caa0-679d-4bf4-b282-0eb850ccae27": "penrm",
+        "89def144-d39a-4287-b86f-efde453ddcb2": "nrsf",
+        "20f32be5-0398-4288-9b6d-accddd195317": "pere",
+        "fb3ec0de-548d-4508-aea5-00b73bf6f702": "perm",
+        "64333088-a55f-4aa2-9a31-c10b07816787": "rsf",
+        "c6a1f35f-2d09-4f54-8dfb-97e502e1ce92": "sm",
+        "06159210-646b-4c8d-8583-da9b3b95a6c1": "penrt",
+        "53f97275-fa8a-4cdd-9024-65936002acd0": "pert",
+    }
 
 
-class IlcdDatasetType(StrEnum):
-    """Enumeration of ILCD datasets."""
-
-    Contacts = "contact data set"
-    Sources = "source data set"
-    Flows = "flow data set"
-    Processes = "process data set"
-    UnitGroups = "unit group data set"
-    FlowProperty = "flow property data set"
+default_indicators_uuid_mapper = IndicatorsUUIDToOpenIdMapper()

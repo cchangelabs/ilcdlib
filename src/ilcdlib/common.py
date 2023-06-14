@@ -22,7 +22,7 @@ import datetime
 from typing import IO, Literal, Self, Sequence, TextIO, overload
 
 from openepd.model.epd import Epd
-from openepd.model.lcia import ImpactSet
+from openepd.model.lcia import Impacts
 from openepd.model.org import Org
 from openepd.model.pcr import Pcr
 
@@ -72,6 +72,16 @@ class BaseIlcdMediumSpecificReader(metaclass=abc.ABCMeta):
         pass
 
     @abc.abstractmethod
+    def get_binary_stream_by_name(self, name: str, entity_type: str | None = None) -> IO[bytes] | None:
+        """
+        Get binary stream for the given file name.
+
+        :param name: The name of the file.
+        :param entity_type: The type of the entity. e.g. "process", "contact", "flow", etc.
+        """
+        pass
+
+    @abc.abstractmethod
     def entity_exists(self, entity_type: str, entity_id: str, entity_version: str | None = None) -> bool:
         """
         Check if the given entity exists.
@@ -102,6 +112,21 @@ class BaseIlcdMediumSpecificReader(metaclass=abc.ABCMeta):
         """
         pass
 
+    def resolve_entity_url(self, ref: IlcdReference, digital_file: str | None) -> str | None:
+        """
+        Resolve the url of the given entity.
+
+        If `digital_file` parameter is set, the link to the associated digital file is returned.
+
+        :param ref: reference to the entity
+        :param digital_file: optional name of the file, if link to the file is needed.
+        """
+        return None
+
+    def get_pdf_url(self) -> str | None:
+        """Resolve URL to the PDF file associated with this EPD."""
+        return None
+
     def __enter__(self) -> Self:
         return self
 
@@ -129,6 +154,10 @@ class NoopBaseReader(BaseIlcdMediumSpecificReader):
     ) -> IO[bytes] | TextIO:
         """Generate exception. This class does not support get_entity_stream."""
         raise ValueError("NoopBaseReader does not support get_entity_stream")
+
+    def get_binary_stream_by_name(self, name: str, entity_type: str | None = None) -> IO[bytes] | None:
+        """Return None regardless of parameters for this implementation."""
+        return None
 
     def entity_exists(self, entity_type: str, entity_id: str, entity_version: str | None = None) -> bool:
         """Return False regardless of parameters for this implementation."""
@@ -194,6 +223,7 @@ class IlcdXmlReader:
         raise ValueError(f"Entity {entity_id} version {entity_version} (type: {entity_type}) does not exist.")
 
     def _preprocess_path(self, path: XmlPath) -> str:
+        """Convert XPath defined in a form of tuple or string into a string representation."""
         if not isinstance(path, str):
             str_path = "/".join(path)
         else:
@@ -290,6 +320,15 @@ class IlcdXmlReader:
     def _get_reference(
         self, root: T_ET.Element, path: XmlPath, default_value: IlcdReference | None = None
     ) -> IlcdReference | None:
+        """
+        Extract reference data from XML element specified by XPath.
+
+        If the element doesn't hold reference information of doesn't exist - `default_value` is returned.
+
+        :param root: The root element to search in.
+        :param path: The path to the reference element (xpath in a form of tuple or string).
+        :param default_value: Default value to return if reference is not found.
+        """
         xpath = f"{self._preprocess_path(path)}"
         el = self.xml_parser.get_el(root, xpath)
         if el is None or el.attrib is None:
@@ -305,12 +344,36 @@ class IlcdXmlReader:
         return IlcdReference(ref_type, ref_id, entity_version=None)
 
     def _get_external_tree(self, root: T_ET.Element, path: XmlPath) -> T_ET.Element | None:
+        """
+        Read XML document referenced by given path and return root XML element as result.
+
+        Path param must point to the reference element (xml element with refObjectId, type, [version]) attributes.
+        This method will locate the reference, and then read XML stream and parse it into XML tree.
+        For reading binary objects use _get_external_binary() instead.
+        See also _get_reference() for more details on how reference elements are parsed.
+
+        :param root: The root element to search in.
+        :param path: The path to the reference element (xpath in a form of tuple or string).
+        :return: XML Element or None if not found.
+        """
         ref = self._get_reference(root, path)
         if ref is None:
             return None
         return self.get_xml_tree(ref.entity_type, ref.entity_id, ref.entity_version, allow_static_datasets=True)
 
     def _get_external_binary(self, root: T_ET.Element, path: XmlPath) -> IO[bytes] | None:
+        """
+        Read binary object from element reference.
+
+        Path param must point to the reference element (xml element with refObjectId, type, [version]) attributes.
+        This method will locate the reference, and then read the binary object from the referenced entity.
+        For reading references to XML objects use _get_external_tree() instead.
+        See also _get_reference() for more details on how reference elements are parsed.
+
+        :param root: The root element to search in.
+        :param path: The path to the reference element (xpath in a form of tuple or string).
+        :return: The binary object or None if not found.
+        """
         ref = self._get_reference(root, path)
         if ref is None:
             return None
@@ -321,7 +384,7 @@ class OpenEpdContactSupportReader(metaclass=abc.ABCMeta):
     """Base class for adding OpenEPD export support."""
 
     @abc.abstractmethod
-    def to_openepd_org(self, lang: LangDef, base_url: str | None = None) -> Org:
+    def to_openepd_org(self, lang: LangDef, base_url: str | None = None, provider_domain: str | None = None) -> Org:
         """Read as openEPD Org object."""
         pass
 
@@ -330,7 +393,7 @@ class OpenEpdPcrSupportReader(metaclass=abc.ABCMeta):
     """Base class for adding openEPD export support."""
 
     @abc.abstractmethod
-    def to_openepd_pcr(self, lang: LangDef, base_url: str | None = None) -> Pcr:
+    def to_openepd_pcr(self, lang: LangDef, base_url: str | None = None, provider_domain: str | None = None) -> Pcr:
         """Read as openEPD Pcr object."""
         pass
 
@@ -339,7 +402,7 @@ class OpenEpdEdpSupportReader(metaclass=abc.ABCMeta):
     """Base class for adding openEPD export support to EPD documents."""
 
     @abc.abstractmethod
-    def to_openepd_epd(self, lang: LangDef, base_url: str | None = None) -> Epd:
+    def to_openepd_epd(self, lang: LangDef, base_url: str | None = None, provider_domain: str | None = None) -> Epd:
         """Read as OpenEPD EPD object."""
         pass
 
@@ -348,6 +411,12 @@ class OpenEpdImpactSetSupportReader(metaclass=abc.ABCMeta):
     """Base class for adding openEPD export support to LCIAResults."""
 
     @abc.abstractmethod
-    def to_openepd_impact_set(self, lang: LangDef, base_url: str | None = None) -> ImpactSet:
+    def to_openepd_impacts(
+        self,
+        scenario_names: dict[str, str],
+        lcia_method: str | None = None,
+        base_url: str | None = None,
+        provider_domain: str | None = None,
+    ) -> Impacts:
         """Read as openEPD ImpactSet object."""
         pass

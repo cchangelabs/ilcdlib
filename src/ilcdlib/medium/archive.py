@@ -46,7 +46,6 @@ class ZipIlcdReader(BaseIlcdMediumSpecificReader):
     def __init__(self, zip_file: PathLike | IO[bytes]):
         try:
             self._zip_file = ZipFile(zip_file, "r")
-            self._zip_file
         except Exception:
             raise ValueError("Could not open zip file. Please check if this is a valid zip file.")
         self.__ilcd_dir = ZipPath(self._zip_file) / "ILCD"
@@ -83,6 +82,18 @@ class ZipIlcdReader(BaseIlcdMediumSpecificReader):
         if full_path is None or not full_path.exists():
             raise ValueError(f"Could not find entity {entity_type} {entity_id} (version {entity_version}).")
         return full_path.open("rb" if binary else "r")  # type: ignore
+
+    def get_binary_stream_by_name(self, name: str, entity_type: str | None = None) -> IO[bytes] | None:
+        """
+        Get binary stream for the given file name.
+
+        :param name: The name of the file.
+        :param entity_type: The type of the entity. e.g. "process", "contact", "flow", etc.
+        """
+        full_path = self.__ilcd_dir / "external_docs" / name
+        if not full_path.exists():
+            return None
+        return full_path.open("rb")
 
     def entity_exists(self, entity_type: str, entity_id: str, entity_version: str | None = None) -> bool:
         """

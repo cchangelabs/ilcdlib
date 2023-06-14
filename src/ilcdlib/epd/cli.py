@@ -87,6 +87,15 @@ class ConvertEpdCliExtension(CliExtension):
             default=False,
         )
         parser.add_argument(
+            "--target-dir",
+            "-t",
+            dest="target_dir",
+            type=str,
+            help="Target directory to save the output document. If not specified the current directory will be used.",
+            required=False,
+            default=None,
+        )
+        parser.add_argument(
             "--extract-pdf",
             "-e",
             dest="extract_pdf",
@@ -94,6 +103,14 @@ class ConvertEpdCliExtension(CliExtension):
             help="If possible extract PDF file from the input document and save it as a separate file.",
             required=False,
             default=False,
+        )
+        parser.add_argument(
+            "--provider-domain",
+            dest="provider_domain",
+            type=str,
+            help="Domain name of the provider to be used in alt_ids as a key.",
+            required=False,
+            default=None,
         )
         parser.add_argument(
             "doc",
@@ -112,6 +129,8 @@ class ConvertEpdCliExtension(CliExtension):
         dialect: str | None = args.dialect
         save: bool = args.save
         extract_pdf: bool = args.extract_pdf
+        target_dir: Path = Path(args.target_dir) if args.target_dir is not None else Path.cwd()
+        provider_domain: str | None = args.provider_domain
         if in_format.lower() != "ilcd+epd":
             CLI.fail(f"Input format {in_format} is not supported.", 1)
         if out_format.lower() != "openepd":
@@ -120,6 +139,8 @@ class ConvertEpdCliExtension(CliExtension):
             CLI.fail(f"Input format {in_format} and output format {out_format} are the same.", 1)
         if extract_pdf and not save:
             CLI.fail("Extracting PDF requires saving the input document. Consider adding -s flag", 1)
+        if target_dir.is_file():
+            CLI.fail(f"Target directory {target_dir} is a file. It must be either dir or nor existing path.", 1)
         epd_reader_factory = EpdReaderFactory()
         if dialect is not None and not epd_reader_factory.is_dialect_supported(dialect):
             CLI.fail(f"Dialect {dialect} is not supported.", 3)
@@ -133,6 +154,8 @@ class ConvertEpdCliExtension(CliExtension):
                 lang=lang,
                 out_format=out_format,
                 save=save,
+                target_dir=target_dir,
+                provider_domain=provider_domain,
             )
 
     def process_single_doc(
@@ -146,6 +169,8 @@ class ConvertEpdCliExtension(CliExtension):
         lang: str | None = None,
         extract_pdf: bool = False,
         save: bool = False,
+        target_dir: Path | None = None,
+        provider_domain: str | None = None,
     ) -> None:
         CLI.print_info(f"Converting document {doc_ref} from {in_format} to {out_format}.")
         reader_cls, dialect = (
@@ -174,25 +199,40 @@ class ConvertEpdCliExtension(CliExtension):
             lang_list.insert(0, "en")
         CLI.print_info("Language priority: " + ",".join([x if x is not None else "any other" for x in lang_list]))
         base_url = self.__extract_base_url(doc_ref)
-        open_epd = epd_reader.to_openepd_epd(lang_list, base_url=base_url)
-        if isinstance(medium, Soda4LcaZipReader):
-            open_epd.set_ext_field("ilcd_pdf_url", medium.get_pdf_url())
+        open_epd = epd_reader.to_openepd_epd(lang_list, base_url=base_url, provider_domain=provider_domain)
         CLI.print_data(open_epd.json(indent=2, exclude_none=True, exclude_unset=True))
         if save:
-            self.save_results(epd_reader, open_epd, extract_pdf=extract_pdf)
+            self.save_results(epd_reader, open_epd, extract_pdf=extract_pdf, base_dir=target_dir)
 
-    def save_results(self, epd_reader: IlcdEpdReader, result: Epd, *, extract_pdf: bool = False):
-        output_dir = Path(epd_reader.get_uuid())
+    def save_results(
+        self, epd_reader: IlcdEpdReader, result: Epd, *, extract_pdf: bool = False, base_dir: Path | None = None
+    ):
+        if base_dir is None:
+            base_dir = Path.cwd()
+        output_dir = base_dir / Path(epd_reader.get_uuid())
         ensure_dir(output_dir)
         with open(output_dir / "openEPD.json", "w") as f:
             f.write(result.json(indent=2, exclude_none=True, exclude_unset=True))
         if isinstance(epd_reader.data_provider, ZipIlcdReader):
             epd_reader.data_provider.save_to(output_dir / "ilcd_epd.zip")
         if extract_pdf:
+            # EPD Pdf
             pdf_stream = epd_reader.get_epd_document_stream()
+            if pdf_stream is None and isinstance(epd_reader.data_provider, Soda4LcaZipReader):
+                try:
+                    pdf_stream = epd_reader.data_provider.download_pdf()
+                except ValueError:
+                    pdf_stream = None
             if pdf_stream is not None:
-                with open(output_dir / "original.pdf", "wb") as f:
+                with open(output_dir / "original.pdf", "wb") as f, pdf_stream:
                     f.write(pdf_stream.read())
+            # PCR PDF
+            pcr_reader = epd_reader.get_pcr_reader()
+            if pcr_reader:
+                pdf_stream = pcr_reader.get_digital_file_stream()
+                if pdf_stream:
+                    with open(output_dir / "pcr.pdf", "wb") as f, pdf_stream:
+                        f.write(pdf_stream.read())
         CLI.print_info("Output saved to " + str(output_dir.absolute()))
 
     def __extract_base_url(self, doc_ref: str) -> str | None:
