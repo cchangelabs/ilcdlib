@@ -152,7 +152,7 @@ class Soda4LcaXmlApiClient(BaseApiClient):
             startIndex=offset,
             pageSize=page_size,
             search="true",
-            *other_params,
+            **other_params,
         )
         if lang is not None:
             params["lang"] = lang
