@@ -132,6 +132,7 @@ disallow_any_generics = false
 pretty = true
 mypy_path = "$MYPY_CONFIG_FILE_DIR/stubs"
 exclude = ["test_.*\\.py$", ]
+plugins = ["pydantic.mypy"]
 
 [[tool.mypy.overrides]]
 # External libs which doesn't have type hints (py.typed marker)
