@@ -1,3 +1,38 @@
+## 0.6.0 (2023-06-14)
+
+### Feat
+
+- put link to PDF into attachments for EPD and PCR
+- add ilcd dataset type information
+- map lcia method for impacts
+- add ability to extract PCR PDF if possible
+- parse scenarios
+- **xml**: add support for compliance property
+- add data_entry_by extracting
+- add `alt_ids` field support
+- **cli**: add `target-dir` argument to CLI
+- parse publisher
+- parse production region
+- parse flows and indicators
+- add `is_industry_epd` extension
+- add `lca_discussion`, `manufacturing_description`, `product_usage_description`
+
+### Fix
+
+- **cli**: fix pdf downloading while converting via CLI
+- fix `ep-terr` impact name in mapper
+- **soda4lca**: improve url recognition logic
+- correct `product_classes` property
+- fix product name definition
+
+### Refactor
+
+- move `epd_developer` and `epd_publisher` under `ec3` extensions
+- use openEPD extension class instead plain dict
+- add extra more generic method for reading process comment
+- generalize base scope set reader logic
+- move oekobaudat specific logic into dialect
+
 ## 0.5.0 (2023-06-01)
 
 ### Feat
