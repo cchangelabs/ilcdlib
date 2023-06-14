@@ -40,6 +40,7 @@ from ilcdlib.entity.material import MatMlMaterial
 from ilcdlib.entity.pcr import IlcdPcrReader
 from ilcdlib.extension import Ec3EpdExtension, IlcdEpdExtension
 from ilcdlib.mapping.compliance import StandardNameToLCIAMethodMapper, default_standard_names_to_lcia_mapper
+from ilcdlib.sanitizing.text import trim_text
 from ilcdlib.type import LangDef
 from ilcdlib.utils import (
     MarkdownSectionBuilder,
@@ -392,10 +393,10 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
         result = []
         for compliance in self.get_compliance_declarations(lang, base_url):
             result.append(
-                Standard.construct(
-                    short_name=compliance.short_name,
+                Standard(
+                    short_name=none_throws(compliance.short_name),
                     name=compliance.name,
-                    link=compliance.link,  # FIXME: incompatible type "Optional[str]"; expected "Optional[AnyUrl]"
+                    link=compliance.link,  # type: ignore
                     issuer=compliance.issuer,
                 )
             )
@@ -605,8 +606,8 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
             return None
         return reader.get_output_flows(scenario_names)
 
-    def _product_classes_to_openepd(self, classes: dict[str, list[ProductClassDef]]) -> dict[str, str]:
-        result: dict[str, str] = {}
+    def _product_classes_to_openepd(self, classes: dict[str, list[ProductClassDef]]) -> dict[str, list[str] | str]:
+        result: dict[str, list[str] | str] = {}
         for classification_name, class_defs in classes.items():
             if len(class_defs) > 0:
                 result[classification_name] = (
@@ -670,14 +671,14 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
                 lcia_method = mapped
                 break
 
-        epd = Epd.construct(
-            doctype="openEPD",
+        epd = Epd(
+            doctype="OpenEPD",
             language=lang_code,
-            attachments=create_openepd_attachments(own_ref, base_url) if base_url else None,
-            declaration_url=own_ref.to_url(base_url) if own_ref and base_url else None,
+            attachments=create_openepd_attachments(own_ref, base_url) if base_url else None,  # type: ignore
+            declaration_url=own_ref.to_url(base_url) if own_ref and base_url else None,  # type: ignore
             product_name=product_name,
-            product_description=self.get_product_description(lang),
-            date_published=self.get_date_published(),
+            product_description=trim_text(self.get_product_description(lang), 2000, ellipsis="..."),
+            date_of_issue=self.get_date_published(),
             valid_until=self.get_validity_ends_date(),
             program_operator_doc_id=self.get_program_operator_id(),
             manufacturer=manufacturer,
@@ -707,7 +708,7 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
             dataset_uuid=self.get_uuid(),
             production_location=self.get_production_location(),
         )
-        ec3_ext = Ec3EpdExtension.construct(
+        ec3_ext = Ec3EpdExtension(
             epd_developer=self.get_data_entry_by(lang, base_url),
             epd_publisher=publisher,
         )

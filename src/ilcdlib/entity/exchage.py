@@ -87,4 +87,4 @@ class IlcdExchangesReader(BaseIlcdScopeSetsReader):
 
         if len(ext) == 0:
             del scope_sets["ext"]
-        return scope_set_type.construct(**scope_sets)  # type: ignore
+        return scope_set_type(**scope_sets)  # type: ignore

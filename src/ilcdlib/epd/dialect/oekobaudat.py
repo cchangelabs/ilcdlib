@@ -30,7 +30,7 @@ class OekobauDatIlcdXmlEpdReader(IlcdEpdReader):
         """Return whether the URL recognized as a known Environdec URL."""
         return "oekobaudat" in url.lower()
 
-    def _product_classes_to_openepd(self, classes: dict[str, list[ProductClassDef]]) -> dict[str, str]:
+    def _product_classes_to_openepd(self, classes: dict[str, list[ProductClassDef]]) -> dict[str, list[str] | str]:
         """
         Convert the product classes to OpenEPD format.
 

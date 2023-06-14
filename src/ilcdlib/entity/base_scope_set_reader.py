@@ -85,7 +85,7 @@ class BaseIlcdScopeSetsReader(IlcdXmlReader):
             return None
         # Stages
         scopes = self.__extract_scopes(el, unit_name, scenario_names)
-        return ScopeSet.construct(**scopes), impact_name  # type: ignore
+        return ScopeSet(**scopes), impact_name  # type: ignore
 
     def __extract_scopes(
         self, el: T_ET.Element, unit_name: str, scenario_names: dict[str, str]
@@ -134,7 +134,7 @@ class BaseIlcdScopeSetsReader(IlcdXmlReader):
                 name=scenario_names[scenario_name],
             )
             scenario[module_name] = measurement
-            scenarios.append(EolScenario.construct(**scenario))  # type: ignore
+            scenarios.append(EolScenario(**scenario))  # type: ignore
             scopes["C_scenarios"] = scenarios
 
     @staticmethod

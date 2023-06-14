@@ -22,7 +22,7 @@ from openepd.model.org import Contact, Org
 from ilcdlib.common import BaseIlcdMediumSpecificReader, IlcdXmlReader, OpenEpdContactSupportReader
 from ilcdlib.const import IlcdContactClass
 from ilcdlib.dto import IlcdReference
-from ilcdlib.sanitizing.domain import domain_from_url
+from ilcdlib.sanitizing.domain import cleanup_website, domain_from_url
 from ilcdlib.sanitizing.phone import cleanup_phone
 from ilcdlib.type import LangDef
 from ilcdlib.utils import create_openepd_attachments, none_throws, provider_domain_name_from_url
@@ -110,17 +110,17 @@ class IlcdContactReader(OpenEpdContactSupportReader, IlcdXmlReader):
 
     def to_openepd_org(self, lang: LangDef, base_url: str | None = None, provider_domain: str | None = None) -> Org:
         """Convert this data set to an OpenEPD org object."""
-        open_epd_contact = Contact.construct(
-            email=self.get_email(),
+        open_epd_contact = Contact(
+            email=self.get_email(),  # type: ignore
             phone=cleanup_phone(self.get_phone()),
-            website=self.get_website(),
+            website=cleanup_website(self.get_website()),  # type: ignore
             address=self.get_address(),
         )
-        org = Org.construct(
+        org = Org(
             name=self.get_name(lang),
-            web_domain=domain_from_url(self.get_website()),
+            web_domain=domain_from_url(self.get_website()),  # type: ignore
             contacts=open_epd_contact if open_epd_contact.has_values() else None,
-            attachments=create_openepd_attachments(self.get_own_reference(), base_url) if base_url else None,
+            attachments=create_openepd_attachments(self.get_own_reference(), base_url) if base_url else None,  # type: ignore
         )
         if provider_domain is None:
             provider_domain = provider_domain_name_from_url(base_url)
