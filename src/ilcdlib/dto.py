@@ -20,8 +20,7 @@
 from dataclasses import dataclass
 from typing import Any, Generic, NamedTuple
 
-from openepd.model.org import Org
-
+from ilcdlib.extension import OpenEpdIlcdOrg
 from ilcdlib.utils import T
 
 
@@ -109,4 +108,4 @@ class ComplianceDto:
     short_name: str | None
     name: str | None
     link: str | None
-    issuer: Org | None
+    issuer: OpenEpdIlcdOrg | None

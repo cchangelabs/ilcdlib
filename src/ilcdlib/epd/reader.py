@@ -23,7 +23,6 @@ from typing import IO, Sequence, Type
 from openepd.model.common import Amount, Measurement
 from openepd.model.epd import Epd
 from openepd.model.lcia import Impacts, ImpactSet, OutputFlowSet, ResourceUseSet
-from openepd.model.org import Org
 from openepd.model.specs import Specs
 from openepd.model.standard import Standard
 
@@ -38,7 +37,7 @@ from ilcdlib.entity.flow import IlcdExchangeDto, IlcdFlowReader
 from ilcdlib.entity.lcia import IlcdLciaResultsReader
 from ilcdlib.entity.material import MatMlMaterial
 from ilcdlib.entity.pcr import IlcdPcrReader
-from ilcdlib.extension import Ec3EpdExtension, IlcdEpdExtension
+from ilcdlib.extension import IlcdEpdExtension, OpenEpdIlcdOrg
 from ilcdlib.mapping.compliance import StandardNameToLCIAMethodMapper, default_standard_names_to_lcia_mapper
 from ilcdlib.sanitizing.text import trim_text
 from ilcdlib.type import LangDef
@@ -365,7 +364,7 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
         )
         return self.contact_reader_cls(element, self.data_provider) if element is not None else None
 
-    def get_data_entry_by(self, lang: LangDef, base_url: str | None = None) -> Org | None:
+    def get_data_entry_by(self, lang: LangDef, base_url: str | None = None) -> OpenEpdIlcdOrg | None:
         """Return the data entry by org."""
         data_entry_by_reader = self.get_data_entry_by_reader()
         return data_entry_by_reader.to_openepd_org(lang, base_url) if data_entry_by_reader else None
@@ -671,6 +670,8 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
                 lcia_method = mapped
                 break
 
+        epd_developer = self.get_data_entry_by(lang, base_url)
+        epd_developer_contact = epd_developer.get_contact() if epd_developer else None
         epd = Epd(
             doctype="OpenEPD",
             language=lang_code,
@@ -682,6 +683,8 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
             valid_until=self.get_validity_ends_date(),
             program_operator_doc_id=self.get_program_operator_id(),
             manufacturer=manufacturer,
+            epd_developer=epd_developer,
+            epd_developer_email=epd_developer_contact.email if epd_developer_contact else None,
             program_operator=program_operator,
             product_classes=self._product_classes_to_openepd(self.get_product_classes()),
             manufacturing_description=self.get_technology_description(lang),
@@ -708,12 +711,9 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
             dataset_uuid=self.get_uuid(),
             production_location=self.get_production_location(),
         )
-        ec3_ext = Ec3EpdExtension(
-            epd_developer=self.get_data_entry_by(lang, base_url),
-            epd_publisher=publisher,
-        )
+        if publisher:
+            ilcd_ext.epd_publishers.append(publisher)
         epd.set_ext(ilcd_ext)
-        epd.set_ext(ec3_ext)
         return epd
 
     @classmethod

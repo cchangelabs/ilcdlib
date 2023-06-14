@@ -23,11 +23,11 @@ from typing import IO, Literal, Self, Sequence, TextIO, overload
 
 from openepd.model.epd import Epd
 from openepd.model.lcia import Impacts
-from openepd.model.org import Org
 from openepd.model.pcr import Pcr
 
 from ilcdlib.const import IlcdDatasetType
 from ilcdlib.dto import IlcdReference
+from ilcdlib.extension import OpenEpdIlcdOrg
 from ilcdlib.reference_data import get_ilcd_epd_reference_data_provider
 from ilcdlib.type import LangDef, LocalizedStr
 from ilcdlib.xml_parser import T_ET, XmlParser
@@ -384,7 +384,9 @@ class OpenEpdContactSupportReader(metaclass=abc.ABCMeta):
     """Base class for adding OpenEPD export support."""
 
     @abc.abstractmethod
-    def to_openepd_org(self, lang: LangDef, base_url: str | None = None, provider_domain: str | None = None) -> Org:
+    def to_openepd_org(
+        self, lang: LangDef, base_url: str | None = None, provider_domain: str | None = None
+    ) -> OpenEpdIlcdOrg:
         """Read as openEPD Org object."""
         pass
 
