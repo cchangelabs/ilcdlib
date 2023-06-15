@@ -55,7 +55,7 @@ class IlcdLciaResultsReader(OpenEpdImpactSetSupportReader, BaseIlcdScopeSetsRead
             )
         if len(ext) == 0:
             del impacts["ext"]
-        return ImpactSet.construct(**impacts)  # type: ignore
+        return ImpactSet(**impacts)  # type: ignore
 
     def to_openepd_impacts(
         self,

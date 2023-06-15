@@ -18,9 +18,10 @@
 #  Find out more at www.BuildingTransparency.org
 #
 from openepd.model.base import OpenEpdExtension
-from openepd.model.org import Org
+import pydantic as pyd
 
 from ilcdlib import const
+from ilcdlib.dto import IlcdContactInfo, OpenEpdIlcdOrg, ValidationDto
 
 
 class IlcdEpdExtension(OpenEpdExtension):
@@ -30,6 +31,10 @@ class IlcdEpdExtension(OpenEpdExtension):
     dataset_version: str | None = None
     dataset_uuid: str | None = None
     production_location: str | None = None
+    epd_publishers: list[OpenEpdIlcdOrg] = pyd.Field(default_factory=list, description="List of EPD publishers")
+    epd_verifiers: list[ValidationDto] = pyd.Field(
+        default_factory=list, description="List of EPD verifiers (both, external and internal)"
+    )
 
     @classmethod
     def get_extension_name(cls) -> str:
@@ -37,13 +42,12 @@ class IlcdEpdExtension(OpenEpdExtension):
         return const.ILCD_IDENTIFICATION[0]
 
 
-class Ec3EpdExtension(OpenEpdExtension):
-    """An EC3 extension for OpenEPD Epd object."""
+class IlcdOrgExtension(OpenEpdExtension):
+    """Extension to the Org object to store ILCD specific information."""
 
-    epd_publisher: Org | None = None
-    epd_developer: Org | None = None
+    contact: IlcdContactInfo | None = None
 
     @classmethod
     def get_extension_name(cls) -> str:
         """Return the name of the extension to be used as a key in ext dict."""
-        return "ec3"
+        return const.ILCD_IDENTIFICATION[0]

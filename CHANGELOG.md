@@ -1,3 +1,15 @@
+## 0.7.0 (2023-06-15)
+
+### Feat
+
+- update verifiers extracting
+- update openEPD generation to match new Org schema
+
+### Fix
+
+- construct mypy objects without bypassing validation
+- fix unpacking other_params
+
 ## 0.6.0 (2023-06-14)
 
 ### Feat

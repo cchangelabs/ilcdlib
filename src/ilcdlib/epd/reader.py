@@ -23,14 +23,13 @@ from typing import IO, Sequence, Type
 from openepd.model.common import Amount, Measurement
 from openepd.model.epd import Epd
 from openepd.model.lcia import Impacts, ImpactSet, OutputFlowSet, ResourceUseSet
-from openepd.model.org import Org
 from openepd.model.specs import Specs
 from openepd.model.standard import Standard
 
 from ilcdlib import const
 from ilcdlib.common import BaseIlcdMediumSpecificReader, IlcdXmlReader, OpenEpdEdpSupportReader
-from ilcdlib.const import IlcdDatasetType
-from ilcdlib.dto import ComplianceDto, IlcdReference, ProductClassDef
+from ilcdlib.const import IlcdDatasetType, IlcdTypeOfReview
+from ilcdlib.dto import ComplianceDto, IlcdReference, OpenEpdIlcdOrg, ProductClassDef, ValidationDto
 from ilcdlib.entity.compliance import IlcdComplianceListReader
 from ilcdlib.entity.contact import IlcdContactReader
 from ilcdlib.entity.exchage import IlcdExchangesReader
@@ -38,8 +37,10 @@ from ilcdlib.entity.flow import IlcdExchangeDto, IlcdFlowReader
 from ilcdlib.entity.lcia import IlcdLciaResultsReader
 from ilcdlib.entity.material import MatMlMaterial
 from ilcdlib.entity.pcr import IlcdPcrReader
-from ilcdlib.extension import Ec3EpdExtension, IlcdEpdExtension
+from ilcdlib.entity.validation import IlcdValidationListReader
+from ilcdlib.extension import IlcdEpdExtension
 from ilcdlib.mapping.compliance import StandardNameToLCIAMethodMapper, default_standard_names_to_lcia_mapper
+from ilcdlib.sanitizing.text import trim_text
 from ilcdlib.type import LangDef
 from ilcdlib.utils import (
     MarkdownSectionBuilder,
@@ -66,6 +67,7 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
         exchanges_reader_cls: Type[IlcdExchangesReader] = IlcdExchangesReader,
         compliance_reader_cls: Type[IlcdComplianceListReader] = IlcdComplianceListReader,
         standard_names_to_lcia_mapper: StandardNameToLCIAMethodMapper = default_standard_names_to_lcia_mapper,
+        validation_reader_cls: Type[IlcdValidationListReader] = IlcdValidationListReader,
     ):
         super().__init__(data_provider)
         self.contact_reader_cls = contact_reader_cls
@@ -75,6 +77,7 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
         self.compliance_reader_cls = compliance_reader_cls
         self.exchanges_reader_cls = exchanges_reader_cls
         self.standard_names_to_lcia_mapper = standard_names_to_lcia_mapper
+        self.validation_reader_cls = validation_reader_cls
         if epd_process_id is None:
             entities = data_provider.list_entities(IlcdDatasetType.Processes)
             self.__epd_entity_ref = entities[0]
@@ -303,18 +306,16 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
 
         return el.attrib.get("location") if el.attrib else None
 
-    def get_external_verifier_reader(self) -> IlcdContactReader | None:
+    def get_validation_reader(self) -> IlcdValidationListReader | None:
         """Return the reader for the reviewer."""
-        element = self._get_external_tree(
+        element = self._get_el(
             self.epd_el_tree,
             (
                 "process:modellingAndValidation",
                 "process:validation",
-                "process:review",
-                "common:referenceToNameOfReviewerAndInstitution",
             ),
         )
-        return self.contact_reader_cls(element, self.data_provider) if element is not None else None
+        return self.validation_reader_cls(element, self.data_provider) if element is not None else None
 
     def get_manufacturer_reader(self) -> IlcdContactReader | None:
         """Return the reader for the manufacturer."""
@@ -364,7 +365,7 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
         )
         return self.contact_reader_cls(element, self.data_provider) if element is not None else None
 
-    def get_data_entry_by(self, lang: LangDef, base_url: str | None = None) -> Org | None:
+    def get_data_entry_by(self, lang: LangDef, base_url: str | None = None) -> OpenEpdIlcdOrg | None:
         """Return the data entry by org."""
         data_entry_by_reader = self.get_data_entry_by_reader()
         return data_entry_by_reader.to_openepd_org(lang, base_url) if data_entry_by_reader else None
@@ -392,14 +393,33 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
         result = []
         for compliance in self.get_compliance_declarations(lang, base_url):
             result.append(
-                Standard.construct(
-                    short_name=compliance.short_name,
+                Standard(
+                    short_name=none_throws(compliance.short_name),
                     name=compliance.name,
-                    link=compliance.link,  # FIXME: incompatible type "Optional[str]"; expected "Optional[AnyUrl]"
+                    link=compliance.link,  # type: ignore
                     issuer=compliance.issuer,
                 )
             )
         return result
+
+    def get_ilcd_validations(
+        self, lang: LangDef, base_url: str | None = None, provider_domain: str | None = None
+    ) -> list[ValidationDto]:
+        """Return list of all verifiers."""
+        reader = self.get_validation_reader()
+        if reader is None:
+            return []
+        return reader.get_validations(lang, base_url, provider_domain)
+
+    def get_third_party_verifier(self, validations: list[ValidationDto]) -> OpenEpdIlcdOrg | None:
+        """Return first third party verifier."""
+        for verifier in validations:
+            if verifier.validation_type in (
+                IlcdTypeOfReview.IndependentExternalReview,
+                IlcdTypeOfReview.AccreditedThirdPartyReview,
+            ):
+                return verifier.org
+        return None
 
     def get_pcr_reader(self) -> IlcdPcrReader | None:
         """Return the reader for the PCR."""
@@ -605,8 +625,8 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
             return None
         return reader.get_output_flows(scenario_names)
 
-    def _product_classes_to_openepd(self, classes: dict[str, list[ProductClassDef]]) -> dict[str, str]:
-        result: dict[str, str] = {}
+    def _product_classes_to_openepd(self, classes: dict[str, list[ProductClassDef]]) -> dict[str, list[str] | str]:
+        result: dict[str, list[str] | str] = {}
         for classification_name, class_defs in classes.items():
             if len(class_defs) > 0:
                 result[classification_name] = (
@@ -632,12 +652,6 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
         program_operator_reader = self.get_program_operator_reader()
         program_operator = (
             program_operator_reader.to_openepd_org(lang, base_url, provider_domain) if program_operator_reader else None
-        )
-        external_verifier_reader = self.get_external_verifier_reader()
-        external_verifier = (
-            external_verifier_reader.to_openepd_org(lang, base_url, provider_domain)
-            if external_verifier_reader
-            else None
         )
         pcr_reader = self.get_pcr_reader()
         pcr = pcr_reader.to_openepd_pcr(lang, base_url) if pcr_reader else None
@@ -670,23 +684,28 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
                 lcia_method = mapped
                 break
 
-        epd = Epd.construct(
-            doctype="openEPD",
+        epd_developer = self.get_data_entry_by(lang, base_url)
+        epd_developer_contact = epd_developer.get_contact() if epd_developer else None
+        ilcd_validations = self.get_ilcd_validations(lang, base_url, provider_domain)
+        epd = Epd(
+            doctype="OpenEPD",
             language=lang_code,
-            attachments=create_openepd_attachments(own_ref, base_url) if base_url else None,
-            declaration_url=own_ref.to_url(base_url) if own_ref and base_url else None,
+            attachments=create_openepd_attachments(own_ref, base_url) if base_url else None,  # type: ignore
+            declaration_url=own_ref.to_url(base_url) if own_ref and base_url else None,  # type: ignore
             product_name=product_name,
-            product_description=self.get_product_description(lang),
-            date_published=self.get_date_published(),
+            product_description=trim_text(self.get_product_description(lang), 2000, ellipsis="..."),
+            date_of_issue=self.get_date_published(),
             valid_until=self.get_validity_ends_date(),
             program_operator_doc_id=self.get_program_operator_id(),
             manufacturer=manufacturer,
+            epd_developer=epd_developer,
+            epd_developer_email=epd_developer_contact.email if epd_developer_contact else None,
             program_operator=program_operator,
             product_classes=self._product_classes_to_openepd(self.get_product_classes()),
             manufacturing_description=self.get_technology_description(lang),
             product_usage_description=self.get_technological_applicability(lang),
             lca_discussion=self.get_lca_discussion(lang),
-            third_party_verifier=external_verifier,
+            third_party_verifier=self.get_third_party_verifier(ilcd_validations),
             pcr=pcr,
             declared_unit=declared_unit,
             impacts=self.get_impacts(scenario_names, lca_method=lcia_method),
@@ -706,13 +725,11 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
             dataset_version=self.get_version(),
             dataset_uuid=self.get_uuid(),
             production_location=self.get_production_location(),
+            epd_verifiers=ilcd_validations,
         )
-        ec3_ext = Ec3EpdExtension.construct(
-            epd_developer=self.get_data_entry_by(lang, base_url),
-            epd_publisher=publisher,
-        )
+        if publisher:
+            ilcd_ext.epd_publishers.append(publisher)
         epd.set_ext(ilcd_ext)
-        epd.set_ext(ec3_ext)
         return epd
 
     @classmethod

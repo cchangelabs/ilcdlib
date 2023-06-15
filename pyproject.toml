@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "ilcdlib"
-version = "0.6.0"
+version = "0.7.0"
 license = "Apache-2.0"
 description = "A toolkit for reading and writing ILCD format and it's derivatives"
 authors = ["C-Change Labs <support@c-change-labs.com>"]
@@ -26,7 +26,7 @@ ilcdtool = { callable = "ilcdlib:cli.entrypoint", extras = ["cli"] }
 python = "^3.11"
 urllib3 = { version = ">=1.26.16,<2.0.0" }
 requests = { version = ">=2.1.0,<3.0.0" }
-openepd = { version = ">=0.10.0,<1.0.0" }
+openepd = { version = ">=0.11.0,<1.0.0" }
 
 # Optional dependencies
 lxml = { version = "~=4.9.2", optional = true }
@@ -63,7 +63,7 @@ lxml = ["lxml"]
 cli = ["cli-rack"]
 
 [tool.commitizen]
-version = "0.6.0"
+version = "0.7.0"
 bump_version = "bump: version $current_version → $new_version"
 update_changelog_on_bump = true
 pre_bump_hooks = []
@@ -132,6 +132,7 @@ disallow_any_generics = false
 pretty = true
 mypy_path = "$MYPY_CONFIG_FILE_DIR/stubs"
 exclude = ["test_.*\\.py$", ]
+plugins = ["pydantic.mypy"]
 
 [[tool.mypy.overrides]]
 # External libs which doesn't have type hints (py.typed marker)

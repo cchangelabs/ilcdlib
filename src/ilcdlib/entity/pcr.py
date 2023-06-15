@@ -79,10 +79,10 @@ class IlcdPcrReader(OpenEpdPcrSupportReader, IlcdSourceReader):
         issuer_reader = self.get_reference_to_contact_reader()
         issuer = issuer_reader.to_openepd_org(lang) if issuer_reader is not None else None
         reference = self.get_own_reference()
-        pcr = Pcr.construct(
+        pcr = Pcr(
             name=self.get_name(lang),
             issuer=issuer,
-            attachments=create_openepd_attachments(reference, base_url) if base_url else None,
+            attachments=create_openepd_attachments(reference, base_url) if base_url else None,  # type: ignore
         )
         if provider_domain is None:
             provider_domain = provider_domain_name_from_url(base_url)
