@@ -17,11 +17,11 @@
 #  Charles Pankow Foundation, Microsoft Sustainability Fund, Interface, MKA Foundation, and others.
 #  Find out more at www.BuildingTransparency.org
 #
-from dataclasses import dataclass
 from typing import Any, Generic, NamedTuple
 
 from openepd.model.base import BaseOpenEpdSchema
 from openepd.model.org import Org
+import pydantic
 import pydantic as pyd
 
 from ilcdlib.const import IlcdTypeOfReview
@@ -51,8 +51,7 @@ class ProductClassDef(NamedTuple):
     name: str | None
 
 
-@dataclass(kw_only=True)
-class Category:
+class Category(pydantic.BaseModel):
     """A category DTO."""
 
     id: str
@@ -61,8 +60,7 @@ class Category:
     full_path: list[str] | None = None
 
 
-@dataclass(kw_only=True)
-class ListResponseMeta:
+class ListResponseMeta(pydantic.BaseModel):
     """Metadata for a list response."""
 
     offset: int
@@ -70,8 +68,7 @@ class ListResponseMeta:
     page_size: int
 
 
-@dataclass(kw_only=True)
-class ProcessBasicInfo:
+class ProcessBasicInfo(pydantic.BaseModel):
     """Basic information about a process."""
 
     uuid: str
@@ -127,8 +124,7 @@ class OpenEpdIlcdOrg(Org):
         return ext.contact if ext else None
 
 
-@dataclass(kw_only=True)
-class ComplianceDto:
+class ComplianceDto(pydantic.BaseModel):
     """Basic information about a Compliance."""
 
     uuid: str
@@ -138,8 +134,7 @@ class ComplianceDto:
     issuer: OpenEpdIlcdOrg | None
 
 
-@dataclass(kw_only=True)
-class ValidationDto:
+class ValidationDto(pydantic.BaseModel):
     """Basic information about a Compliance."""
 
     validation_type: IlcdTypeOfReview | None
