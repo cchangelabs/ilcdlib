@@ -1,3 +1,9 @@
+## 0.7.1 (2023-06-16)
+
+### Fix
+
+- replace datamodel with pydantic
+
 ## 0.7.0 (2023-06-15)
 
 ### Feat
