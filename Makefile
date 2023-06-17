@@ -52,6 +52,12 @@ deps-update:
 		poetry lock; \
 	)
 
+deps-tree:
+	@( \
+		if [ -z $(SKIP_VENV) ]; then source $(VIRTUAL_ENV_PATH)/bin/activate; fi; \
+		poetry show --tree; \
+	)
+
 .PHONY: venv
 venv:
 	@( \
