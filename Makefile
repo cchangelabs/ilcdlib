@@ -37,14 +37,25 @@ deps:
 	@( \
 		set -e; \
 		if [ -z $(SKIP_VENV) ]; then source $(VIRTUAL_ENV_PATH)/bin/activate; fi; \
-		$(PYTHON) -m pip install -r ./requirements-dev.txt; \
-		poetry install --all-extras; \
+		poetry install --all-extras --no-root; \
 	)
 
 deps-lock:
 	@( \
 		if [ -z $(SKIP_VENV) ]; then source $(VIRTUAL_ENV_PATH)/bin/activate; fi; \
+		poetry lock --no-update; \
+	)
+
+deps-update:
+	@( \
+		if [ -z $(SKIP_VENV) ]; then source $(VIRTUAL_ENV_PATH)/bin/activate; fi; \
 		poetry lock; \
+	)
+
+deps-tree:
+	@( \
+		if [ -z $(SKIP_VENV) ]; then source $(VIRTUAL_ENV_PATH)/bin/activate; fi; \
+		poetry show --tree; \
 	)
 
 .PHONY: venv

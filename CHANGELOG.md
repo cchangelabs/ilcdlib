@@ -1,3 +1,13 @@
+## 0.8.0 (2023-06-20)
+
+### Feat
+
+- add utility function to calculate sha1 by URL
+
+### Fix
+
+- add support for non-standard epd2029 xml namespaces
+
 ## 0.7.1 (2023-06-16)
 
 ### Fix

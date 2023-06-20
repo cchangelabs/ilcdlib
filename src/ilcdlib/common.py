@@ -194,8 +194,15 @@ class IlcdXmlReader:
                 mm="http://www.matml.org/",
                 epd2013="http://www.iai.kit.edu/EPD/2013",
                 epd2019="http://www.iai.kit.edu/EPD/2019",
+                epd2019_indata="http://www.indata.network/EPD/2019",
             )
         )
+
+    def remap_xml_ns(self, doc_ns_map: dict[str, str]) -> None:
+        """Remap XML namespaces."""
+        for n, url in doc_ns_map.items():
+            if url and url.endswith("EPD/2019"):  # Some providers use outdated, non-standard namespace
+                self.xml_parser.xml_ns["epd2019"] = url
 
     def get_xml_tree(
         self, entity_type: str, entity_id: str, entity_version: str | None, *, allow_static_datasets: bool = True
