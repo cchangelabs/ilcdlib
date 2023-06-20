@@ -17,6 +17,7 @@
 #  Charles Pankow Foundation, Microsoft Sustainability Fund, Interface, MKA Foundation, and others.
 #  Find out more at www.BuildingTransparency.org
 #
+from hashlib import sha1
 from io import BytesIO
 from typing import IO, Iterable, Type
 from urllib.parse import urlencode
@@ -216,3 +217,26 @@ class Soda4LcaXmlApiClient(BaseApiClient):
             else:
                 has_next = offset + processed_items_count <= total
             offset += processed_items_count
+
+    def get_sha1_by_url(self, url: str) -> str:
+        """
+        Get SHA1 hash of the file at the given URL or raise error if it is impossible to fetch the file.
+
+        :param url: URL of the file
+        """
+        response = self._do_request("get", url, stream=True)
+        hasher = sha1()
+        for x in response.iter_content(chunk_size=200):
+            hasher.update(x)
+        return hasher.hexdigest()
+
+    def get_sha1_by_url_or_none(self, url: str) -> str | None:
+        """
+        Get SHA1 hash of the file at the given URL or return none if it is impossible to fetch the file.
+
+        :param url: URL of the file
+        """
+        try:
+            return self.get_sha1_by_url(url)
+        except HTTPError:
+            return None
