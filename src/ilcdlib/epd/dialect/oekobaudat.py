@@ -41,5 +41,6 @@ class OekobauDatIlcdXmlEpdReader(IlcdEpdReader):
         for classification_name, class_defs in classes.items():
             if classification_name.lower() == "oekobau.dat" and len(class_defs) > 0:
                 last_class = class_defs[-1]
+                del result[classification_name]
                 result["oekobau.dat"] = " ".join((none_throws(last_class.id), none_throws(last_class.name)))
         return result
