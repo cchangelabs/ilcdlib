@@ -1,3 +1,10 @@
+## 0.8.1 (2023-06-21)
+
+### Fix
+
+- update openepd lib to fix impacts deserialization issue
+- **oekobaudat**: remove extra product class
+
 ## 0.8.0 (2023-06-20)
 
 ### Feat
