@@ -22,11 +22,12 @@ from io import BytesIO
 from typing import IO, Iterable, Type
 from urllib.parse import urlencode
 
-from requests import HTTPError
+from requests import HTTPError, Response
 
 from ilcdlib.dto import Category, IlcdReference, ListResponseMeta, ProcessBasicInfo, ProcessSearchResponse
 from ilcdlib.entity.category import CategorySystemReader
 from ilcdlib.http_common import BaseApiClient
+from ilcdlib.xml_parser import T_ET
 
 
 class Soda4LcaXmlApiClient(BaseApiClient):
@@ -35,6 +36,12 @@ class Soda4LcaXmlApiClient(BaseApiClient):
 
     Documentation for the API is available at https://bitbucket.org/okusche/soda4lca/src/7.x-branch/Doc/src/Service_API/Service_API.md.
     """
+
+    ns = {
+        "p": "http://www.ilcd-network.org/ILCD/ServiceAPI/Process",
+        "sapi": "http://www.ilcd-network.org/ILCD/ServiceAPI",
+        "epd": "http://www.iai.kit.edu/EPD/2013",
+    }
 
     def __init__(
         self, base_url: str, *, category_reader_cls: Type[CategorySystemReader] = CategorySystemReader, **kwargs
@@ -137,7 +144,7 @@ class Soda4LcaXmlApiClient(BaseApiClient):
             raise e
 
     def search_processes(
-        self, offset: int = 0, page_size: int = 100, lang: str | None = None, **other_params
+        self, offset: int = 0, page_size: int = 100, lang: str | None = None, use_xml=True, **other_params
     ) -> ProcessSearchResponse:
         """
         Filter processes by various criteria.
@@ -145,11 +152,12 @@ class Soda4LcaXmlApiClient(BaseApiClient):
         :param offset: offset from the beginning of the dataset
         :param page_size: size of the page
         :param lang: language code (2 letters)
+        :param use_xml: if True, response will be handled as XML
         :param other_params: refer to Soda4LCA documentation for other parameters
         :return:
         """
         params = dict(
-            format="json",
+            format="xml" if use_xml else "json",
             startIndex=offset,
             pageSize=page_size,
             search="true",
@@ -159,6 +167,13 @@ class Soda4LcaXmlApiClient(BaseApiClient):
             params["lang"] = lang
             params["langFallback"] = True
         response = self._do_request("get", "/processes", params=params)
+
+        if use_xml:
+            return self.__search_processes_xml(response)
+        return self.__search_processes_json(response)
+
+    @staticmethod
+    def __search_processes_json(response: Response) -> ProcessSearchResponse:
         obj = response.json()
         meta = ListResponseMeta(
             offset=obj.get("startIndex", 0),
@@ -178,6 +193,41 @@ class Soda4LcaXmlApiClient(BaseApiClient):
                     type=x.get("type"),
                     sub_type=x.get("subType"),
                     original=x,
+                )
+            )
+        return ProcessSearchResponse(meta=meta, items=items)
+
+    def __get_element_text(self, elem: T_ET.Element, path: str) -> str | None:
+        child = elem.find(path, namespaces=self.ns)
+
+        if child is not None:
+            return child.text
+        return None
+
+    def __search_processes_xml(self, response: Response) -> ProcessSearchResponse:
+        obj = response.text
+
+        tree = T_ET.fromstring(obj)
+
+        processes = tree.findall("p:process", namespaces=self.ns)
+
+        meta = ListResponseMeta(
+            offset=tree.attrib.get(f"{{{self.ns['sapi']}}}startIndex", 0),
+            page_size=tree.attrib.get(f"{{{self.ns['sapi']}}}pageSize", 0),
+            total_items_count=tree.attrib.get(f"{{{self.ns['sapi']}}}totalSize", 0),
+        )
+        items = []
+        for process in processes:
+            items.append(
+                ProcessBasicInfo(
+                    uuid=self.__get_element_text(process, "sapi:uuid"),
+                    name=self.__get_element_text(process, "sapi:name"),
+                    version=self.__get_element_text(process, "sapi:dataSetVersion"),
+                    class_id=self.__get_element_text(process, "sapi:classId"),
+                    class_name=self.__get_element_text(process, "sapi:classific"),
+                    classification_system=self.__get_element_text(process, "sapi:classificSystem"),
+                    type=self.__get_element_text(process, "p:type"),
+                    sub_type=self.__get_element_text(process, "sapi:other/epd:subType"),
                 )
             )
         return ProcessSearchResponse(meta=meta, items=items)
