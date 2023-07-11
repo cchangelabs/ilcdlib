@@ -136,6 +136,10 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
             == "EPD"
         )
 
+    def get_url_attachment(self, lang: LangDef) -> str | None:
+        """Return URL attachment if exists."""
+        return None
+
     def get_dataset_type(self) -> str | None:
         """Return the ILCD dataset type. e.g. 'average dataset', 'industry dataset', 'generic dataset', etc."""
         return self._get_text(
@@ -720,6 +724,7 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
 
         pdf_url = self.data_provider.get_pdf_url()
         epd.set_attachment_if_any(const.PDF_ATTACHMENT, pdf_url)
+        epd.set_attachment_if_any(const.URL_ATTACHMENT, self.get_url_attachment(lang))
 
         ilcd_ext = IlcdEpdExtension(
             dataset_type=self.get_dataset_type(),

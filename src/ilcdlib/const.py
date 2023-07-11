@@ -21,6 +21,7 @@ from enum import StrEnum
 
 ILCD_IDENTIFICATION: tuple[str] = ("ILCD_EPD",)
 PDF_ATTACHMENT = "PDF"
+URL_ATTACHMENT = "URL"
 
 
 class IlcdContactClass(StrEnum):
