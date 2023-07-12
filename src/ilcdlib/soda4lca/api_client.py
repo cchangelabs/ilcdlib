@@ -144,7 +144,7 @@ class Soda4LcaXmlApiClient(BaseApiClient):
             raise e
 
     def search_processes(
-        self, offset: int = 0, page_size: int = 100, lang: str | None = None, use_xml=True, **other_params
+        self, offset: int = 0, page_size: int = 100, lang: str | None = None, use_xml: bool = True, **other_params
     ) -> ProcessSearchResponse:
         """
         Filter processes by various criteria.
