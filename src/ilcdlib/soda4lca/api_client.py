@@ -144,7 +144,7 @@ class Soda4LcaXmlApiClient(BaseApiClient):
             raise e
 
     def search_processes(
-        self, offset: int = 0, page_size: int = 100, lang: str | None = None, use_xml: bool = True, **other_params
+        self, offset: int = 0, page_size: int = 100, lang: str | None = None, **other_params
     ) -> ProcessSearchResponse:
         """
         Filter processes by various criteria.
@@ -152,12 +152,11 @@ class Soda4LcaXmlApiClient(BaseApiClient):
         :param offset: offset from the beginning of the dataset
         :param page_size: size of the page
         :param lang: language code (2 letters)
-        :param use_xml: if True, response will be handled as XML
         :param other_params: refer to Soda4LCA documentation for other parameters
         :return:
         """
         params = dict(
-            format="xml" if use_xml else "json",
+            format="xml",
             startIndex=offset,
             pageSize=page_size,
             search="true",
@@ -168,34 +167,7 @@ class Soda4LcaXmlApiClient(BaseApiClient):
             params["langFallback"] = True
         response = self._do_request("get", "/processes", params=params)
 
-        if use_xml:
-            return self.__search_processes_xml(response)
-        return self.__search_processes_json(response)
-
-    @staticmethod
-    def __search_processes_json(response: Response) -> ProcessSearchResponse:
-        obj = response.json()
-        meta = ListResponseMeta(
-            offset=obj.get("startIndex", 0),
-            page_size=obj.get("pageSize", 0),
-            total_items_count=obj.get("totalCount", 0),
-        )
-        items = []
-        for x in obj.get("data", []):
-            items.append(
-                ProcessBasicInfo(
-                    uuid=x.get("uuid"),
-                    name=x.get("name"),
-                    version=x.get("version"),
-                    class_id=x.get("classificId"),
-                    class_name=x.get("classific"),
-                    classification_system=x.get("classificSystem"),
-                    type=x.get("type"),
-                    sub_type=x.get("subType"),
-                    original=x,
-                )
-            )
-        return ProcessSearchResponse(meta=meta, items=items)
+        return self.__search_processes_xml(response)
 
     def __get_element_text(self, elem: T_ET.Element, path: str) -> str | None:
         child = elem.find(path, namespaces=self.ns)
