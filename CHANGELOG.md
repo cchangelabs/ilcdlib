@@ -1,3 +1,10 @@
+## 0.9.0 (2023-07-12)
+
+### Feat
+
+- parse environdec url
+- parse xml processes
+
 ## 0.8.1 (2023-06-21)
 
 ### Fix

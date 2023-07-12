@@ -20,12 +20,34 @@
 import datetime
 
 from ilcdlib.epd.reader import IlcdEpdReader
+from ilcdlib.type import LangDef
 
 
 class EnvirondecIlcdXmlEpdReader(IlcdEpdReader):
     """Reader for EPDs in the Environdec specific ILCD XML format."""
 
     _TIME_REPR_DESC_DELIMITER = "\r\n"
+
+    def get_url_attachment(self, lang: LangDef) -> str | None:
+        """Return URL attachment if exists."""
+        element = self._get_external_tree(
+            self.epd_el_tree,
+            (
+                "process:modellingAndValidation",
+                "process:dataSourcesTreatmentAndRepresentativeness",
+                "process:referenceToDataSource",
+            ),
+        )
+
+        return (
+            self._get_localized_text(
+                element,
+                ("source:sourceInformation", "source:dataSetInformation", "source:sourceDescriptionOrComment"),
+                lang,
+            )
+            if element
+            else None
+        )
 
     def get_validity_ends_date(self) -> datetime.date | None:
         """Return the date the EPD is valid until."""
