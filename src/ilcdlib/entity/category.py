@@ -32,6 +32,7 @@ class CategorySystemReader(IlcdXmlReader):
         super().__init__(NoopBaseReader())
         self._entity = element
         self.xml_parser.xml_ns["cat"] = "http://lca.jrc.it/ILCD/Categories"
+        self.xml_parser.xml_ns["sapi"] = "http://www.ilcd-network.org/ILCD/ServiceAPI"
 
     def get_categories_flat_list(self, data_type: str) -> list[Category]:
         """Get the UUID of the entity described by this data set."""
@@ -39,6 +40,21 @@ class CategorySystemReader(IlcdXmlReader):
         root = self._get_all_els(self._entity, (f'cat:categories[@dataType="{data_type}"]',))
         for x in root:
             self.__process_categories(x, result, [])
+        return result
+
+    def get_categories_flat_list_4x(self, parent: Category | None = None) -> list[Category]:
+        """Get list of categories from XML for Soda4lca 4.x."""
+        result: list[Category] = []
+        root = self._get_all_els(self._entity, ("sapi:category",))
+        for x in root:
+            result.append(
+                Category(
+                    id=x.attrib.get("classId"),
+                    name=x.text,
+                    parent_id=parent.id if parent else None,
+                    full_path=([parent.name] if parent else []) + [x.text],
+                )
+            )
         return result
 
     def __process_categories(
