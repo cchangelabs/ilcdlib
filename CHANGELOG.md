@@ -1,3 +1,9 @@
+## 0.10.0 (2023-07-13)
+
+### Feat
+
+- parse categories from soda4lca 4x
+
 ## 0.9.0 (2023-07-12)
 
 ### Feat
