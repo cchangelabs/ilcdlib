@@ -19,6 +19,7 @@
 #
 import abc
 import datetime
+import logging
 from typing import IO, Literal, Self, Sequence, TextIO, overload
 
 from openepd.model.epd import Epd
@@ -197,6 +198,7 @@ class IlcdXmlReader:
                 epd2019_indata="http://www.indata.network/EPD/2019",
             )
         )
+        self.__logger = logging.Logger(__name__)
 
     def remap_xml_ns(self, doc_ns_map: dict[str, str]) -> None:
         """Remap XML namespaces."""
@@ -365,7 +367,11 @@ class IlcdXmlReader:
         ref = self._get_reference(root, path)
         if ref is None:
             return None
-        return self.get_xml_tree(ref.entity_type, ref.entity_id, ref.entity_version, allow_static_datasets=True)
+        try:
+            return self.get_xml_tree(ref.entity_type, ref.entity_id, ref.entity_version, allow_static_datasets=True)
+        except ValueError as e:
+            self.__logger.warning(e)
+            return None
 
     def _get_external_binary(self, root: T_ET.Element, path: XmlPath) -> IO[bytes] | None:
         """
