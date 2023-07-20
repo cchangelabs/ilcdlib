@@ -1,3 +1,10 @@
+## 0.10.1 (2023-07-20)
+
+### Fix
+
+- don't throw error when referenced file doesn't exist
+- validate environdec urls
+
 ## 0.10.0 (2023-07-13)
 
 ### Feat
