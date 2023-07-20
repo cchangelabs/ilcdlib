@@ -39,7 +39,7 @@ class EnvirondecIlcdXmlEpdReader(IlcdEpdReader):
             ),
         )
 
-        return (
+        url = (
             self._get_localized_text(
                 element,
                 ("source:sourceInformation", "source:dataSetInformation", "source:sourceDescriptionOrComment"),
@@ -48,6 +48,11 @@ class EnvirondecIlcdXmlEpdReader(IlcdEpdReader):
             if element
             else None
         )
+
+        if not url or "environdec.com" not in url:
+            return None
+
+        return url
 
     def get_validity_ends_date(self) -> datetime.date | None:
         """Return the date the EPD is valid until."""
