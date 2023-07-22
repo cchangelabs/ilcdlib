@@ -59,6 +59,6 @@ class EpdReaderTestCase(TestCase):
         self.assertEqual(self.epd_reader_industry.get_date_published(), datetime.date.fromisoformat("2022-10-10"))
 
     def test_to_openepd(self):
-        openepd_org = self.epd_reader_industry.to_openepd_epd("de")
+        openepd_org = self.epd_reader_industry.to_openepd_epd(("de", None))
         if openepd_org:
-            print(openepd_org.json(indent=2))
+            print(openepd_org.model_dump_json(indent=2, warnings=False))

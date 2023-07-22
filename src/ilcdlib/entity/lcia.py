@@ -66,6 +66,6 @@ class IlcdLciaResultsReader(OpenEpdImpactSetSupportReader, BaseIlcdScopeSetsRead
     ) -> Impacts:
         """Read as openEPD ImpactSet object."""
         impact_set = self.get_impact_set(scenario_names)
-        impacts = Impacts(__root__={})
+        impacts = Impacts(root={})
         impacts.set_impact_set(lcia_method, impact_set)
         return impacts
