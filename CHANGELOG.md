@@ -1,3 +1,9 @@
+## 1.0.0 (2023-07-22)
+
+### Feat
+
+- preserve pydantic v1 support in separate branch
+
 ## 0.10.1 (2023-07-20)
 
 ### Fix
