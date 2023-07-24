@@ -33,7 +33,7 @@ class BaseDataMapper(Generic[T, K], abc.ABC):
     """Base class for all data mappers."""
 
     @abc.abstractmethod
-    def map(self, input_value: T, default_value: K) -> K:
+    def map(self, input_value: T, default_value: K | None) -> K | None:
         """
         Map the input value to the output value.
 
@@ -48,7 +48,7 @@ class SimpleDataMapper(BaseDataMapper[T, T], Generic[T]):
 
     DATABASE: dict[T, T] = {}
 
-    def map(self, input_value: T, default_value: T) -> T:
+    def map(self, input_value: T, default_value: T | None) -> T | None:
         """
         Map the input value to the output value.
 

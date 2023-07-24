@@ -23,6 +23,7 @@ from ilcdlib.common import OpenEpdImpactSetSupportReader
 from ilcdlib.entity.base_scope_set_reader import BaseIlcdScopeSetsReader
 from ilcdlib.mapping.common import SimpleDataMapper
 from ilcdlib.mapping.impacts import default_impacts_uuid_mapper
+from ilcdlib.mapping.units import default_scope_to_units_mapper
 
 
 class IlcdLciaResultsReader(OpenEpdImpactSetSupportReader, BaseIlcdScopeSetsReader):
@@ -32,10 +33,12 @@ class IlcdLciaResultsReader(OpenEpdImpactSetSupportReader, BaseIlcdScopeSetsRead
         self,
         *args,
         impact_mapper: SimpleDataMapper[str] = default_impacts_uuid_mapper,
+        scope_to_units_mapper: SimpleDataMapper[str] = default_scope_to_units_mapper,
         **kwargs,
     ):
         super().__init__(*args, **kwargs)
         self.impact_mapper = impact_mapper
+        self.scope_to_units_mapper = scope_to_units_mapper
 
     def get_impact_set(self, scenario_names: dict[str, str]) -> ImpactSet:
         """Get the impacts from the ILCD EPD file."""
@@ -52,6 +55,7 @@ class IlcdLciaResultsReader(OpenEpdImpactSetSupportReader, BaseIlcdScopeSetsRead
                 ext=ext,
                 mapper=self.impact_mapper,
                 scenario_names=scenario_names,
+                scope_to_units_mapper=self.scope_to_units_mapper,
             )
         if len(ext) == 0:
             del impacts["ext"]
