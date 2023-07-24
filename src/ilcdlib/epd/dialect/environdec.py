@@ -19,6 +19,7 @@
 #
 import datetime
 import io
+import re
 from typing import IO
 
 import requests
@@ -45,6 +46,8 @@ class EnvirondecIlcdXmlEpdReader(IlcdEpdReader):
 
         link = self.get_url_attachment("en")
         if not link:
+            return None
+        if not re.match(r"https://www.environdec.com/Detail/epd\d+", link):
             return None
         foreign_id = link.split("/")[-1]
         response = requests.get(f"https://api.environdec.com/api/v1/EPDLibrary/EPD/{foreign_id}")
