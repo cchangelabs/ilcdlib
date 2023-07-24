@@ -18,6 +18,10 @@
 #  Find out more at www.BuildingTransparency.org
 #
 import datetime
+import io
+from typing import IO
+
+import requests
 
 from ilcdlib.epd.reader import IlcdEpdReader
 from ilcdlib.type import LangDef
@@ -28,8 +32,29 @@ class EnvirondecIlcdXmlEpdReader(IlcdEpdReader):
 
     _TIME_REPR_DESC_DELIMITER = "\r\n"
 
-    def get_url_attachment(self, lang: LangDef) -> str | None:
-        """Return URL attachment if exists."""
+    def get_epd_document_stream(self) -> IO[bytes] | None:
+        """
+        Download the EPD document from the Environdec API, if it is possible.
+
+        In the case of Environdec EPD, the EPD document is not stored in the ILCD XML file, but is retrieved from the
+        Environdec their API and public EPD library.
+
+        We will not use this method to get the EPD document link for OpenEPD,
+        because it is a responsibility of the client to get related documents.
+        """
+
+        link = self.get_url_attachment("en")
+        if not link:
+            return None
+        foreign_id = link.split("/")[-1]
+        response = requests.get(f"https://api.environdec.com/api/v1/EPDLibrary/EPD/{foreign_id}")
+        document_id = response.json()["documents"][0]["id"]
+        pdf_link = f"https://api.environdec.com/api/v1/EPDLibrary/Files/{document_id}/Data"
+        pdf_response = requests.get(pdf_link)
+        return io.BytesIO(pdf_response.content)
+
+    def _get_url_attachments_v1(self, lang: LangDef) -> str | None:
+        """Get the URL attachment from the Environdec specific ILCD XML document when the old link format is used."""
         element = self._get_external_tree(
             self.epd_el_tree,
             (
@@ -38,16 +63,43 @@ class EnvirondecIlcdXmlEpdReader(IlcdEpdReader):
                 "process:referenceToDataSource",
             ),
         )
+        if not element:
+            return None
 
-        url = (
-            self._get_localized_text(
-                element,
-                ("source:sourceInformation", "source:dataSetInformation", "source:sourceDescriptionOrComment"),
-                lang,
-            )
-            if element
-            else None
+        url = self._get_localized_text(
+            element,
+            ("source:sourceInformation", "source:dataSetInformation", "source:sourceDescriptionOrComment"),
+            lang,
         )
+
+        return url
+
+    def _get_url_attachment_v2(self, lang: LangDef) -> str | None:
+        """Get the URL attachment from the Environdec specific ILCD XML document when the new link format is used."""
+        external_tree = self._get_external_tree(
+            self.epd_el_tree,
+            (
+                "process:modellingAndValidation",
+                "process:dataSourcesTreatmentAndRepresentativeness",
+                "common:other",
+                "epd2019:referenceToOriginalEPD",
+            ),
+        )
+        if not external_tree:
+            return None
+
+        el = self._get_el(
+            external_tree,
+            ("source:sourceInformation", "source:dataSetInformation", "source:referenceToDigitalFile"),
+        )
+        url = el.attrib.get("uri") if el is not None and el.attrib is not None else None
+        return url
+
+    def get_url_attachment(self, lang: LangDef) -> str | None:
+        """Return URL attachment if exists."""
+        url = self._get_url_attachments_v1(lang)
+        if not url:
+            url = self._get_url_attachment_v2(lang)
 
         if not url or "environdec.com" not in url:
             return None
