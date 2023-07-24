@@ -90,8 +90,8 @@ class IlcdUnitGroupReader(IlcdXmlReader):
             return None
         unit_name = none_throws(self._get_text(element, "ug:name"))
         unit_uuid = self.get_uuid()
-        if allow_mapping and unit_uuid is not None:
-            unit_name = self.unit_mapper.map(unit_uuid, unit_name)
+        if allow_mapping and unit_uuid is not None and (u_name := self.unit_mapper.map(unit_uuid, unit_name)):
+            unit_name = u_name
         return (
             UnitDto(
                 name=unit_name,

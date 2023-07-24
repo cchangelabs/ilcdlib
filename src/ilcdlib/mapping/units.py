@@ -39,4 +39,39 @@ class UnitsUUIDMapper(SimpleDataMapper[str]):
     }
 
 
+class ScopeToUnitsMapper(SimpleDataMapper[str]):
+    """A data mapper that maps scope names to their default units."""
+
+    DATABASE = {
+        "gwp": "kgCO2e",
+        "gwp-fossil": "kgCO2e",
+        "gwp-biogenic": "kgCO2e",
+        "gwp-luluc": "kgCO2e",
+        "odp": "kgCFC11e",
+        "pocp": "kgC2H4e",
+        "ap": "kgSO2e",
+        "ep-fresh": "kgPO4e",
+        "ep-marine": "kgNe",
+        "ep-terr": "molNe",
+        "cru": "kg",
+        "ee": "MJ",
+        "hwd": "kg",
+        "mer": "kg",
+        "mfr": "kg",
+        "fw": "m3",
+        "nhwd": "kg",
+        "penre": "MJ",
+        "penrm": "MJ",
+        "nrsf": "MJ",
+        "rwd": "kg",
+        "peret": "MJ",
+        "perm": "MJ",
+        "rsf": "MJ",
+        "sm": "kg",
+        "penrt": "MJ",
+        "pert": "MJ",
+    }
+
+
+default_scope_to_units_mapper = ScopeToUnitsMapper()
 default_units_uuid_mapper = UnitsUUIDMapper()
