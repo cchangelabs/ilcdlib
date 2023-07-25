@@ -1,3 +1,13 @@
+## 1.1.0 (2023-07-25)
+
+### Feat
+
+- **xml**: add default unit mapping if reference is missing
+
+### Fix
+
+- **environdec**: extract url from newer ILCD documents
+
 ## 1.0.0 (2023-07-22)
 
 ### Feat
