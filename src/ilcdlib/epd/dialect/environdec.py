@@ -32,9 +32,9 @@ class EnvirondecIlcdXmlEpdReader(IlcdEpdReader):
     """Reader for EPDs in the Environdec specific ILCD XML format."""
 
     _TIME_REPR_DESC_DELIMITER = "\r\n"
-    _ENVIRONDEC_DETAIL_URL_V1 = re.compile(r"https://www.environdec.com/library/_\?Epd=\d+")
-    _ENVIRONDEC_HTML_FRIENDLY_URL = re.compile(r'"friendlyUrl": ?"(epd\d+)"')
-    _ENVIRONDEC_DETAIL_URL_v2 = re.compile(r"https://www.environdec.com/Detail/epd\d+")
+    _PATTERN_ENVIRONDEC_DETAIL_URL_V1 = re.compile(r"https://www.environdec.com/library/_\?Epd=\d+")
+    _PATTERN_ENVIRONDEC_HTML_FRIENDLY_URL = re.compile(r'"friendlyUrl": ?"(epd\d+)"')
+    _PATTERN_ENVIRONDEC_DETAIL_URL_v2 = re.compile(r"https://www.environdec.com/Detail/epd\d+")
 
     def get_epd_document_stream(self) -> IO[bytes] | None:
         """
@@ -51,18 +51,18 @@ class EnvirondecIlcdXmlEpdReader(IlcdEpdReader):
         if not link:
             return None
 
-        if re.match(self._ENVIRONDEC_DETAIL_URL_V1, link):
+        if re.match(self._PATTERN_ENVIRONDEC_DETAIL_URL_V1, link):
             # If we have an older url to product page, we need to parse the html response to get the friendly url
             # For example, https://www.environdec.com/library/_?Epd=14879
             response = requests.get(link)
             if not response.status_code == 200:
                 return None
-            foreign_ids = re.findall(self._ENVIRONDEC_HTML_FRIENDLY_URL, response.text)
+            foreign_ids = re.findall(self._PATTERN_ENVIRONDEC_HTML_FRIENDLY_URL, response.text)
             if not foreign_ids:
                 return None
             foreign_id = foreign_ids[0]
 
-        elif re.match(self._ENVIRONDEC_DETAIL_URL_v2, link):
+        elif re.match(self._PATTERN_ENVIRONDEC_DETAIL_URL_v2, link):
             # If we have a newer url to product page, we can get it using url itself
             # For example, https://www.environdec.com/library/epd1452
             foreign_id = link.strip("/").split("/")[-1]
