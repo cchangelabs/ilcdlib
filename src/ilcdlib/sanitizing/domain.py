@@ -44,6 +44,7 @@ def cleanup_website(website: str | None) -> str | None:
     """
     if website is None:
         return None
+    website = website.strip()
     if not website.startswith("http"):
         return "https://" + website + "/"
     return website
