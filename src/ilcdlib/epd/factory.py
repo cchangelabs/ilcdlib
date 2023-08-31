@@ -20,6 +20,7 @@
 from typing import Type
 
 from ilcdlib.epd.dialect.environdec import EnvirondecIlcdXmlEpdReader
+from ilcdlib.epd.dialect.epditaly import EpdItalyIlcdXmlEpdReader
 from ilcdlib.epd.dialect.indata import IndataIlcdXmlEpdReader
 from ilcdlib.epd.dialect.oekobaudat import OekobauDatIlcdXmlEpdReader
 from ilcdlib.epd.reader import IlcdEpdReader
@@ -33,6 +34,7 @@ class EpdReaderFactory:
         "indata": IndataIlcdXmlEpdReader,
         "oekobau.dat": OekobauDatIlcdXmlEpdReader,
         "oekobaudat": OekobauDatIlcdXmlEpdReader,
+        "epditaly": EpdItalyIlcdXmlEpdReader,
     }
     DEFAULT_READER_CLASS = IlcdEpdReader
 
