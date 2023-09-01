@@ -18,7 +18,7 @@
 #  Find out more at www.BuildingTransparency.org
 #
 import datetime
-from typing import IO, Sequence, Type
+from typing import IO, Type
 
 from openepd.model.common import Amount, Measurement
 from openepd.model.epd import Epd
@@ -397,9 +397,11 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
         """Return list of OpenEPD Standards."""
         result = []
         for compliance in self.get_compliance_declarations(lang, base_url):
+            if compliance.short_name is None and compliance.name is None:
+                continue
             result.append(
                 Standard(
-                    short_name=none_throws(compliance.short_name),
+                    short_name=none_throws(compliance.short_name or compliance.name),
                     name=compliance.name,
                     link=compliance.link,  # type: ignore
                     issuer=compliance.issuer,
@@ -646,7 +648,7 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
         if provider_domain is None:
             provider_domain = provider_domain_name_from_url(base_url)
         lang_code = lang if isinstance(lang, str) else None
-        if isinstance(lang, Sequence):
+        if not isinstance(lang, str) and lang is not None:
             lang_code = lang[0] if len(lang) > 0 else None
         manufacturer_reader = self.get_manufacturer_reader()
         manufacturer = (
