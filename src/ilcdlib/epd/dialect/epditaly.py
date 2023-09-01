@@ -29,6 +29,10 @@ class EpdItalyIlcdXmlEpdReader(IlcdEpdReader):
         """Return whether the URL recognized as a known Environdec URL."""
         return "epditaly" in url.lower()
 
+    def post_init(self):
+        """Configure EpdItaly specific settings."""
+        self.xml_parser.xml_ns["epd2019"] = self.xml_parser.xml_ns["epd2019_indata"]
+
     def get_scenario_names(self, lang: LangDef) -> dict[str, str]:
         """Return dictionary with mapping short scenario names to full names in given language."""
         scenarios = self._get_all_els(
