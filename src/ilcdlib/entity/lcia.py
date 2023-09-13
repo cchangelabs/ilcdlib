@@ -17,6 +17,7 @@
 #  Charles Pankow Foundation, Microsoft Sustainability Fund, Interface, MKA Foundation, and others.
 #  Find out more at www.BuildingTransparency.org
 #
+from openepd.model.common import Measurement
 from openepd.model.lcia import Impacts, ImpactSet, ScopeSet
 
 from ilcdlib.common import OpenEpdImpactSetSupportReader
@@ -57,9 +58,27 @@ class IlcdLciaResultsReader(OpenEpdImpactSetSupportReader, BaseIlcdScopeSetsRead
                 scenario_names=scenario_names,
                 scope_to_units_mapper=self.scope_to_units_mapper,
             )
+
+        self._extract_and_set_a1a2a3_impact(impacts)
+
         if len(ext) == 0:
             del impacts["ext"]
         return ImpactSet(**impacts)  # type: ignore
+
+    def _extract_and_set_a1a2a3_impact(self, impacts: dict[str, ScopeSet | dict]):
+        """Set A1A2A3 value if None provided."""
+
+        def _process(scope_set: ScopeSet):
+            if scope_set.A1A2A3 is None and scope_set.A1 and scope_set.A2 and scope_set.A3:
+                s = scope_set.A1.mean + scope_set.A2.mean + scope_set.A3.mean
+                scope_set.A1A2A3 = Measurement(mean=s, unit=scope_set.A1.unit)
+
+        for impact_value in impacts.values():
+            if type(impact_value) is dict:
+                for v in impact_value.values():
+                    _process(v)
+            if type(impact_value) is ScopeSet:
+                _process(impact_value)
 
     def to_openepd_impacts(
         self,
