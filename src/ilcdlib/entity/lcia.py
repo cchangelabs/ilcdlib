@@ -17,6 +17,8 @@
 #  Charles Pankow Foundation, Microsoft Sustainability Fund, Interface, MKA Foundation, and others.
 #  Find out more at www.BuildingTransparency.org
 #
+import logging
+
 from openepd.model.common import Measurement
 from openepd.model.lcia import Impacts, ImpactSet, ScopeSet
 
@@ -71,12 +73,13 @@ class IlcdLciaResultsReader(OpenEpdImpactSetSupportReader, BaseIlcdScopeSetsRead
             s: float = 0
             unit = None
 
-            for A in (scope_set.A1, scope_set.A2, scope_set.A3):
-                if A:
-                    if unit and unit != A.unit:
-                        raise ValueError("Units in A impacts does not match each other")
-                    unit = A.unit
-                    s += A.mean
+            for a_impact in (scope_set.A1, scope_set.A2, scope_set.A3):
+                if a_impact:
+                    if unit and unit != a_impact.unit:
+                        logging.warning(f"Units in A impacts does not match each other in {scope_set}")
+                        return
+                    unit = a_impact.unit
+                    s += a_impact.mean
 
             scope_set.A1A2A3 = Measurement(mean=s, unit=unit)
 
