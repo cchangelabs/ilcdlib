@@ -65,20 +65,30 @@ class IlcdLciaResultsReader(OpenEpdImpactSetSupportReader, BaseIlcdScopeSetsRead
             del impacts["ext"]
         return ImpactSet(**impacts)  # type: ignore
 
-    def _extract_and_set_a1a2a3_impact(self, impacts: dict[str, ScopeSet | dict]):
-        """Set A1A2A3 value if None provided."""
+    @staticmethod
+    def __process_a1a2a3_impact(scope_set: ScopeSet) -> None:
+        if scope_set.A1A2A3 is None and (scope_set.A1 or scope_set.A2 or scope_set.A3):
+            s: float = 0
+            unit = None
 
-        def _process(scope_set: ScopeSet):
-            if scope_set.A1A2A3 is None and scope_set.A1 and scope_set.A2 and scope_set.A3:
-                s = scope_set.A1.mean + scope_set.A2.mean + scope_set.A3.mean
-                scope_set.A1A2A3 = Measurement(mean=s, unit=scope_set.A1.unit)
+            for A in (scope_set.A1, scope_set.A2, scope_set.A3):
+                if A:
+                    if unit and unit != A.unit:
+                        raise ValueError("Units in A impacts does not match each other")
+                    unit = A.unit
+                    s += A.mean
+
+            scope_set.A1A2A3 = Measurement(mean=s, unit=unit)
+
+    def _extract_and_set_a1a2a3_impact(self, impacts: dict[str, ScopeSet | dict]) -> None:
+        """Set A1A2A3 value if None provided."""
 
         for impact_value in impacts.values():
             if type(impact_value) is dict:
                 for v in impact_value.values():
-                    _process(v)
+                    self.__process_a1a2a3_impact(v)
             if type(impact_value) is ScopeSet:
-                _process(impact_value)
+                self.__process_a1a2a3_impact(impact_value)
 
     def to_openepd_impacts(
         self,
