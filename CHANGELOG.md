@@ -1,3 +1,9 @@
+## 1.2.1 (2023-09-15)
+
+### Fix
+
+- calculate a1a2a3 if none provided
+
 ## 1.2.0 (2023-09-01)
 
 ### Feat
