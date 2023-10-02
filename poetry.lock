@@ -675,18 +675,21 @@ setuptools = "*"
 
 [[package]]
 name = "openepd"
-version = "0.11.1"
+version = "1.2.0"
 description = "Python library to work with OpenEPD format"
 optional = false
 python-versions = ">=3.11,<4.0"
 files = [
-    {file = "openepd-0.11.1-py3-none-any.whl", hash = "sha256:7503352767b1d905919fba596273bdc16388337b1cabd29d0b1ce1f9c750a965"},
-    {file = "openepd-0.11.1.tar.gz", hash = "sha256:2cbd44b162250adc321cd82550f0151b43a40a6a8150c1a593b84e60337c5018"},
+    {file = "openepd-1.2.0-py3-none-any.whl", hash = "sha256:d5889ec0cedf8c7c0aed3766617d36ef5158b03d1573ef56f59c67228e835dd3"},
+    {file = "openepd-1.2.0.tar.gz", hash = "sha256:095d91e1bb37f4f13adbbea94e7181cdb7bf3bd0d2b0fa1a5fdb2f363a90ce20"},
 ]
 
 [package.dependencies]
-email-validator = ">=2.0"
-pydantic = ">=1.10"
+email-validator = ">=1.3.0"
+pydantic = ">=1.10,<2.0"
+
+[package.extras]
+api-client = ["requests (>=2.0)"]
 
 [[package]]
 name = "packaging"
@@ -915,6 +918,17 @@ files = [
 [package.dependencies]
 attrs = ">=19.2.0"
 pytest = ">=7.0"
+
+[[package]]
+name = "pytz"
+version = "2023.3.post1"
+description = "World timezone definitions, modern and historical"
+optional = false
+python-versions = "*"
+files = [
+    {file = "pytz-2023.3.post1-py2.py3-none-any.whl", hash = "sha256:ce42d816b81b68506614c11e8937d3aa9e41007ceb50bfdcb0749b921bf646c7"},
+    {file = "pytz-2023.3.post1.tar.gz", hash = "sha256:7b4fddbeb94a1eba4b557da24f19fdf9db575192544270a9101d8509f9f43d7b"},
+]
 
 [[package]]
 name = "pyyaml"
@@ -1186,6 +1200,17 @@ files = [
 ]
 
 [[package]]
+name = "types-pytz"
+version = "2023.3.1.1"
+description = "Typing stubs for pytz"
+optional = false
+python-versions = "*"
+files = [
+    {file = "types-pytz-2023.3.1.1.tar.gz", hash = "sha256:cc23d0192cd49c8f6bba44ee0c81e4586a8f30204970fc0894d209a6b08dab9a"},
+    {file = "types_pytz-2023.3.1.1-py3-none-any.whl", hash = "sha256:1999a123a3dc0e39a2ef6d19f3f8584211de9e6a77fe7a0259f04a524e90a5cf"},
+]
+
+[[package]]
 name = "types-requests"
 version = "2.31.0.1"
 description = "Typing stubs for requests"
@@ -1289,4 +1314,4 @@ lxml = ["lxml"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "8ed2fb8f803c4fa6654fa070a4318888cec4063e339e4fc8797f8aa50afec4db"
+content-hash = "82dfd1c9a1b511cbb9ebe6434feeec78cd27f084b920f5ece4379aafac9005b1"

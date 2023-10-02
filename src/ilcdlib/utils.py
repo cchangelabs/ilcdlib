@@ -18,7 +18,10 @@
 #  Find out more at www.BuildingTransparency.org
 #
 from dataclasses import dataclass
+import datetime
 from typing import TYPE_CHECKING, Any, Optional, Self, TypeVar
+
+import pytz
 
 from ilcdlib import const
 from ilcdlib.sanitizing.domain import domain_from_url
@@ -64,6 +67,13 @@ def create_ext(data: Any) -> dict[str, Any] | None:
     if data is None:
         return None
     return {x: data for x in const.ILCD_IDENTIFICATION}
+
+
+def date_to_datetime(date: datetime.date | None, timezone: str = "UTC") -> datetime.datetime | None:
+    """Convert a date to a datetime object with the given timezone."""
+    if date is None:
+        return None
+    return datetime.datetime(year=date.year, month=date.month, day=date.day, tzinfo=pytz.timezone(timezone))
 
 
 class MarkdownSectionBuilder:
