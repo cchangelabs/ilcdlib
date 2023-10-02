@@ -1,3 +1,9 @@
+## 1.2.2 (2023-10-02)
+
+### Fix
+
+- convert dates to datetime to support updated openepd lib
+
 ## 1.2.1 (2023-09-15)
 
 ### Fix
