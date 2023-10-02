@@ -46,6 +46,7 @@ from ilcdlib.utils import (
     MarkdownSectionBuilder,
     create_ext,
     create_openepd_attachments,
+    date_to_datetime,
     none_throws,
     provider_domain_name_from_url,
 )
@@ -59,6 +60,7 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
         epd_process_id: str | None,
         epd_version: str | None,
         data_provider: BaseIlcdMediumSpecificReader,
+        timezone: str = "UTC",
         *,
         contact_reader_cls: Type[IlcdContactReader] = IlcdContactReader,
         pcr_reader_cls: Type[IlcdPcrReader] = IlcdPcrReader,
@@ -70,6 +72,7 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
         validation_reader_cls: Type[IlcdValidationListReader] = IlcdValidationListReader,
     ):
         super().__init__(data_provider)
+        self.timezone = timezone
         self.contact_reader_cls = contact_reader_cls
         self.pcr_reader_cls = pcr_reader_cls
         self.flow_reader_cls = flow_reader_cls
@@ -701,8 +704,8 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
             declaration_url=own_ref.to_url(base_url) if own_ref and base_url else None,  # type: ignore
             product_name=product_name,
             product_description=trim_text(self.get_product_description(lang), 2000, ellipsis="..."),
-            date_of_issue=self.get_date_published(),
-            valid_until=self.get_validity_ends_date(),
+            date_of_issue=date_to_datetime(self.get_date_published(), self.timezone),
+            valid_until=date_to_datetime(self.get_validity_ends_date(), self.timezone),
             program_operator_doc_id=self.get_program_operator_id(),
             manufacturer=manufacturer,
             epd_developer=epd_developer,
