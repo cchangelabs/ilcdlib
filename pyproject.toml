@@ -24,7 +24,7 @@ ilcdtool = { callable = "ilcdlib:cli.entrypoint", extras = ["cli"] }
 
 [tool.poetry.dependencies]
 python = "^3.11"
-urllib3 = { version = ">=1.26.16,<2.0.0" }
+urllib3 = { version = ">=1.26.17,<2.0.0" }
 requests = { version = ">=2.1.0,<3.0.0" }
 openepd = { version = ">=1.2.0,<2.0.0" }
 pytz = { version = ">=2023.3" }
