@@ -17,15 +17,19 @@
 #  Charles Pankow Foundation, Microsoft Sustainability Fund, Interface, MKA Foundation, and others.
 #  Find out more at www.BuildingTransparency.org
 #
-from typing import Type
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 from ilcdlib.common import BaseIlcdMediumSpecificReader, IlcdXmlReader
 from ilcdlib.dto import ValidationDto
-from ilcdlib.type import LangDef
-from ilcdlib.xml_parser import T_ET
 
 from ..const import IlcdTypeOfReview
 from .contact import IlcdContactReader
+
+if TYPE_CHECKING:
+    from ilcdlib.type import LangDef
+    from ilcdlib.xml_parser import T_ET  # type: ignore[attr-defined]
 
 
 class IlcdValidationReader(IlcdXmlReader):
@@ -36,7 +40,7 @@ class IlcdValidationReader(IlcdXmlReader):
         element: T_ET.Element,
         data_provider: BaseIlcdMediumSpecificReader,
         *,
-        contact_reader_cls: Type[IlcdContactReader] = IlcdContactReader,
+        contact_reader_cls: type[IlcdContactReader] = IlcdContactReader,
     ):
         super().__init__(data_provider)
         self._entity = element
@@ -67,7 +71,7 @@ class IlcdValidationListReader(IlcdXmlReader):
         element: T_ET.Element,
         data_provider: BaseIlcdMediumSpecificReader,
         *,
-        validation_reader_cls: Type[IlcdValidationReader] = IlcdValidationReader,
+        validation_reader_cls: type[IlcdValidationReader] = IlcdValidationReader,
     ):
         super().__init__(data_provider)
         self._entity = element

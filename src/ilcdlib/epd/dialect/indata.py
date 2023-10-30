@@ -23,7 +23,7 @@ from ilcdlib.epd.reader import IlcdEpdReader
 class IndataIlcdXmlEpdReader(IlcdEpdReader):
     """Reader for EPDs in the Indata specific ILCD XML format."""
 
-    def post_init(self):
+    def post_init(self) -> None:
         """Configure Indata specific settings."""
         self.xml_parser.xml_ns["epd2019"] = "http://www.indata.network/EPD/2019"
 

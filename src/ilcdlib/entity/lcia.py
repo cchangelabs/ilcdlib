@@ -17,16 +17,21 @@
 #  Charles Pankow Foundation, Microsoft Sustainability Fund, Interface, MKA Foundation, and others.
 #  Find out more at www.BuildingTransparency.org
 #
+from __future__ import annotations
+
 import logging
+from typing import TYPE_CHECKING, Any
 
 from openepd.model.common import Measurement
 from openepd.model.lcia import Impacts, ImpactSet, ScopeSet
 
 from ilcdlib.common import OpenEpdImpactSetSupportReader
 from ilcdlib.entity.base_scope_set_reader import BaseIlcdScopeSetsReader
-from ilcdlib.mapping.common import SimpleDataMapper
 from ilcdlib.mapping.impacts import default_impacts_uuid_mapper
 from ilcdlib.mapping.units import default_scope_to_units_mapper
+
+if TYPE_CHECKING:
+    from ilcdlib.mapping.common import SimpleDataMapper
 
 
 class IlcdLciaResultsReader(OpenEpdImpactSetSupportReader, BaseIlcdScopeSetsReader):
@@ -34,10 +39,10 @@ class IlcdLciaResultsReader(OpenEpdImpactSetSupportReader, BaseIlcdScopeSetsRead
 
     def __init__(
         self,
-        *args,
+        *args: Any,
         impact_mapper: SimpleDataMapper[str] = default_impacts_uuid_mapper,
         scope_to_units_mapper: SimpleDataMapper[str] = default_scope_to_units_mapper,
-        **kwargs,
+        **kwargs: Any,
     ):
         super().__init__(*args, **kwargs)
         self.impact_mapper = impact_mapper
@@ -65,7 +70,7 @@ class IlcdLciaResultsReader(OpenEpdImpactSetSupportReader, BaseIlcdScopeSetsRead
 
         if len(ext) == 0:
             del impacts["ext"]
-        return ImpactSet(**impacts)  # type: ignore
+        return ImpactSet(**impacts)
 
     @staticmethod
     def __process_a1a2a3_impact(scope_set: ScopeSet) -> None:

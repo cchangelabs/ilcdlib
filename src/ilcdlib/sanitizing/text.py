@@ -17,7 +17,7 @@
 #  Charles Pankow Foundation, Microsoft Sustainability Fund, Interface, MKA Foundation, and others.
 #  Find out more at www.BuildingTransparency.org
 #
-def trim_text(in_str: str | None, max_length: int, ellipsis="...") -> str | None:
+def trim_text(in_str: str | None, max_length: int, ellipsis: str = "...") -> str | None:
     """Trim a string to a maximum length."""
     if in_str is None:
         return None

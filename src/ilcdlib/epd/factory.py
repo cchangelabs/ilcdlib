@@ -17,8 +17,6 @@
 #  Charles Pankow Foundation, Microsoft Sustainability Fund, Interface, MKA Foundation, and others.
 #  Find out more at www.BuildingTransparency.org
 #
-from typing import Type
-
 from ilcdlib.epd.dialect.environdec import EnvirondecIlcdXmlEpdReader
 from ilcdlib.epd.dialect.epditaly import EpdItalyIlcdXmlEpdReader
 from ilcdlib.epd.dialect.indata import IndataIlcdXmlEpdReader
@@ -29,7 +27,7 @@ from ilcdlib.epd.reader import IlcdEpdReader
 class EpdReaderFactory:
     """Factory for creating EPD readers."""
 
-    __DIALECTS: dict[str, Type[IlcdEpdReader]] = {
+    __DIALECTS: dict[str, type[IlcdEpdReader]] = {
         "environdec": EnvirondecIlcdXmlEpdReader,
         "indata": IndataIlcdXmlEpdReader,
         "oekobau.dat": OekobauDatIlcdXmlEpdReader,
@@ -42,11 +40,11 @@ class EpdReaderFactory:
         """Return a list of supported dialects."""
         return list(self.__DIALECTS.keys())
 
-    def is_dialect_supported(self, dialect: str):
+    def is_dialect_supported(self, dialect: str) -> bool:
         """Return `True` if the dialect is supported, `False` otherwise."""
         return dialect.lower() in self.__DIALECTS
 
-    def get_reader_class_or_default(self, dialect: str | None) -> Type[IlcdEpdReader]:
+    def get_reader_class_or_default(self, dialect: str | None) -> type[IlcdEpdReader]:
         """
         Return the reader class for the dialect.
 
@@ -59,7 +57,7 @@ class EpdReaderFactory:
             return self.DEFAULT_READER_CLASS
         return self.__DIALECTS[dialect]
 
-    def get_reader_class(self, dialect: str | None) -> Type[IlcdEpdReader]:
+    def get_reader_class(self, dialect: str | None) -> type[IlcdEpdReader]:
         """
         Return the reader class for the dialect or throw an error.
 
@@ -73,7 +71,7 @@ class EpdReaderFactory:
             raise ValueError(f"Unknown dialect: {dialect}.")
         return self.__DIALECTS[dialect]
 
-    def autodiscover_by_url(self, url: str) -> tuple[Type[IlcdEpdReader], str]:
+    def autodiscover_by_url(self, url: str) -> tuple[type[IlcdEpdReader], str]:
         """
         Return the reader class for the dialect.
 

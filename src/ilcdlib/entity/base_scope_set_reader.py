@@ -17,16 +17,21 @@
 #  Charles Pankow Foundation, Microsoft Sustainability Fund, Interface, MKA Foundation, and others.
 #  Find out more at www.BuildingTransparency.org
 #
-from typing import Type
+from __future__ import annotations
 
-from openepd.model.base import BaseOpenEpdSchema
+from typing import TYPE_CHECKING
+
 from openepd.model.common import Measurement
 from openepd.model.lcia import EolScenario, ScopeSet
 
 from ilcdlib.common import BaseIlcdMediumSpecificReader, IlcdXmlReader, XmlPath
 from ilcdlib.entity.unit import IlcdUnitGroupReader
-from ilcdlib.mapping.common import SimpleDataMapper
-from ilcdlib.xml_parser import T_ET
+
+if TYPE_CHECKING:
+    from openepd.model.base import BaseOpenEpdSchema
+
+    from ilcdlib.mapping.common import SimpleDataMapper
+    from ilcdlib.xml_parser import T_ET  # type: ignore[attr-defined]
 
 
 class BaseIlcdScopeSetsReader(IlcdXmlReader):
@@ -37,7 +42,7 @@ class BaseIlcdScopeSetsReader(IlcdXmlReader):
         element: T_ET.Element,
         data_provider: BaseIlcdMediumSpecificReader,
         *,
-        unit_group_reader_cls: Type[IlcdUnitGroupReader] = IlcdUnitGroupReader,
+        unit_group_reader_cls: type[IlcdUnitGroupReader] = IlcdUnitGroupReader,
     ):
         super().__init__(data_provider)
         self._entity = element
@@ -77,7 +82,7 @@ class BaseIlcdScopeSetsReader(IlcdXmlReader):
             # In future, we should add context to the curator notes field for such cases.
             if unit_name := scope_to_units_mapper.map(impact_name, None):
                 scopes = self.__extract_scopes(el, unit_name, scenario_names)
-                return ScopeSet(**scopes), impact_name  # type: ignore
+                return ScopeSet(**scopes), impact_name
             return None
         unit = self.unit_group_reader_cls(unit_el, self.data_provider).get_reference_unit(allow_mapping=True)
         if unit is not None:
@@ -90,7 +95,7 @@ class BaseIlcdScopeSetsReader(IlcdXmlReader):
             return None
         # Stages
         scopes = self.__extract_scopes(el, unit_name, scenario_names)
-        return ScopeSet(**scopes), impact_name  # type: ignore
+        return ScopeSet(**scopes), impact_name
 
     def __extract_scopes(
         self, el: T_ET.Element, unit_name: str, scenario_names: dict[str, str]
@@ -126,7 +131,7 @@ class BaseIlcdScopeSetsReader(IlcdXmlReader):
         measurement = Measurement(mean=value, unit=unit_name)
 
         if scenario_name is None:
-            if ScopeSet.is_allowed_field_name(module_name):  # type: ignore
+            if ScopeSet.is_allowed_field_name(module_name):
                 scopes[module_name] = measurement
             else:
                 ext[module_name] = measurement
@@ -152,7 +157,7 @@ class BaseIlcdScopeSetsReader(IlcdXmlReader):
         self,
         el: T_ET.Element,
         reference_path: XmlPath,
-        scope_set_type: Type[BaseOpenEpdSchema],
+        scope_set_type: type[BaseOpenEpdSchema],
         scope_set_dict: dict[str, ScopeSet | dict],
         ext: dict[str, ScopeSet],
         mapper: SimpleDataMapper[str],

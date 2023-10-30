@@ -17,8 +17,14 @@
 #  Charles Pankow Foundation, Microsoft Sustainability Fund, Interface, MKA Foundation, and others.
 #  Find out more at www.BuildingTransparency.org
 #
-from ilcdlib.dto import Category
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any
+
 from ilcdlib.soda4lca.api_client import Soda4LcaXmlApiClient
+
+if TYPE_CHECKING:
+    from ilcdlib.dto import Category
 
 
 class Soda4LcaXmlApiClient4x(Soda4LcaXmlApiClient):
@@ -28,7 +34,7 @@ class Soda4LcaXmlApiClient4x(Soda4LcaXmlApiClient):
     Documentation for the API is available at https://bitbucket.org/okusche/soda4lca/src/842d85bb3b3b8f77415f20b431bb7b0789fee68f/Doc/src/Service_API/Service_API.md.
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         super(Soda4LcaXmlApiClient4x, self).__init__(*args, **kwargs)
 
     def list_categories(self, category_system: str, data_type: str = "Process", lang: str = "en") -> list[Category]:

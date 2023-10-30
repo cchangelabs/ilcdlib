@@ -50,6 +50,8 @@ licenseheaders = "~=0.8"
 flake8 = "~=4.0"
 flake8-import-graph = "==0.1.3"
 flake8-docstrings = "~=1.7.0"
+flake8-modern-annotations = ">=1.5.0"
+flake8-type-checking = ">=2.4.1"
 isort = "~=5.11"
 mypy = ">=1.0.1"
 pre-commit = "~=2.19"
@@ -133,6 +135,7 @@ ignore_errors = false
 warn_return_any = false
 disallow_any_generics = false
 pretty = true
+strict = true
 mypy_path = "$MYPY_CONFIG_FILE_DIR/stubs"
 exclude = ["test_.*\\.py$", ]
 plugins = ["pydantic.mypy"]

@@ -19,9 +19,10 @@
 #
 import dataclasses
 from enum import StrEnum
-from typing import IO, Literal
+from typing import IO, Literal, TypeGuard
 
-from ilcdlib.xml_parser import T_ET, XmlParser
+from ilcdlib.utils import none_throws
+from ilcdlib.xml_parser import T_ET, XmlParser  # type: ignore[attr-defined]
 
 
 class IlcdStandardMatProperties(StrEnum):
@@ -77,7 +78,7 @@ class MatMlReader:
             self._entity = self.xml_parser.get_xml_tree(element_or_stream)
         else:
             self._entity = element_or_stream
-        if hasattr(self._entity, "nsmap") and None not in self._entity.nsmap.keys():  # type: ignore
+        if hasattr(self._entity, "nsmap") and None not in self._entity.nsmap.keys():
             self._entity.nsmap[None] = "http://www.matml.org/"
 
     def get_material(self) -> MatMlMaterial | None:
@@ -105,7 +106,7 @@ class MatMlReader:
                 continue
             unit = self.__map_unit_name(units_obj.attrib.get("name")) if units_obj.attrib else None
             result.properties[prop_name] = MatMlMaterialProperty(
-                value=prop_value, data_format=prop_format, unit=unit, internal_id=prop_ref  # type: ignore
+                value=prop_value, data_format=prop_format, unit=unit, internal_id=prop_ref
             )
         return result
 
@@ -119,15 +120,23 @@ class MatMlReader:
                 return unit_name
 
     def __parse_prop_data(
-        self, prop_data
+        self, prop_data: T_ET.Element | None
     ) -> tuple[Literal["float", "integer", "string", "exponential", "mixed"], str | int | float | None]:
         prop_format = prop_data.attrib.get("format") if prop_data is not None else None
+        assert self.__guard_prop_format(prop_format)
         prop_value_raw = prop_data.text if prop_data is not None else None
+        prop_value: str | int | float | None
         match prop_format:
             case "float":
-                prop_value = float(prop_value_raw)
+                prop_value = float(none_throws(prop_value_raw))
             case "integer":
-                prop_value = int(prop_value_raw)
+                prop_value = int(none_throws(prop_value_raw))
             case _:
                 prop_value = prop_value_raw
+        # noinspection PyTypeChecker
         return prop_format, prop_value
+
+    def __guard_prop_format(
+        self, prop_format: str | None
+    ) -> TypeGuard[Literal["float", "integer", "string", "exponential", "mixed"]]:
+        return prop_format in {"float", "integer", "string", "exponential", "mixed"}

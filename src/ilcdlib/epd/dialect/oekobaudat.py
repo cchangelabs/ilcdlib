@@ -17,9 +17,15 @@
 #  Charles Pankow Foundation, Microsoft Sustainability Fund, Interface, MKA Foundation, and others.
 #  Find out more at www.BuildingTransparency.org
 #
-from ilcdlib.dto import ProductClassDef
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from ilcdlib.epd.reader import IlcdEpdReader
 from ilcdlib.utils import none_throws
+
+if TYPE_CHECKING:
+    from ilcdlib.dto import ProductClassDef
 
 
 class OekobauDatIlcdXmlEpdReader(IlcdEpdReader):
@@ -30,7 +36,7 @@ class OekobauDatIlcdXmlEpdReader(IlcdEpdReader):
         """Return whether the URL recognized as a known Environdec URL."""
         return "oekobaudat" in url.lower()
 
-    def post_init(self):
+    def post_init(self) -> None:
         """Configure Oekobau.DAT specific settings."""
         self.xml_parser.xml_ns["epd2019"] = self.xml_parser.xml_ns["epd2019_indata"]
 

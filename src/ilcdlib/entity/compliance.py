@@ -17,14 +17,18 @@
 #  Charles Pankow Foundation, Microsoft Sustainability Fund, Interface, MKA Foundation, and others.
 #  Find out more at www.BuildingTransparency.org
 #
-from typing import Type
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 from ilcdlib.common import BaseIlcdMediumSpecificReader, IlcdXmlReader
 from ilcdlib.dto import ComplianceDto
-from ilcdlib.type import LangDef
-from ilcdlib.xml_parser import T_ET
 
 from .source import IlcdSourceReader
+
+if TYPE_CHECKING:
+    from ilcdlib.type import LangDef
+    from ilcdlib.xml_parser import T_ET  # type: ignore[attr-defined]
 
 
 class IlcdComplianceReader(IlcdSourceReader):
@@ -58,13 +62,13 @@ class IlcdComplianceListReader(IlcdXmlReader):
         element: T_ET.Element,
         data_provider: BaseIlcdMediumSpecificReader,
         *,
-        compliance_reader_cls: Type[IlcdComplianceReader] = IlcdComplianceReader,
+        compliance_reader_cls: type[IlcdComplianceReader] = IlcdComplianceReader,
     ):
         super().__init__(data_provider)
         self._entity = element
         self.compliance_reader_cls = compliance_reader_cls
 
-    def _get_compliance_elements(self):
+    def _get_compliance_elements(self) -> list[T_ET.Element]:
         compliance_els = self._get_all_els(self._entity, ("process:compliance",))
         return compliance_els
 

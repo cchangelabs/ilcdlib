@@ -17,20 +17,25 @@
 #  Charles Pankow Foundation, Microsoft Sustainability Fund, Interface, MKA Foundation, and others.
 #  Find out more at www.BuildingTransparency.org
 #
+from __future__ import annotations
+
 import abc
 import datetime
 import logging
-from typing import IO, Literal, Self, Sequence, TextIO, overload
-
-from openepd.model.epd import Epd
-from openepd.model.lcia import Impacts
-from openepd.model.pcr import Pcr
+from typing import IO, TYPE_CHECKING, Any, Literal, Self, TextIO, overload
 
 from ilcdlib.const import IlcdDatasetType
 from ilcdlib.dto import IlcdReference, OpenEpdIlcdOrg
 from ilcdlib.reference_data import get_ilcd_epd_reference_data_provider
 from ilcdlib.type import LangDef, LocalizedStr
-from ilcdlib.xml_parser import T_ET, XmlParser
+from ilcdlib.xml_parser import T_ET, XmlParser  # type: ignore[attr-defined]
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+
+    from openepd.model.epd import Epd
+    from openepd.model.lcia import Impacts
+    from openepd.model.pcr import Pcr
 
 XmlPath = str | tuple[str, ...] | list[str]
 
@@ -95,7 +100,7 @@ class BaseIlcdMediumSpecificReader(metaclass=abc.ABCMeta):
         pass
 
     @abc.abstractmethod
-    def close(self):
+    def close(self) -> None:
         """
         Close the reader and release any resources.
 
@@ -130,7 +135,7 @@ class BaseIlcdMediumSpecificReader(metaclass=abc.ABCMeta):
     def __enter__(self) -> Self:
         return self
 
-    def __exit__(self, _type, value, traceback):
+    def __exit__(self, _type: type | None, value: BaseException | None, traceback: Any | None) -> None:
         self.close()
 
 
@@ -163,7 +168,7 @@ class NoopBaseReader(BaseIlcdMediumSpecificReader):
         """Return False regardless of parameters for this implementation."""
         return False
 
-    def close(self):
+    def close(self) -> None:
         """Do nothing. This implementation does not need to be closed."""
         pass
 

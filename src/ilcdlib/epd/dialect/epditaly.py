@@ -17,8 +17,14 @@
 #  Charles Pankow Foundation, Microsoft Sustainability Fund, Interface, MKA Foundation, and others.
 #  Find out more at www.BuildingTransparency.org
 #
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from ilcdlib.epd.reader import IlcdEpdReader
-from ilcdlib.type import LangDef
+
+if TYPE_CHECKING:
+    from ilcdlib.type import LangDef
 
 
 class EpdItalyIlcdXmlEpdReader(IlcdEpdReader):
@@ -29,7 +35,7 @@ class EpdItalyIlcdXmlEpdReader(IlcdEpdReader):
         """Return whether the URL recognized as a known Environdec URL."""
         return "epditaly" in url.lower()
 
-    def post_init(self):
+    def post_init(self) -> None:
         """Configure EpdItaly specific settings."""
         self.xml_parser.xml_ns["epd2019"] = self.xml_parser.xml_ns["epd2019_indata"]
 
