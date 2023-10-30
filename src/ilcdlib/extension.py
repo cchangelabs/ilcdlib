@@ -17,11 +17,17 @@
 #  Charles Pankow Foundation, Microsoft Sustainability Fund, Interface, MKA Foundation, and others.
 #  Find out more at www.BuildingTransparency.org
 #
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from openepd.model.base import OpenEpdExtension
 import pydantic as pyd
 
 from ilcdlib import const
-from ilcdlib.dto import IlcdContactInfo, OpenEpdIlcdOrg, ValidationDto
+
+if TYPE_CHECKING:
+    from ilcdlib.dto import IlcdContactInfo, OpenEpdIlcdOrg, ValidationDto
 
 
 class IlcdEpdExtension(OpenEpdExtension):

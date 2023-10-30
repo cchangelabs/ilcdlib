@@ -17,13 +17,17 @@
 #  Charles Pankow Foundation, Microsoft Sustainability Fund, Interface, MKA Foundation, and others.
 #  Find out more at www.BuildingTransparency.org
 #
-from typing import IO
+from __future__ import annotations
+
+from typing import IO, TYPE_CHECKING
 
 from ilcdlib.common import BaseIlcdMediumSpecificReader, IlcdXmlReader
 from ilcdlib.dto import IlcdReference
-from ilcdlib.type import LangDef
 from ilcdlib.utils import none_throws
-from ilcdlib.xml_parser import T_ET
+
+if TYPE_CHECKING:
+    from ilcdlib.type import LangDef
+    from ilcdlib.xml_parser import T_ET  # type: ignore[attr-defined]
 
 
 class IlcdSourceReader(IlcdXmlReader):

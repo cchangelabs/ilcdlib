@@ -17,6 +17,9 @@
 #  Charles Pankow Foundation, Microsoft Sustainability Fund, Interface, MKA Foundation, and others.
 #  Find out more at www.BuildingTransparency.org
 #
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 from openepd.model.common import Location
 
@@ -26,9 +29,11 @@ from ilcdlib.dto import IlcdContactInfo, IlcdReference, OpenEpdIlcdOrg
 from ilcdlib.extension import IlcdOrgExtension
 from ilcdlib.sanitizing.domain import cleanup_website, domain_from_url
 from ilcdlib.sanitizing.phone import cleanup_phone
-from ilcdlib.type import LangDef
 from ilcdlib.utils import create_openepd_attachments, none_throws, provider_domain_name_from_url
-from ilcdlib.xml_parser import T_ET
+
+if TYPE_CHECKING:
+    from ilcdlib.type import LangDef
+    from ilcdlib.xml_parser import T_ET  # type: ignore[attr-defined]
 
 
 class IlcdContactReader(OpenEpdContactSupportReader, IlcdXmlReader):
@@ -115,17 +120,15 @@ class IlcdContactReader(OpenEpdContactSupportReader, IlcdXmlReader):
     ) -> OpenEpdIlcdOrg:
         """Convert this data set to an OpenEPD org object."""
         open_epd_contact = IlcdContactInfo(
-            email=self.get_email(),  # type: ignore
+            email=self.get_email(),
             phone=cleanup_phone(self.get_phone()),
-            website=cleanup_website(self.get_website()),  # type: ignore
+            website=cleanup_website(self.get_website()),
             address=self.get_address(),
         )
         org = OpenEpdIlcdOrg(
             name=self.get_name(lang),
-            web_domain=domain_from_url(self.get_website()),  # type: ignore
-            attachments=create_openepd_attachments(self.get_own_reference(), base_url)
-            if base_url
-            else None,  # type: ignore
+            web_domain=domain_from_url(self.get_website()),
+            attachments=create_openepd_attachments(self.get_own_reference(), base_url) if base_url else None,
         )
         if provider_domain is None:
             provider_domain = provider_domain_name_from_url(base_url)

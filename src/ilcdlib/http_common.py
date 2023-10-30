@@ -17,12 +17,15 @@
 #  Charles Pankow Foundation, Microsoft Sustainability Fund, Interface, MKA Foundation, and others.
 #  Find out more at www.BuildingTransparency.org
 #
+from __future__ import annotations
+
 import abc
 from contextlib import contextmanager
 import datetime
 from io import BytesIO
 import threading
 from time import sleep
+from typing import TYPE_CHECKING, Any
 from urllib.parse import quote
 
 import requests
@@ -30,7 +33,10 @@ from requests.adapters import HTTPAdapter
 from urllib3 import Retry
 
 from ilcdlib.utils import no_trailing_slash
-from ilcdlib.xml_parser import T_ET, XmlParser
+from ilcdlib.xml_parser import T_ET, XmlParser  # type: ignore[attr-defined]
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator
 
 
 class Throttler:
@@ -50,12 +56,12 @@ class Throttler:
         self.__count_lock = threading.Lock()
         self.__time_lock = threading.Lock()
 
-        self.__count = 0
+        self.__count: float = 0
         self.__start = datetime.datetime.now()
         self.__time_limit = datetime.timedelta(seconds=1)
 
     @contextmanager
-    def throttle(self):
+    def throttle(self) -> Iterator[None]:
         """Create context manager that limits the number of calls to the code inside the context per second."""
         with self.__count_lock:
             count = self.__count
@@ -122,7 +128,7 @@ class BaseApiClient(metaclass=abc.ABCMeta):
         )
 
     @property
-    def base_url(self):
+    def base_url(self) -> str:
         """Base URL for all requests."""
         return self._base_url
 
@@ -141,11 +147,11 @@ class BaseApiClient(metaclass=abc.ABCMeta):
             self._session.mount("", HTTPAdapter(max_retries=self._retry_strategy))
         return self._session
 
-    def _on_before_do_request(self):
+    def _on_before_do_request(self) -> None:
         """Run some custom logic before `do_request`. Can be overridden to check / refresh access tokens."""
         pass
 
-    def download_by_url(self, url, method="get", **kwargs) -> BytesIO:
+    def download_by_url(self, url: str, method: str = "get", **kwargs: Any) -> BytesIO:
         """
         Perform query to the given endpoint and returns response body as bytes.
 
@@ -171,7 +177,7 @@ class BaseApiClient(metaclass=abc.ABCMeta):
         return self._base_url + path_or_url if not path_or_url.startswith("http") else path_or_url
 
     @staticmethod
-    def _urlencode(value: str, safe="/") -> str:
+    def _urlencode(value: str, safe: str = "/") -> str:
         """
         Encode the given value using urllib.quote.
 
@@ -180,7 +186,7 @@ class BaseApiClient(metaclass=abc.ABCMeta):
         """
         return quote(value, safe=safe)
 
-    def _do_request(
+    def _do_request(  # type: ignore[no-untyped-def] # excluded because of complex type annotations
         self,
         method: str,
         endpoint: str,
@@ -192,7 +198,7 @@ class BaseApiClient(metaclass=abc.ABCMeta):
         headers=None,
         session: requests.Session | None = None,
         raise_for_status: bool = True,
-        **kwargs,
+        **kwargs: Any,
     ) -> requests.Response:
         headers = headers or self.default_headers
 
@@ -217,6 +223,6 @@ class BaseApiClient(metaclass=abc.ABCMeta):
         response.raise_for_status()
         raise RuntimeError("This line should never be reached")
 
-    def _do_xml_request(self, method: str, endpoint: str, **kwargs) -> T_ET.Element:
+    def _do_xml_request(self, method: str, endpoint: str, **kwargs: Any) -> T_ET.Element:
         response = self._do_request(method, endpoint, **kwargs)
         return self.xml_parser.get_xml_tree(response.content)

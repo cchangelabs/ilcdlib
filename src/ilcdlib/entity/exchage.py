@@ -17,16 +17,20 @@
 #  Charles Pankow Foundation, Microsoft Sustainability Fund, Interface, MKA Foundation, and others.
 #  Find out more at www.BuildingTransparency.org
 #
-from typing import Type, TypeVar
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from openepd.model.lcia import OutputFlowSet, ResourceUseSet, ScopeSet
 
 from ilcdlib.entity.base_scope_set_reader import BaseIlcdScopeSetsReader
-from ilcdlib.mapping.common import SimpleDataMapper
 from ilcdlib.mapping.flows import default_flows_uuid_mapper
 from ilcdlib.mapping.indicators import default_indicators_uuid_mapper
 from ilcdlib.mapping.units import default_scope_to_units_mapper
-from ilcdlib.xml_parser import T_ET
+
+if TYPE_CHECKING:
+    from ilcdlib.mapping.common import SimpleDataMapper
+    from ilcdlib.xml_parser import T_ET  # type: ignore[attr-defined]
 
 E = TypeVar("E", ResourceUseSet, OutputFlowSet)
 
@@ -36,11 +40,11 @@ class IlcdExchangesReader(BaseIlcdScopeSetsReader):
 
     def __init__(
         self,
-        *args,
+        *args: Any,
         indicator_mapper: SimpleDataMapper[str] = default_indicators_uuid_mapper,
         flow_mapper: SimpleDataMapper[str] = default_flows_uuid_mapper,
         scope_to_units_mapper: SimpleDataMapper[str] = default_scope_to_units_mapper,
-        **kwargs,
+        **kwargs: Any,
     ):
         super().__init__(*args, **kwargs)
         self.indicator_mapper = indicator_mapper
@@ -76,7 +80,7 @@ class IlcdExchangesReader(BaseIlcdScopeSetsReader):
     def __get_exchanges(
         self,
         direction: str,
-        scope_set_type: Type[E],
+        scope_set_type: type[E],
         mapper: SimpleDataMapper[str],
         scenario_names: dict[str, str],
         scope_to_units_mapper: SimpleDataMapper[str],
@@ -101,4 +105,4 @@ class IlcdExchangesReader(BaseIlcdScopeSetsReader):
 
         if len(ext) == 0:
             del scope_sets["ext"]
-        return scope_set_type(**scope_sets)  # type: ignore
+        return scope_set_type(**scope_sets)
