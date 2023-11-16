@@ -17,19 +17,15 @@
 #  Charles Pankow Foundation, Microsoft Sustainability Fund, Interface, MKA Foundation, and others.
 #  Find out more at www.BuildingTransparency.org
 #
-from __future__ import annotations
-
 import datetime
 import io
 import re
-from typing import IO, TYPE_CHECKING
+from typing import IO
 
 import requests
 
 from ilcdlib.epd.reader import IlcdEpdReader
-
-if TYPE_CHECKING:
-    from ilcdlib.type import LangDef
+from ilcdlib.type import LangDef
 
 
 class EnvirondecIlcdXmlEpdReader(IlcdEpdReader):

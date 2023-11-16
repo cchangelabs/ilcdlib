@@ -17,19 +17,14 @@
 #  Charles Pankow Foundation, Microsoft Sustainability Fund, Interface, MKA Foundation, and others.
 #  Find out more at www.BuildingTransparency.org
 #
-from __future__ import annotations
-
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
 
 from ilcdlib.common import BaseIlcdMediumSpecificReader, IlcdXmlReader
+from ilcdlib.mapping.common import SimpleDataMapper
 from ilcdlib.mapping.units import default_units_uuid_mapper
+from ilcdlib.type import LangDef
 from ilcdlib.utils import none_throws
-
-if TYPE_CHECKING:
-    from ilcdlib.mapping.common import SimpleDataMapper
-    from ilcdlib.type import LangDef
-    from ilcdlib.xml_parser import T_ET  # type: ignore[attr-defined]
+from ilcdlib.xml_parser import T_ET
 
 
 @dataclass(kw_only=True)

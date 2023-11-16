@@ -17,15 +17,9 @@
 #  Charles Pankow Foundation, Microsoft Sustainability Fund, Interface, MKA Foundation, and others.
 #  Find out more at www.BuildingTransparency.org
 #
-from __future__ import annotations
-
-from typing import TYPE_CHECKING
-
 from ilcdlib.common import IlcdXmlReader, NoopBaseReader
 from ilcdlib.dto import Category
-
-if TYPE_CHECKING:
-    from ilcdlib.xml_parser import T_ET  # type: ignore[attr-defined]
+from ilcdlib.xml_parser import T_ET
 
 
 class CategorySystemReader(IlcdXmlReader):

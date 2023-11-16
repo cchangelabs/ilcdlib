@@ -17,19 +17,14 @@
 #  Charles Pankow Foundation, Microsoft Sustainability Fund, Interface, MKA Foundation, and others.
 #  Find out more at www.BuildingTransparency.org
 #
-
-
-from typing import IO, TYPE_CHECKING, Literal, TextIO, overload
+from os import PathLike
+from typing import IO, Literal, Sequence, TextIO, overload
 from zipfile import Path as ZipPath
 from zipfile import ZipFile
 
 from ilcdlib.common import BaseIlcdMediumSpecificReader
 from ilcdlib.const import IlcdDatasetType
 from ilcdlib.dto import IlcdReference
-
-if TYPE_CHECKING:
-    from collections.abc import Sequence
-    from os import PathLike
 
 
 class ZipIlcdReader(BaseIlcdMediumSpecificReader):
@@ -86,7 +81,7 @@ class ZipIlcdReader(BaseIlcdMediumSpecificReader):
         full_path = self.__resolve_entity_path(entity_type, entity_id, entity_version)
         if full_path is None or not full_path.exists():
             raise ValueError(f"Could not find entity {entity_type} {entity_id} (version {entity_version}).")
-        return full_path.open("rb" if binary else "r")
+        return full_path.open("rb" if binary else "r")  # type: ignore
 
     def get_binary_stream_by_name(self, name: str, entity_type: str | None = None) -> IO[bytes] | None:
         """
@@ -168,7 +163,7 @@ class ZipIlcdReader(BaseIlcdMediumSpecificReader):
         full_path = self.__ilcd_dir / entity_type / file_name
         return full_path
 
-    def close(self) -> None:
+    def close(self):
         """
         Close the reader and release any resources.
 
@@ -176,7 +171,7 @@ class ZipIlcdReader(BaseIlcdMediumSpecificReader):
         """
         self._zip_file.close()
 
-    def save_to(self, p: PathLike) -> None:
+    def save_to(self, p: PathLike):
         """Save underling the zip file to the given path."""
         if self._zip_file.fp is None:
             raise ValueError("Cannot save closed zip file.")

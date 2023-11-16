@@ -17,11 +17,9 @@
 #  Charles Pankow Foundation, Microsoft Sustainability Fund, Interface, MKA Foundation, and others.
 #  Find out more at www.BuildingTransparency.org
 #
-from __future__ import annotations
-
 from hashlib import sha1
 from io import BytesIO
-from typing import IO, TYPE_CHECKING, Any
+from typing import IO, Iterable, Type
 from urllib.parse import urlencode
 
 from requests import HTTPError, Response
@@ -29,10 +27,7 @@ from requests import HTTPError, Response
 from ilcdlib.dto import Category, IlcdReference, ListResponseMeta, ProcessBasicInfo, ProcessSearchResponse
 from ilcdlib.entity.category import CategorySystemReader
 from ilcdlib.http_common import BaseApiClient
-from ilcdlib.xml_parser import T_ET  # type: ignore[attr-defined]
-
-if TYPE_CHECKING:
-    from collections.abc import Generator, Iterable
+from ilcdlib.xml_parser import T_ET
 
 
 class Soda4LcaXmlApiClient(BaseApiClient):
@@ -49,7 +44,7 @@ class Soda4LcaXmlApiClient(BaseApiClient):
     }
 
     def __init__(
-        self, base_url: str, *, category_reader_cls: type[CategorySystemReader] = CategorySystemReader, **kwargs: Any
+        self, base_url: str, *, category_reader_cls: Type[CategorySystemReader] = CategorySystemReader, **kwargs
     ) -> None:
         """
         Create a new API client.
@@ -149,7 +144,7 @@ class Soda4LcaXmlApiClient(BaseApiClient):
             raise e
 
     def search_processes(
-        self, offset: int = 0, page_size: int = 100, lang: str | None = None, **other_params: Any
+        self, offset: int = 0, page_size: int = 100, lang: str | None = None, **other_params
     ) -> ProcessSearchResponse:
         """
         Filter processes by various criteria.
@@ -210,7 +205,7 @@ class Soda4LcaXmlApiClient(BaseApiClient):
         return ProcessSearchResponse(meta=meta, items=items)
 
     def get_processes_iter(
-        self, offset: int = 0, page_size: int = 100, **search_params: Any
+        self, offset: int = 0, page_size: int = 100, **search_params
     ) -> tuple[Iterable[ProcessBasicInfo], int]:
         """
         Return an iterator over all processes matching the given criteria.
@@ -224,8 +219,8 @@ class Soda4LcaXmlApiClient(BaseApiClient):
         return self._create_process_iterator(offset, page_size, **search_params), response.meta.total_items_count
 
     def _create_process_iterator(
-        self, offset: int = 0, page_size: int = 100, **search_params: Any
-    ) -> Generator[ProcessBasicInfo, None, None]:
+        self, offset: int = 0, page_size: int = 100, **search_params
+    ) -> Iterable[ProcessBasicInfo]:
         """
         Create an iterator over all processes matching the given criteria.
 

@@ -84,7 +84,7 @@ class Soda4LcaZipReader(ZipIlcdReader):
         if original_path.endswith(".xhtml"):
             resource_type_name = original_path.rsplit("/", 1)[-1].replace(".xhtml", "").lower()
             resource_type_name = cls.__map_type_name(resource_type_name)
-            uuid = parsed_qs.pop("uuid", [None])[0]
+            uuid = parsed_qs.pop("uuid", [None])[0]  # type: ignore
             if "/datasetdetail" in original_path:
                 url_path = original_path.split("/datasetdetail", 1)[0] + url_path
         else:
@@ -102,8 +102,8 @@ class Soda4LcaZipReader(ZipIlcdReader):
                     break
         if uuid is None or resource_type_name is None:
             raise ValueError(f"Invalid endpoint {endpoint}")
-        version: str | None = parsed_qs.pop("version", [None])[0]
-        datastock = parsed_qs.pop("datastock", [None])[0] if datastock is None else datastock
+        version: str | None = parsed_qs.pop("version", [None])[0]  # type: ignore
+        datastock = parsed_qs.pop("datastock", [None])[0] if datastock is None else datastock  # type: ignore
         base_url += url_path
         return IlcdRemotePointer(
             base_url=base_url,
@@ -114,7 +114,7 @@ class Soda4LcaZipReader(ZipIlcdReader):
     def dowload_zip_archive(self, url: str) -> IO[bytes]:
         """Download a zip archive from a URL."""
         # TODO: Move this to dedicated class
-        response = http.request("GET", url)  # type: ignore[no-untyped-call]
+        response = http.request("GET", url)
         if response.status == 200:
             return io.BytesIO(response.data)
         raise ValueError(f"Could not download zip archive from {url}. Status code: {response.status}")
@@ -128,7 +128,7 @@ class Soda4LcaZipReader(ZipIlcdReader):
         url = self.get_pdf_url()
         if url is None:
             return None
-        response = http.request("GET", url)  # type: ignore[no-untyped-call]
+        response = http.request("GET", url)
         if response.status == 200:
             return io.BytesIO(response.data)
         raise ValueError(f"Could not download PDF from {url}. Status code: {response.status}")

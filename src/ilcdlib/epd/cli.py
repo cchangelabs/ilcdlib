@@ -17,36 +17,29 @@
 #  Charles Pankow Foundation, Microsoft Sustainability Fund, Interface, MKA Foundation, and others.
 #  Find out more at www.BuildingTransparency.org
 #
-from __future__ import annotations
-
+import argparse
 from pathlib import Path
-from typing import TYPE_CHECKING
 
 from cli_rack import CLI
 from cli_rack.modular import CliExtension
 from cli_rack.utils import ensure_dir
+from openepd.model.epd import Epd
 
 from ilcdlib.epd.factory import EpdReaderFactory
+from ilcdlib.epd.reader import IlcdEpdReader
 from ilcdlib.medium.archive import ZipIlcdReader
 from ilcdlib.medium.soda4lca import Soda4LcaZipReader
-
-if TYPE_CHECKING:
-    import argparse
-
-    from openepd.model.epd import Epd
-
-    from ilcdlib.epd.reader import IlcdEpdReader
 
 SUPPORTED_INPUT_FORMATS = ("ilcd+epd",)
 SUPPORTED_OUTPUT_FORMATS = ("openEPD",)
 
 
-class ConvertEpdCliExtension(CliExtension):  # type: ignore[misc]
+class ConvertEpdCliExtension(CliExtension):
     COMMAND_NAME = "convert-epd"
     COMMAND_DESCRIPTION = "Converts EPD documents between formats"
 
     @classmethod
-    def setup_parser(cls, parser: argparse.ArgumentParser) -> None:
+    def setup_parser(cls, parser: argparse.ArgumentParser):
         parser.add_argument(
             "--in-format",
             "-i",
@@ -128,7 +121,7 @@ class ConvertEpdCliExtension(CliExtension):  # type: ignore[misc]
             "depending on supported converter capabilities.",
         )
 
-    def handle(self, args: argparse.Namespace) -> None:
+    def handle(self, args: argparse.Namespace):
         in_format: str = args.in_format
         out_format: str = args.out_format
         doc_refs: list[str] = args.doc
@@ -213,7 +206,7 @@ class ConvertEpdCliExtension(CliExtension):  # type: ignore[misc]
 
     def save_results(
         self, epd_reader: IlcdEpdReader, result: Epd, *, extract_pdf: bool = False, base_dir: Path | None = None
-    ) -> None:
+    ):
         if base_dir is None:
             base_dir = Path.cwd()
         output_dir = base_dir / Path(epd_reader.get_uuid())

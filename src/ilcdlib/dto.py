@@ -17,19 +17,15 @@
 #  Charles Pankow Foundation, Microsoft Sustainability Fund, Interface, MKA Foundation, and others.
 #  Find out more at www.BuildingTransparency.org
 #
-from __future__ import annotations
-
-from typing import TYPE_CHECKING, Any, Generic, NamedTuple
+from typing import Any, Generic, NamedTuple
 
 from openepd.model.base import BaseOpenEpdSchema
 from openepd.model.org import Org
 import pydantic
 import pydantic as pyd
 
+from ilcdlib.const import IlcdTypeOfReview
 from ilcdlib.utils import T
-
-if TYPE_CHECKING:
-    from ilcdlib.const import IlcdTypeOfReview
 
 
 class IlcdReference(NamedTuple):

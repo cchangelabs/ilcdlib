@@ -17,7 +17,7 @@
 #  Charles Pankow Foundation, Microsoft Sustainability Fund, Interface, MKA Foundation, and others.
 #  Find out more at www.BuildingTransparency.org
 #
-from typing import TYPE_CHECKING
+from typing import Type
 
 from openepd.model.pcr import Pcr
 
@@ -25,11 +25,9 @@ from ilcdlib import const
 from ilcdlib.common import BaseIlcdMediumSpecificReader, OpenEpdPcrSupportReader
 from ilcdlib.entity.contact import IlcdContactReader
 from ilcdlib.entity.source import IlcdSourceReader
+from ilcdlib.type import LangDef
 from ilcdlib.utils import create_openepd_attachments, provider_domain_name_from_url
-
-if TYPE_CHECKING:
-    from ilcdlib.type import LangDef
-    from ilcdlib.xml_parser import T_ET  # type: ignore[attr-defined]
+from ilcdlib.xml_parser import T_ET
 
 
 class IlcdPcrReader(OpenEpdPcrSupportReader, IlcdSourceReader):
@@ -40,7 +38,7 @@ class IlcdPcrReader(OpenEpdPcrSupportReader, IlcdSourceReader):
         element: T_ET.Element,
         data_provider: BaseIlcdMediumSpecificReader,
         *,
-        contact_reader_cls: type[IlcdContactReader] = IlcdContactReader,
+        contact_reader_cls: Type[IlcdContactReader] = IlcdContactReader,
     ):
         super().__init__(element, data_provider)
         self.contact_reader_cls = contact_reader_cls
@@ -84,7 +82,7 @@ class IlcdPcrReader(OpenEpdPcrSupportReader, IlcdSourceReader):
         pcr = Pcr(
             name=self.get_name(lang),
             issuer=issuer,
-            attachments=create_openepd_attachments(reference, base_url) if base_url else None,
+            attachments=create_openepd_attachments(reference, base_url) if base_url else None,  # type: ignore
         )
         if provider_domain is None:
             provider_domain = provider_domain_name_from_url(base_url)

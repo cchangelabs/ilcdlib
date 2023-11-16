@@ -17,13 +17,12 @@
 #  Charles Pankow Foundation, Microsoft Sustainability Fund, Interface, MKA Foundation, and others.
 #  Find out more at www.BuildingTransparency.org
 #
-from __future__ import annotations
-
 import datetime
-from typing import IO, TYPE_CHECKING
+from typing import IO, Type
 
 from openepd.model.common import Amount, Measurement
 from openepd.model.epd import Epd
+from openepd.model.lcia import Impacts, ImpactSet, OutputFlowSet, ResourceUseSet
 from openepd.model.specs import Specs
 from openepd.model.standard import Standard
 
@@ -36,11 +35,13 @@ from ilcdlib.entity.contact import IlcdContactReader
 from ilcdlib.entity.exchage import IlcdExchangesReader
 from ilcdlib.entity.flow import IlcdExchangeDto, IlcdFlowReader
 from ilcdlib.entity.lcia import IlcdLciaResultsReader
+from ilcdlib.entity.material import MatMlMaterial
 from ilcdlib.entity.pcr import IlcdPcrReader
 from ilcdlib.entity.validation import IlcdValidationListReader
 from ilcdlib.extension import IlcdEpdExtension
 from ilcdlib.mapping.compliance import StandardNameToLCIAMethodMapper, default_standard_names_to_lcia_mapper
 from ilcdlib.sanitizing.text import trim_text
+from ilcdlib.type import LangDef
 from ilcdlib.utils import (
     MarkdownSectionBuilder,
     create_ext,
@@ -49,12 +50,6 @@ from ilcdlib.utils import (
     none_throws,
     provider_domain_name_from_url,
 )
-
-if TYPE_CHECKING:
-    from openepd.model.lcia import Impacts, ImpactSet, OutputFlowSet, ResourceUseSet
-
-    from ilcdlib.entity.material import MatMlMaterial
-    from ilcdlib.type import LangDef
 
 
 class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
@@ -67,14 +62,14 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
         data_provider: BaseIlcdMediumSpecificReader,
         timezone: str = "UTC",
         *,
-        contact_reader_cls: type[IlcdContactReader] = IlcdContactReader,
-        pcr_reader_cls: type[IlcdPcrReader] = IlcdPcrReader,
-        flow_reader_cls: type[IlcdFlowReader] = IlcdFlowReader,
-        lcia_results_reader_cls: type[IlcdLciaResultsReader] = IlcdLciaResultsReader,
-        exchanges_reader_cls: type[IlcdExchangesReader] = IlcdExchangesReader,
-        compliance_reader_cls: type[IlcdComplianceListReader] = IlcdComplianceListReader,
+        contact_reader_cls: Type[IlcdContactReader] = IlcdContactReader,
+        pcr_reader_cls: Type[IlcdPcrReader] = IlcdPcrReader,
+        flow_reader_cls: Type[IlcdFlowReader] = IlcdFlowReader,
+        lcia_results_reader_cls: Type[IlcdLciaResultsReader] = IlcdLciaResultsReader,
+        exchanges_reader_cls: Type[IlcdExchangesReader] = IlcdExchangesReader,
+        compliance_reader_cls: Type[IlcdComplianceListReader] = IlcdComplianceListReader,
         standard_names_to_lcia_mapper: StandardNameToLCIAMethodMapper = default_standard_names_to_lcia_mapper,
-        validation_reader_cls: type[IlcdValidationListReader] = IlcdValidationListReader,
+        validation_reader_cls: Type[IlcdValidationListReader] = IlcdValidationListReader,
     ):
         super().__init__(data_provider)
         self.timezone = timezone
@@ -95,7 +90,7 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
         self.remap_xml_ns(self.epd_el_tree.nsmap)  # type: ignore
         self.post_init()
 
-    def post_init(self) -> None:
+    def post_init(self):
         """
         Post-initialization actions, will be executed as a last step in constructor.
 
@@ -155,7 +150,7 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
             ("process:modellingAndValidation", "process:LCIMethodAndAllocation", "common:other", "epd2013:subType"),
         )
 
-    def is_industry_epd(self) -> bool:
+    def is_industry_epd(self):
         """Return True if the dataset represents an industry EPD."""
         return self.get_dataset_type() == "average dataset"
 
@@ -411,7 +406,7 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
                 Standard(
                     short_name=none_throws(compliance.short_name or compliance.name),
                     name=compliance.name,
-                    link=compliance.link,
+                    link=compliance.link,  # type: ignore
                     issuer=compliance.issuer,
                 )
             )
@@ -705,8 +700,8 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
         epd = Epd(
             doctype="OpenEPD",
             language=lang_code,
-            attachments=create_openepd_attachments(own_ref, base_url) if base_url else None,
-            declaration_url=own_ref.to_url(base_url) if own_ref and base_url else None,
+            attachments=create_openepd_attachments(own_ref, base_url) if base_url else None,  # type: ignore
+            declaration_url=own_ref.to_url(base_url) if own_ref and base_url else None,  # type: ignore
             product_name=product_name,
             product_description=trim_text(self.get_product_description(lang), 2000, ellipsis="..."),
             date_of_issue=date_to_datetime(self.get_date_published(), self.timezone),

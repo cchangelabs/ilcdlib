@@ -17,20 +17,16 @@
 #  Charles Pankow Foundation, Microsoft Sustainability Fund, Interface, MKA Foundation, and others.
 #  Find out more at www.BuildingTransparency.org
 #
-from __future__ import annotations
-
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
+from typing import Optional, Type
 
 from ilcdlib.common import BaseIlcdMediumSpecificReader, IlcdXmlReader
 from ilcdlib.entity.material import MatMlReader
 from ilcdlib.entity.unit import IlcdUnitGroupReader
 from ilcdlib.mapping.properties import PropertiesUUIDMapper, default_properties_uuid_mapper
+from ilcdlib.type import LangDef
 from ilcdlib.utils import none_throws
-
-if TYPE_CHECKING:
-    from ilcdlib.type import LangDef
-    from ilcdlib.xml_parser import T_ET  # type: ignore[attr-defined]
+from ilcdlib.xml_parser import T_ET
 
 
 class IlcdFlowPropertyReader(IlcdXmlReader):
@@ -41,7 +37,7 @@ class IlcdFlowPropertyReader(IlcdXmlReader):
         element: T_ET.Element,
         data_provider: BaseIlcdMediumSpecificReader,
         *,
-        unit_group_reader_cls: type[IlcdUnitGroupReader] = IlcdUnitGroupReader,
+        unit_group_reader_cls: Type[IlcdUnitGroupReader] = IlcdUnitGroupReader,
         property_uuid_mapper: PropertiesUUIDMapper = default_properties_uuid_mapper,
     ):
         super().__init__(data_provider)
@@ -86,7 +82,7 @@ class IlcdFlowPropertyReader(IlcdXmlReader):
 class IlcdExchangeDto:
     """A DTO representing ILCD exchange object."""
 
-    flow_dataset_reader: IlcdFlowReader | None = None
+    flow_dataset_reader: Optional["IlcdFlowReader"] = None
     mean_value: float | None = None
 
 
@@ -106,8 +102,8 @@ class IlcdFlowReader(IlcdXmlReader):
         element: T_ET.Element,
         data_provider: BaseIlcdMediumSpecificReader,
         *,
-        flow_property_reader_cls: type[IlcdFlowPropertyReader] = IlcdFlowPropertyReader,
-        mat_ml_reader_cls: type[MatMlReader] = MatMlReader,
+        flow_property_reader_cls: Type[IlcdFlowPropertyReader] = IlcdFlowPropertyReader,
+        mat_ml_reader_cls: Type[MatMlReader] = MatMlReader,
     ):
         super().__init__(data_provider)
         self._entity = element

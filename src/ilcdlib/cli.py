@@ -26,12 +26,12 @@ from cli_rack.modular import CliAppManager, CliExtension
 from ilcdlib import __version__
 
 
-class VersionCliExtension(CliExtension):  # type: ignore[misc]
+class VersionCliExtension(CliExtension):
     COMMAND_NAME = "version"
     COMMAND_DESCRIPTION = "Prints application version"
 
     @classmethod
-    def setup_parser(cls, parser: argparse.ArgumentParser) -> None:
+    def setup_parser(cls, parser: argparse.ArgumentParser):
         parser.add_argument(
             "--short",
             "-s",
@@ -42,7 +42,7 @@ class VersionCliExtension(CliExtension):  # type: ignore[misc]
             help="Print short version",
         )
 
-    def handle(self, args: argparse.Namespace) -> None:
+    def handle(self, args: argparse.Namespace):
         if args.short:
             CLI.print_info(f"{__version__.VERSION}")
         else:
@@ -52,7 +52,7 @@ class VersionCliExtension(CliExtension):  # type: ignore[misc]
             # CLI.print_info(f"VCS ID: {__version__.VCS_ID}")
 
 
-def main(argv: list[str]) -> None:
+def main(argv: list[str]):
     CLI.setup()
     app_manager = CliAppManager(
         "ilcdtool",
@@ -80,7 +80,7 @@ def main(argv: list[str]) -> None:
         CLI.print_error(e)
 
 
-def entrypoint() -> None:
+def entrypoint():
     main(sys.argv[1:])
 
 
