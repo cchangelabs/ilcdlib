@@ -1,5 +1,5 @@
 #
-#  Copyright 2023 by C Change Labs Inc. www.c-change-labs.com
+#  Copyright 2024 by C Change Labs Inc. www.c-change-labs.com
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -49,6 +49,7 @@ class BaseIlcdScopeSetsReader(IlcdXmlReader):
         reference_data_set: XmlPath,
         mapper: SimpleDataMapper[str],
         scenario_names: dict[str, str],
+        scope_to_units_mapper: SimpleDataMapper[str],
     ) -> tuple[ScopeSet, str] | None:
         """Extract all scope set information from element."""
         # Impact name
@@ -63,7 +64,6 @@ class BaseIlcdScopeSetsReader(IlcdXmlReader):
             impact_name = self._get_localized_text(type_el, ("common:shortDescription",), ("en", None))
         if impact_name is None:
             return None
-        # UoM
         unit_el = self._get_external_tree(
             el,
             (
@@ -71,10 +71,15 @@ class BaseIlcdScopeSetsReader(IlcdXmlReader):
                 "epd2013:referenceToUnitGroupDataSet",
             ),
         )
+        unit_name: str | None
         if unit_el is None:
+            # This step is assumption for cases, when program operator omit unit group reference in related ILCD file.
+            # In future, we should add context to the curator notes field for such cases.
+            if unit_name := scope_to_units_mapper.map(impact_name, None):
+                scopes = self.__extract_scopes(el, unit_name, scenario_names)
+                return ScopeSet(**scopes), impact_name  # type: ignore
             return None
         unit = self.unit_group_reader_cls(unit_el, self.data_provider).get_reference_unit(allow_mapping=True)
-        unit_name: str | None
         if unit is not None:
             unit_name = unit.name
         else:
@@ -152,9 +157,12 @@ class BaseIlcdScopeSetsReader(IlcdXmlReader):
         ext: dict[str, ScopeSet],
         mapper: SimpleDataMapper[str],
         scenario_names: dict[str, str],
+        scope_to_units_mapper: SimpleDataMapper[str],
     ) -> None:
         """Extract scope set from element and set to its dictionary."""
-        scope_set_and_impact_name = self._get_scope_set_for_el(el, reference_path, mapper, scenario_names)
+        scope_set_and_impact_name = self._get_scope_set_for_el(
+            el, reference_path, mapper, scenario_names, scope_to_units_mapper
+        )
         if scope_set_and_impact_name is None:
             return None
         scope_set, impact_name = scope_set_and_impact_name

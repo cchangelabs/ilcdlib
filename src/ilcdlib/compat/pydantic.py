@@ -17,4 +17,13 @@
 #  Charles Pankow Foundation, Microsoft Sustainability Fund, Interface, MKA Foundation, and others.
 #  Find out more at www.BuildingTransparency.org
 #
-VERSION = "1.2.2"
+try:
+    from pydantic import v1 as pyd
+    from pydantic.v1 import generics as pyd_generics  # type: ignore
+except ImportError:
+    import pydantic as pyd  # type: ignore[no-redef]
+    from pydantic import generics as pyd_generics  # type: ignore[no-redef]
+
+pydantic = pyd
+
+__all__ = ["pyd", "pydantic", "pyd_generics"]

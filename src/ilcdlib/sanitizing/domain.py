@@ -1,5 +1,5 @@
 #
-#  Copyright 2023 by C Change Labs Inc. www.c-change-labs.com
+#  Copyright 2024 by C Change Labs Inc. www.c-change-labs.com
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -44,6 +44,7 @@ def cleanup_website(website: str | None) -> str | None:
     """
     if website is None:
         return None
+    website = website.strip()
     if not website.startswith("http"):
         return "https://" + website + "/"
     return website

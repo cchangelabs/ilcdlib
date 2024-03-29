@@ -1,5 +1,5 @@
 #
-#  Copyright 2023 by C Change Labs Inc. www.c-change-labs.com
+#  Copyright 2024 by C Change Labs Inc. www.c-change-labs.com
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -21,9 +21,8 @@ from typing import Any, Generic, NamedTuple
 
 from openepd.model.base import BaseOpenEpdSchema
 from openepd.model.org import Org
-import pydantic
-import pydantic as pyd
 
+from ilcdlib.compat.pydantic import pyd
 from ilcdlib.const import IlcdTypeOfReview
 from ilcdlib.utils import T
 
@@ -51,7 +50,7 @@ class ProductClassDef(NamedTuple):
     name: str | None
 
 
-class Category(pydantic.BaseModel):
+class Category(pyd.BaseModel):
     """A category DTO."""
 
     id: str
@@ -60,7 +59,7 @@ class Category(pydantic.BaseModel):
     full_path: list[str] | None = None
 
 
-class ListResponseMeta(pydantic.BaseModel):
+class ListResponseMeta(pyd.BaseModel):
     """Metadata for a list response."""
 
     offset: int
@@ -68,7 +67,7 @@ class ListResponseMeta(pydantic.BaseModel):
     page_size: int
 
 
-class ProcessBasicInfo(pydantic.BaseModel):
+class ProcessBasicInfo(pyd.BaseModel):
     """Basic information about a process."""
 
     uuid: str
@@ -142,7 +141,7 @@ class OpenEpdIlcdOrg(Org):
         return ext.contact if ext else None
 
 
-class ComplianceDto(pydantic.BaseModel):
+class ComplianceDto(pyd.BaseModel):
     """Basic information about a Compliance."""
 
     uuid: str
@@ -152,7 +151,7 @@ class ComplianceDto(pydantic.BaseModel):
     issuer: OpenEpdIlcdOrg | None = None
 
 
-class ValidationDto(pydantic.BaseModel):
+class ValidationDto(pyd.BaseModel):
     """Basic information about a Compliance."""
 
     validation_type: IlcdTypeOfReview | None = None

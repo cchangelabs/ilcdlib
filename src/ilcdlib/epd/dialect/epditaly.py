@@ -17,34 +17,44 @@
 #  Charles Pankow Foundation, Microsoft Sustainability Fund, Interface, MKA Foundation, and others.
 #  Find out more at www.BuildingTransparency.org
 #
-from ilcdlib.dto import ProductClassDef
 from ilcdlib.epd.reader import IlcdEpdReader
-from ilcdlib.utils import none_throws
+from ilcdlib.type import LangDef
 
 
-class OekobauDatIlcdXmlEpdReader(IlcdEpdReader):
-    """Reader for EPDs in the Oekobau.DAT specific ILCD XML format."""
+class EpdItalyIlcdXmlEpdReader(IlcdEpdReader):
+    """Reader for EPDs in the EpdItaly specific ILCD XML format."""
 
     @classmethod
     def is_known_url(cls, url: str) -> bool:
         """Return whether the URL recognized as a known Environdec URL."""
-        return "oekobaudat" in url.lower()
+        return "epditaly" in url.lower()
 
     def post_init(self):
-        """Configure Oekobau.DAT specific settings."""
+        """Configure EpdItaly specific settings."""
         self.xml_parser.xml_ns["epd2019"] = self.xml_parser.xml_ns["epd2019_indata"]
 
-    def _product_classes_to_openepd(self, classes: dict[str, list[ProductClassDef]]) -> dict[str, list[str] | str]:
-        """
-        Convert the product classes to OpenEPD format.
+    def get_scenario_names(self, lang: LangDef) -> dict[str, str]:
+        """Return dictionary with mapping short scenario names to full names in given language."""
+        scenarios = self._get_all_els(
+            self.epd_el_tree,
+            (
+                "process:processInformation",
+                "process:dataSetInformation",
+                "common:other",
+                "epd2013:scenarios",
+                "epd2013:scenario",
+            ),
+        )
 
-        The Oekobau.DAT format according to openEPD is a string containing full id and
-        the name of the most specific class. Example: "1.1.01 Cement"
-        """
-        result = super()._product_classes_to_openepd(classes)
-        for classification_name, class_defs in classes.items():
-            if classification_name.lower() == "oekobau.dat" and len(class_defs) > 0:
-                last_class = class_defs[-1]
-                del result[classification_name]
-                result["oekobau.dat"] = " ".join((none_throws(last_class.id), none_throws(last_class.name)))
+        result: dict[str, str] = dict()
+
+        for scenario in scenarios:
+            if not scenario.attrib:
+                continue
+
+            short_name = scenario.attrib.get("{http://www.iai.kit.edu/EPD/2013}name")
+
+            if short_name:
+                result[short_name] = short_name
+
         return result

@@ -1,5 +1,5 @@
 #
-#  Copyright 2023 by C Change Labs Inc. www.c-change-labs.com
+#  Copyright 2024 by C Change Labs Inc. www.c-change-labs.com
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ from ilcdlib.entity.base_scope_set_reader import BaseIlcdScopeSetsReader
 from ilcdlib.mapping.common import SimpleDataMapper
 from ilcdlib.mapping.flows import default_flows_uuid_mapper
 from ilcdlib.mapping.indicators import default_indicators_uuid_mapper
+from ilcdlib.mapping.units import default_scope_to_units_mapper
 from ilcdlib.xml_parser import T_ET
 
 E = TypeVar("E", ResourceUseSet, OutputFlowSet)
@@ -38,11 +39,13 @@ class IlcdExchangesReader(BaseIlcdScopeSetsReader):
         *args,
         indicator_mapper: SimpleDataMapper[str] = default_indicators_uuid_mapper,
         flow_mapper: SimpleDataMapper[str] = default_flows_uuid_mapper,
+        scope_to_units_mapper: SimpleDataMapper[str] = default_scope_to_units_mapper,
         **kwargs,
     ):
         super().__init__(*args, **kwargs)
         self.indicator_mapper = indicator_mapper
         self.flow_mapper = flow_mapper
+        self.scope_to_units_mapper = scope_to_units_mapper
 
     def __get_exchange_direction(self, el: T_ET.Element) -> str | None:
         exchange_direction = self._get_el(el, "process:exchangeDirection")
@@ -57,16 +60,26 @@ class IlcdExchangesReader(BaseIlcdScopeSetsReader):
             scope_set_type=ResourceUseSet,
             mapper=self.indicator_mapper,
             scenario_names=scenario_names,
+            scope_to_units_mapper=self.scope_to_units_mapper,
         )
 
     def get_output_flows(self, scenario_names: dict[str, str]) -> OutputFlowSet:
         """Get output flows from the ILCD EPD file."""
         return self.__get_exchanges(
-            direction="Output", scope_set_type=OutputFlowSet, mapper=self.flow_mapper, scenario_names=scenario_names
+            direction="Output",
+            scope_set_type=OutputFlowSet,
+            mapper=self.flow_mapper,
+            scenario_names=scenario_names,
+            scope_to_units_mapper=self.scope_to_units_mapper,
         )
 
     def __get_exchanges(
-        self, direction: str, scope_set_type: Type[E], mapper: SimpleDataMapper[str], scenario_names: dict[str, str]
+        self,
+        direction: str,
+        scope_set_type: Type[E],
+        mapper: SimpleDataMapper[str],
+        scenario_names: dict[str, str],
+        scope_to_units_mapper: SimpleDataMapper[str],
     ) -> E:
         """Get indicators or flows from the ILCD EPD file."""
         ext: dict[str, ScopeSet] = {}
@@ -83,6 +96,7 @@ class IlcdExchangesReader(BaseIlcdScopeSetsReader):
                     ext=ext,
                     mapper=mapper,
                     scenario_names=scenario_names,
+                    scope_to_units_mapper=scope_to_units_mapper,
                 )
 
         if len(ext) == 0:

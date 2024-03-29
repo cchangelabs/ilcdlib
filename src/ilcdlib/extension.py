@@ -1,5 +1,5 @@
 #
-#  Copyright 2023 by C Change Labs Inc. www.c-change-labs.com
+#  Copyright 2024 by C Change Labs Inc. www.c-change-labs.com
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -18,9 +18,9 @@
 #  Find out more at www.BuildingTransparency.org
 #
 from openepd.model.base import OpenEpdExtension
-import pydantic as pyd
 
 from ilcdlib import const
+from ilcdlib.compat.pydantic import pyd
 from ilcdlib.dto import IlcdContactInfo, OpenEpdIlcdOrg, ValidationDto
 
 

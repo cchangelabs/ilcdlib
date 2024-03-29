@@ -1,8 +1,54 @@
-## 2.0.0 (2023-07-22)
+## 3.0.0 (2024-03-29)
 
 ### Feat
 
-- migrate to openepd v2
+- add pydantic 2.0+ support
+
+
+- apply strict linters to the project
+
+## 1.2.2 (2023-10-02)
+
+### Fix
+
+- convert dates to datetime to support updated openepd lib
+
+## 1.2.1 (2023-09-15)
+
+### Fix
+
+- calculate a1a2a3 if none provided
+
+## 1.2.0 (2023-09-01)
+
+### Feat
+
+- add epditaly dialect
+
+### Fix
+
+- ignore compliance records with no name
+- delete url trailing spaces in cleanup_website method
+
+### Refactor
+
+- set dialect specific xmlns inside dialect definitions
+
+## 1.1.0 (2023-07-25)
+
+### Feat
+
+- **xml**: add default unit mapping if reference is missing
+
+### Fix
+
+- **environdec**: extract url from newer ILCD documents
+
+## 1.0.0 (2023-07-22)
+
+### Feat
+
+- preserve pydantic v1 support in separate branch
 
 ## 0.10.1 (2023-07-20)
 
