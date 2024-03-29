@@ -1,3 +1,12 @@
+## 3.0.0 (2024-03-29)
+
+### Feat
+
+- add pydantic 2.0+ support
+
+
+- apply strict linters to the project
+
 ## 1.2.2 (2023-10-02)
 
 ### Fix
