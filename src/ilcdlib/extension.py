@@ -18,9 +18,9 @@
 #  Find out more at www.BuildingTransparency.org
 #
 from openepd.model.base import OpenEpdExtension
-import pydantic as pyd
 
 from ilcdlib import const
+from ilcdlib.compat.pydantic import pyd
 from ilcdlib.dto import IlcdContactInfo, OpenEpdIlcdOrg, ValidationDto
 
 
