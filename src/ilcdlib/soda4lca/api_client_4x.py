@@ -49,7 +49,7 @@ class Soda4LcaXmlApiClient4x(Soda4LcaXmlApiClient):
         xml_doc = self._do_xml_request(
             "get",
             "/processes/categories/",
-            params=dict(format="xml", lang=lang, catSystem="The International EPD System"),
+            params=dict(format="xml", lang=lang, catSystem=category_system),
         )
         reader = self.category_reader_cls(xml_doc)
         categories = reader.get_categories_flat_list_4x()
