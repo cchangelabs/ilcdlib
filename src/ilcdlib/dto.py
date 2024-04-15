@@ -103,31 +103,13 @@ class ProcessSearchResponse(BaseSearchResponse[ProcessBasicInfo]):
 class IlcdContactInfo(BaseOpenEpdSchema):
     """Contact information extracted from ILCD contact."""
 
-    contact_person: str | None = pyd.Field(
-        default=None,
-        description="Name of the contact person",
-        json_schema_extra=dict(example="John Doe"),
-    )
-    email: pyd.EmailStr | None = pyd.Field(
-        default=None,
-        description="Email",
-        json_schema_extra=dict(example="contact@c-change-labs.com"),
-    )
-    phone: str | None = pyd.Field(
-        default=None,
-        description="Phone number",
-        json_schema_extra=dict(example="+15263327352"),
-    )
+    contact_person: str | None = pyd.Field(description="Name of the contact person", example="John Doe", default=None)
+    email: pyd.EmailStr | None = pyd.Field(description="Email", example="contact@c-change-labs.com", default=None)
+    phone: str | None = pyd.Field(description="Phone number", example="+15263327352", default=None)
     website: pyd.AnyUrl | None = pyd.Field(
-        default=None,
-        description="Url of the website",
-        json_schema_extra=dict(example="http://buildingtransparency.org"),
+        description="Url of the website", example="http://buildingtransparency.org", default=None
     )
-    address: str | None = pyd.Field(
-        default=None,
-        description="Address",
-        json_schema_extra=dict(example="123 Main St, San Francisco, CA 94105"),
-    )
+    address: str | None = pyd.Field(description="Address", example="123 Main St, San Francisco, CA 94105", default=None)
 
 
 class OpenEpdIlcdOrg(Org):
@@ -145,14 +127,14 @@ class ComplianceDto(pyd.BaseModel):
     """Basic information about a Compliance."""
 
     uuid: str
-    short_name: str | None = None
-    name: str | None = None
-    link: str | None = None
-    issuer: OpenEpdIlcdOrg | None = None
+    short_name: str | None
+    name: str | None
+    link: str | None
+    issuer: OpenEpdIlcdOrg | None
 
 
 class ValidationDto(pyd.BaseModel):
     """Basic information about a Compliance."""
 
-    validation_type: IlcdTypeOfReview | None = None
+    validation_type: IlcdTypeOfReview | None
     org: OpenEpdIlcdOrg
