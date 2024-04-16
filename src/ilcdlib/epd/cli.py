@@ -200,7 +200,7 @@ class ConvertEpdCliExtension(CliExtension):
         CLI.print_info("Language priority: " + ",".join([x if x is not None else "any other" for x in lang_list]))
         base_url = self.__extract_base_url(doc_ref)
         open_epd = epd_reader.to_openepd_epd(lang_list, base_url=base_url, provider_domain=provider_domain)
-        CLI.print_data(open_epd.model_dump_json(indent=2, exclude_none=True, exclude_unset=True))
+        CLI.print_data(open_epd.json(indent=2, exclude_none=True, exclude_unset=True))
         if save:
             self.save_results(epd_reader, open_epd, extract_pdf=extract_pdf, base_dir=target_dir)
 
@@ -212,7 +212,7 @@ class ConvertEpdCliExtension(CliExtension):
         output_dir = base_dir / Path(epd_reader.get_uuid())
         ensure_dir(output_dir)
         with open(output_dir / "openEPD.json", "w") as f:
-            f.write(result.model_dump_json(indent=2, exclude_none=True, exclude_unset=True))
+            f.write(result.json(indent=2, exclude_none=True, exclude_unset=True))
         if isinstance(epd_reader.data_provider, ZipIlcdReader):
             epd_reader.data_provider.save_to(output_dir / "ilcd_epd.zip")
         if extract_pdf:

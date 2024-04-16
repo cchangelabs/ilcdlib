@@ -1,3 +1,9 @@
+## 4.1.0 (2024-04-16)
+
+### Feat
+
+- undo changes which break pydantic v1 compatibility
+
 ## 4.0.0 (2024-04-15)
 
 ## 2.0.0 (2023-07-22)

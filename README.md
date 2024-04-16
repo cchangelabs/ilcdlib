@@ -30,13 +30,6 @@ If you don't need CLI tool, you can omit `cli` extra. The following extras are a
 
 ## Usage
 
-**❗ ATTENTION**: Pick the right version. There are 2 versions of the library available:
-
-* Use version **below** `2.0.0` if your project uses Pydantic version below `2.0.0`
-* Use version `2.x.x` or higher if your project uses Pydantic version `2.0.0` or above
-
-Branch 1.x.x is not maintained anymore, so if you don't use pydantic 2.x.x should be your choice.
-
 ### CLI
 
 At the moment the primary function of the CLI tool is to convert ILCD XML files to openEPD (json) format. 
