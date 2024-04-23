@@ -40,5 +40,20 @@ class ImpactsUUIDToOpenIdMapper(SimpleDataMapper[str]):
         "b2ad66ce-c78d-11e6-9d9d-cec0c932ce01": "WDP",
     }
 
+    KV = {
+        "gwp-biogenic": ["biogenic"],
+        "gwp-luluc": ["luluc"],
+        "gwp-fossil": ["fossil"],
+        "gwp-gwp_nonCO2": ["CO2"],
+        "gwp": ["gwp", "global warming"],
+        "ep-marine": ["marine"],
+        "ep-fresh": ["fresh", "fw"],
+        "ep-terr": ["terr"],
+        "ep": ["ep", "eutrophication"],
+        "odp": ["odp", "depletion"],
+        "ap": ["ap", "acidification"],
+        "pocp": ["pocp", "photochemical", "smog", "ozone creation"],
+    }
+
 
 default_impacts_uuid_mapper = ImpactsUUIDToOpenIdMapper()
