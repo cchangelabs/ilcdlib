@@ -61,7 +61,10 @@ class BaseIlcdScopeSetsReader(IlcdXmlReader):
             return None
         impact_name: str | None = mapper.map(type_uuid, type_uuid)
         if impact_name == type_uuid:
-            impact_name = self._get_localized_text(type_el, ("common:shortDescription",), ("en", None))
+            description = self._get_localized_text(type_el, ("common:shortDescription",), ("en", None))
+            if description is not None:
+                impact_name = mapper.map_by_kv(description, description)
+
         if impact_name is None:
             return None
         unit_el = self._get_external_tree(

@@ -47,6 +47,7 @@ class SimpleDataMapper(BaseDataMapper[T, T], Generic[T]):
     """A data mapper that does not change the type of the input value."""
 
     DATABASE: dict[T, T] = {}
+    KV: dict[T, list[T]] = {}
 
     def map(self, input_value: T, default_value: T | None) -> T | None:
         """
@@ -56,3 +57,16 @@ class SimpleDataMapper(BaseDataMapper[T, T], Generic[T]):
         :param default_value: The default value to return if there is no mapping for input value.
         """
         return self.DATABASE.get(input_value, default_value)
+
+    def map_by_kv(self, input_value: T, default_value: T | None) -> T | None:
+        """
+        Map the input value to the output value using keywords.
+
+        :param input_value: The input value to map.
+        :param default_value: The default value to return if there is no mapping for input value.
+        """
+        for impact_name, keywords in self.KV.items():
+            for keyword in keywords:
+                if str(keyword).strip().lower() in str(input_value).strip().lower():
+                    return impact_name
+        return default_value

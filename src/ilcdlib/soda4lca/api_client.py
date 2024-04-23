@@ -143,6 +143,12 @@ class Soda4LcaXmlApiClient(BaseApiClient):
                 ) from e
             raise e
 
+    def get_total_size(self):
+        """Get total number of processes."""
+        response = self._do_request("get", "/processes", params={"pageSize": 1})
+        xml_response = T_ET.fromstring(response.content)
+        return int(xml_response.attrib.get(f"{{{self.ns['sapi']}}}totalSize", 0))
+
     def search_processes(
         self, offset: int = 0, page_size: int = 100, lang: str | None = None, **other_params
     ) -> ProcessSearchResponse:
