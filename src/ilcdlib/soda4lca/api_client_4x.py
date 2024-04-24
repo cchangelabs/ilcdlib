@@ -17,7 +17,7 @@
 #  Charles Pankow Foundation, Microsoft Sustainability Fund, Interface, MKA Foundation, and others.
 #  Find out more at www.BuildingTransparency.org
 #
-from ilcdlib.dto import Category
+from ilcdlib.dto import Category, ProcessBasicInfo
 from ilcdlib.soda4lca.api_client import Soda4LcaXmlApiClient
 
 
@@ -30,6 +30,13 @@ class Soda4LcaXmlApiClient4x(Soda4LcaXmlApiClient):
 
     def __init__(self, *args, **kwargs):
         super(Soda4LcaXmlApiClient4x, self).__init__(*args, **kwargs)
+
+    def get_item_url(self, item: ProcessBasicInfo) -> str | None:
+        """Return the URL of the item."""
+        uuid = item.uuid
+        if uuid:
+            return f"{self.base_url}/showProcess.xhtml?uuid={uuid}"
+        return None
 
     def list_categories(self, category_system: str, data_type: str = "Process", lang: str = "en") -> list[Category]:
         """

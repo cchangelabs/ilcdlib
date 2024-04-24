@@ -17,7 +17,8 @@
 #  Charles Pankow Foundation, Microsoft Sustainability Fund, Interface, MKA Foundation, and others.
 #  Find out more at www.BuildingTransparency.org
 #
-from ilcdlib.mapping.common import SimpleDataMapper
+from ilcdlib.mapping.common import BaseDataMapper, K, KeyValueMapper, SimpleDataMapper
+from ilcdlib.utils import is_valid_uuid
 
 
 class ImpactsUUIDToOpenIdMapper(SimpleDataMapper[str]):
@@ -40,6 +41,10 @@ class ImpactsUUIDToOpenIdMapper(SimpleDataMapper[str]):
         "b2ad66ce-c78d-11e6-9d9d-cec0c932ce01": "WDP",
     }
 
+
+class ImpactsKeywordToOpenIdMapper(KeyValueMapper[str]):
+    """Map keywords to openEPD impact names.""" ""
+
     KV = {
         "gwp-biogenic": ["biogenic"],
         "gwp-luluc": ["luluc"],
@@ -56,4 +61,18 @@ class ImpactsUUIDToOpenIdMapper(SimpleDataMapper[str]):
     }
 
 
-default_impacts_uuid_mapper = ImpactsUUIDToOpenIdMapper()
+class DefaultImpactsToOpenIdMapper(BaseDataMapper[str, str]):
+    """Map default impacts to openEPD impact names."""
+
+    def __init__(self):
+        self._uuid_mapper = ImpactsUUIDToOpenIdMapper()
+        self._keyword_mapper = ImpactsKeywordToOpenIdMapper()
+
+    def map(self, input_value: str, default_value: str | None) -> K | None:
+        """Map the input value to the output value."""
+        if is_valid_uuid(input_value):
+            return self._uuid_mapper.map(input_value, default_value)
+        return self._keyword_mapper.map(input_value, default_value)
+
+
+default_impacts_mapper = DefaultImpactsToOpenIdMapper()

@@ -23,7 +23,7 @@ __all__ = (
 )
 
 import abc
-from typing import Generic, TypeVar
+from typing import Generic, TypeVar, cast
 
 T = TypeVar("T")
 K = TypeVar("K")
@@ -47,7 +47,6 @@ class SimpleDataMapper(BaseDataMapper[T, T], Generic[T]):
     """A data mapper that does not change the type of the input value."""
 
     DATABASE: dict[T, T] = {}
-    KV: dict[T, list[T]] = {}
 
     def map(self, input_value: T, default_value: T | None) -> T | None:
         """
@@ -58,7 +57,13 @@ class SimpleDataMapper(BaseDataMapper[T, T], Generic[T]):
         """
         return self.DATABASE.get(input_value, default_value)
 
-    def map_by_kv(self, input_value: T, default_value: T | None) -> T | None:
+
+class KeyValueMapper(BaseDataMapper[str, T], Generic[T]):
+    """A data mapper that maps input values to output values using keywords."""
+
+    KV: dict[str, list[T]] = {}
+
+    def map(self, input_value: str, default_value: T | None) -> T | None:
         """
         Map the input value to the output value using keywords.
 
@@ -67,6 +72,6 @@ class SimpleDataMapper(BaseDataMapper[T, T], Generic[T]):
         """
         for impact_name, keywords in self.KV.items():
             for keyword in keywords:
-                if str(keyword).strip().lower() in str(input_value).strip().lower():
-                    return impact_name
+                if str(keyword).strip().lower() in input_value.strip().lower():
+                    return cast(T, impact_name)
         return default_value
