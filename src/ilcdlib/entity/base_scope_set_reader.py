@@ -25,7 +25,7 @@ from openepd.model.lcia import EolScenario, ScopeSet
 
 from ilcdlib.common import BaseIlcdMediumSpecificReader, IlcdXmlReader, XmlPath
 from ilcdlib.entity.unit import IlcdUnitGroupReader
-from ilcdlib.mapping.common import SimpleDataMapper
+from ilcdlib.mapping.common import BaseDataMapper
 from ilcdlib.xml_parser import T_ET
 
 
@@ -47,9 +47,9 @@ class BaseIlcdScopeSetsReader(IlcdXmlReader):
         self,
         el: T_ET.Element,
         reference_data_set: XmlPath,
-        mapper: SimpleDataMapper[str],
+        mapper: BaseDataMapper[str, str],
         scenario_names: dict[str, str],
-        scope_to_units_mapper: SimpleDataMapper[str],
+        scope_to_units_mapper: BaseDataMapper[str, str],
     ) -> tuple[ScopeSet, str] | None:
         """Extract all scope set information from element."""
         # Impact name
@@ -63,7 +63,7 @@ class BaseIlcdScopeSetsReader(IlcdXmlReader):
         if impact_name == type_uuid:
             description = self._get_localized_text(type_el, ("common:shortDescription",), ("en", None))
             if description is not None:
-                impact_name = mapper.map_by_kv(description, description)
+                impact_name = mapper.map(description, description)
 
         if impact_name is None:
             return None
@@ -158,9 +158,9 @@ class BaseIlcdScopeSetsReader(IlcdXmlReader):
         scope_set_type: Type[BaseOpenEpdSchema],
         scope_set_dict: dict[str, ScopeSet | dict],
         ext: dict[str, ScopeSet],
-        mapper: SimpleDataMapper[str],
+        mapper: BaseDataMapper[str, str],
         scenario_names: dict[str, str],
-        scope_to_units_mapper: SimpleDataMapper[str],
+        scope_to_units_mapper: BaseDataMapper[str, str],
     ) -> None:
         """Extract scope set from element and set to its dictionary."""
         scope_set_and_impact_name = self._get_scope_set_for_el(

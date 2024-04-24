@@ -22,7 +22,7 @@ from typing import Type, TypeVar
 from openepd.model.lcia import OutputFlowSet, ResourceUseSet, ScopeSet
 
 from ilcdlib.entity.base_scope_set_reader import BaseIlcdScopeSetsReader
-from ilcdlib.mapping.common import SimpleDataMapper
+from ilcdlib.mapping.common import BaseDataMapper
 from ilcdlib.mapping.flows import default_flows_uuid_mapper
 from ilcdlib.mapping.indicators import default_indicators_uuid_mapper
 from ilcdlib.mapping.units import default_scope_to_units_mapper
@@ -37,9 +37,9 @@ class IlcdExchangesReader(BaseIlcdScopeSetsReader):
     def __init__(
         self,
         *args,
-        indicator_mapper: SimpleDataMapper[str] = default_indicators_uuid_mapper,
-        flow_mapper: SimpleDataMapper[str] = default_flows_uuid_mapper,
-        scope_to_units_mapper: SimpleDataMapper[str] = default_scope_to_units_mapper,
+        indicator_mapper: BaseDataMapper[str, str] = default_indicators_uuid_mapper,
+        flow_mapper: BaseDataMapper[str, str] = default_flows_uuid_mapper,
+        scope_to_units_mapper: BaseDataMapper[str, str] = default_scope_to_units_mapper,
         **kwargs,
     ):
         super().__init__(*args, **kwargs)
@@ -77,9 +77,9 @@ class IlcdExchangesReader(BaseIlcdScopeSetsReader):
         self,
         direction: str,
         scope_set_type: Type[E],
-        mapper: SimpleDataMapper[str],
+        mapper: BaseDataMapper[str, str],
         scenario_names: dict[str, str],
-        scope_to_units_mapper: SimpleDataMapper[str],
+        scope_to_units_mapper: BaseDataMapper[str, str],
     ) -> E:
         """Get indicators or flows from the ILCD EPD file."""
         ext: dict[str, ScopeSet] = {}
