@@ -20,7 +20,7 @@
 from dataclasses import dataclass
 
 from ilcdlib.common import BaseIlcdMediumSpecificReader, IlcdXmlReader
-from ilcdlib.mapping.common import SimpleDataMapper
+from ilcdlib.mapping.common import BaseDataMapper
 from ilcdlib.mapping.units import default_units_uuid_mapper
 from ilcdlib.type import LangDef
 from ilcdlib.utils import none_throws
@@ -43,7 +43,7 @@ class IlcdUnitGroupReader(IlcdXmlReader):
         element: T_ET.Element,
         data_provider: BaseIlcdMediumSpecificReader,
         *,
-        unit_mapper: SimpleDataMapper[str] = default_units_uuid_mapper,
+        unit_mapper: BaseDataMapper[str, str] = default_units_uuid_mapper,
     ):
         super().__init__(data_provider)
         self._entity = element

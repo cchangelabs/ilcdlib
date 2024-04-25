@@ -1,3 +1,10 @@
+## 4.2.0 (2024-04-25)
+
+### Feat
+
+- update impact mapper
+- implement ITB basic support
+
 ## 4.1.0 (2024-04-16)
 
 ### Feat

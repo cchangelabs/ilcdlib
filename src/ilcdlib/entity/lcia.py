@@ -24,8 +24,8 @@ from openepd.model.lcia import Impacts, ImpactSet, ScopeSet
 
 from ilcdlib.common import OpenEpdImpactSetSupportReader
 from ilcdlib.entity.base_scope_set_reader import BaseIlcdScopeSetsReader
-from ilcdlib.mapping.common import SimpleDataMapper
-from ilcdlib.mapping.impacts import default_impacts_uuid_mapper
+from ilcdlib.mapping.common import BaseDataMapper
+from ilcdlib.mapping.impacts import default_impacts_mapper
 from ilcdlib.mapping.units import default_scope_to_units_mapper
 
 
@@ -35,8 +35,8 @@ class IlcdLciaResultsReader(OpenEpdImpactSetSupportReader, BaseIlcdScopeSetsRead
     def __init__(
         self,
         *args,
-        impact_mapper: SimpleDataMapper[str] = default_impacts_uuid_mapper,
-        scope_to_units_mapper: SimpleDataMapper[str] = default_scope_to_units_mapper,
+        impact_mapper: BaseDataMapper[str, str] = default_impacts_mapper,
+        scope_to_units_mapper: BaseDataMapper[str, str] = default_scope_to_units_mapper,
         **kwargs,
     ):
         super().__init__(*args, **kwargs)

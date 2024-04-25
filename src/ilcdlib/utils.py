@@ -20,6 +20,7 @@
 from dataclasses import dataclass
 import datetime
 from typing import TYPE_CHECKING, Any, Optional, Self, TypeVar
+import uuid
 
 import pytz
 
@@ -104,3 +105,13 @@ class MarkdownSectionBuilder:
     def build(self) -> str:
         """Build the Markdown string."""
         return "\n\n".join([self._build_section(x) for x in self._sections if x.content is not None])
+
+
+def is_valid_uuid(value: str, version: int = 4) -> bool:
+    """Check if the given string is a valid UUID."""
+
+    try:
+        uuid_obj = uuid.UUID(value, version=version)
+        return str(uuid_obj) == value
+    except ValueError:
+        return False
