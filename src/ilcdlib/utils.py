@@ -176,11 +176,11 @@ class MarkdownSectionBuilder:
         return "\n\n".join([self._build_section(x) for x in self._sections if x.content is not None])
 
 
-def is_valid_uuid(value: str, version: int = 4) -> bool:
+def is_valid_uuid(value: str) -> bool:
     """Check if the given string is a valid UUID."""
 
     try:
-        uuid_obj = uuid.UUID(value, version=version)
-        return str(uuid_obj) == value
+        uuid_obj = uuid.UUID(value)
+        return str(uuid_obj) == value.strip().lower()
     except ValueError:
         return False

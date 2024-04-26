@@ -23,6 +23,7 @@ __all__ = (
 )
 
 import abc
+import re
 from typing import Generic, TypeVar, cast
 
 T = TypeVar("T")
@@ -74,4 +75,28 @@ class KeyValueMapper(BaseDataMapper[str, T], Generic[T]):
             for keyword in keywords:
                 if str(keyword).strip().lower() in input_value.strip().lower():
                     return cast(T, impact_name)
+        return default_value
+
+
+class RegexMapper(BaseDataMapper[str, T], Generic[T]):
+    """A data mapper that maps input values to output values using regex."""
+
+    PATTERNS: dict[str, str] = {}
+    _compiled_patterns: dict[str, re.Pattern]
+
+    def __init__(self) -> None:
+        self._compiled_patterns: dict[str, re.Pattern] = {
+            key: re.compile(pattern, re.IGNORECASE) for key, pattern in self.PATTERNS.items()
+        }
+
+    def map(self, input_value: str, default_value: T | None) -> T | None:
+        """
+        Map the input value to the output value using regex.
+
+        :param input_value: The input value to map.
+        :param default_value: The default value to return if there is no mapping for input value.
+        """
+        for impact_name, pattern in self._compiled_patterns.items():
+            if pattern.search(input_value.strip().lower()):
+                return cast(T, impact_name)
         return default_value

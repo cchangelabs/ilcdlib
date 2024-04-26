@@ -17,7 +17,7 @@
 #  Charles Pankow Foundation, Microsoft Sustainability Fund, Interface, MKA Foundation, and others.
 #  Find out more at www.BuildingTransparency.org
 #
-from ilcdlib.mapping.common import BaseDataMapper, K, KeyValueMapper, SimpleDataMapper
+from ilcdlib.mapping.common import BaseDataMapper, K, KeyValueMapper, RegexMapper, SimpleDataMapper
 from ilcdlib.utils import is_valid_uuid
 
 
@@ -48,16 +48,22 @@ class ImpactsKeywordToOpenIdMapper(KeyValueMapper[str]):
     KV = {
         "gwp-biogenic": ["biogenic"],
         "gwp-luluc": ["luluc"],
-        "gwp-fossil": ["fossil"],
-        "gwp-gwp_nonCO2": ["CO2"],
-        "gwp": ["gwp", "global warming"],
+        "gwp-nonCO2": ["CO2"],
         "ep-marine": ["marine"],
-        "ep-fresh": ["fresh", "fw"],
-        "ep-terr": ["terr"],
-        "ep": ["ep", "eutrophication"],
+        "ep-fresh": ["freshwater", "fw"],
+        "ep-terr": ["terrestrial"],
         "odp": ["odp", "depletion"],
         "ap": ["ap", "acidification"],
         "pocp": ["pocp", "photochemical", "smog", "ozone creation"],
+    }
+
+
+class ImpactsRegexToOpenIdMapper(RegexMapper[str]):
+    """Map impact names using regex.""" ""
+
+    PATTERNS = {
+        "gwp-fossil": r"^(?!.*\bnon\b)(?=.*\b(fossil)\b)(?=.*\b(gwp|global warming)\b).*$",
+        "gwp": r"^(?!.*\b(fossil|luluc|CO2|total)\b)(?=.*\b(gwp|global warming)\b).*$",
     }
 
 
@@ -67,12 +73,16 @@ class DefaultImpactsToOpenIdMapper(BaseDataMapper[str, str]):
     def __init__(self):
         self._uuid_mapper = ImpactsUUIDToOpenIdMapper()
         self._keyword_mapper = ImpactsKeywordToOpenIdMapper()
+        self._regex_mapper = ImpactsRegexToOpenIdMapper()
 
     def map(self, input_value: str, default_value: str | None) -> K | None:
         """Map the input value to the output value."""
         if is_valid_uuid(input_value):
             return self._uuid_mapper.map(input_value, default_value)
-        return self._keyword_mapper.map(input_value, default_value)
+        impact_name = self._keyword_mapper.map(input_value, None)
+        if not impact_name:
+            impact_name = self._regex_mapper.map(input_value, default_value)
+        return impact_name
 
 
 default_impacts_mapper = DefaultImpactsToOpenIdMapper()
