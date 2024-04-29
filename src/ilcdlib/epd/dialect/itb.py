@@ -17,6 +17,7 @@
 #  Charles Pankow Foundation, Microsoft Sustainability Fund, Interface, MKA Foundation, and others.
 #  Find out more at www.BuildingTransparency.org
 #
+from ilcdlib.dto import IlcdContactInfo, OpenEpdIlcdOrg, ValidationDto
 from ilcdlib.epd.reader import IlcdEpdReader
 
 
@@ -27,3 +28,17 @@ class ItbIlcdXmlEpdReader(IlcdEpdReader):
     def is_known_url(cls, url: str) -> bool:
         """Return whether the URL recognized as a known Itb URL."""
         return "itb" in url.lower()
+
+    def get_third_party_verifier_email(self, validations: list[ValidationDto]) -> OpenEpdIlcdOrg | None:
+        """
+        Return first third party verifier email.
+
+        ITB contains personal info instead of organization info.
+        """
+        verifier = self.get_third_party_verifier(validations)
+        if not verifier:
+            return None
+        contact = verifier.get_contact()
+        if contact is None:
+            return None
+        return IlcdContactInfo.parse_obj(contact).email
