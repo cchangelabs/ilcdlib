@@ -431,6 +431,10 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
                 return verifier.org
         return None
 
+    def get_third_party_verifier_email(self, validations: list[ValidationDto]) -> OpenEpdIlcdOrg | None:
+        """Return first third party verifier email."""
+        return None
+
     def get_pcr_reader(self) -> IlcdPcrReader | None:
         """Return the reader for the PCR."""
         element = self._get_external_tree(
@@ -716,6 +720,7 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
             product_usage_description=self.get_technological_applicability(lang),
             lca_discussion=self.get_lca_discussion(lang),
             third_party_verifier=self.get_third_party_verifier(ilcd_validations),
+            third_party_verifier_email=self.get_third_party_verifier_email(ilcd_validations),
             pcr=pcr,
             declared_unit=declared_unit,
             impacts=self.get_impacts(scenario_names, lca_method=lcia_method),
