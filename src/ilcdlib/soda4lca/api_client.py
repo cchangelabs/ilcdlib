@@ -22,7 +22,7 @@ from io import BytesIO
 from typing import IO, Iterable, Type
 from urllib.parse import urlencode
 
-from requests import HTTPError, Response
+from requests import HTTPError, RequestException, Response
 
 from ilcdlib.dto import Category, IlcdReference, ListResponseMeta, ProcessBasicInfo, ProcessSearchResponse
 from ilcdlib.entity.category import CategorySystemReader
@@ -90,7 +90,21 @@ class Soda4LcaXmlApiClient(BaseApiClient):
         )
         return BytesIO(response.content)
 
-    def get_download_epd_document_link(self, process_uuid: str, version: str | None = None) -> str | None:
+    def _verify_url(self, url: str, http_method: str = "head") -> str | None:
+        """
+        Verify if the given URL exists (reachable from current host by given http method).
+
+        :return: URL if it exists, None otherwise
+        """
+        try:
+            self._do_request(http_method, url)
+        except RequestException:
+            return None
+        return url
+
+    def get_download_epd_document_link(
+        self, process_uuid: str, version: str | None = None, verify: bool = True
+    ) -> str | None:
         """
         Get link to download an EPD document (typically in PDF format).
 
@@ -98,6 +112,7 @@ class Soda4LcaXmlApiClient(BaseApiClient):
 
         :param str process_uuid: UUID of the process
         :param str version: version of the process (optional)
+        :param verify: if True, the method will check if document behind url exists
         """
         params = dict()
         if version is not None:
@@ -105,8 +120,9 @@ class Soda4LcaXmlApiClient(BaseApiClient):
         url = f"{self.base_url}/processes/{self._urlencode(process_uuid)}/epd"
         if params:
             url += "?" + urlencode(params)
-        response = self._do_request("head", url, raise_for_status=False)
-        return url if response.ok else None
+        if verify:
+            return self._verify_url(url)
+        return url
 
     def get_entity_url(self, ref: IlcdReference, digital_file: str | None, verify: bool = False) -> str | None:
         """Get URL to download an ILCD entity or a digital file attached to it."""
@@ -118,8 +134,7 @@ class Soda4LcaXmlApiClient(BaseApiClient):
             url += f"/{self._urlencode(digital_file)}"
         url += "?" + urlencode(params)
         if verify:
-            response = self._do_request("head", url, raise_for_status=False)
-            return url if response.ok else None
+            return self._verify_url(url)
         return url
 
     def download_epd_document(self, process_uuid: str, version: str | None = None) -> IO[bytes]:

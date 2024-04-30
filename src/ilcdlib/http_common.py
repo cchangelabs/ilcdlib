@@ -83,7 +83,7 @@ class BaseApiClient(metaclass=abc.ABCMeta):
         *,
         xml_parser: XmlParser | None = None,
         user_agent: str | None = None,
-        timeout: float | tuple[float, float] | None = None,
+        timeout: float | tuple[float, float] | None = (2.0, 60.0),
         retry_strategy: Retry | None = None,
         requests_per_sec: float = 10,
     ) -> None:
@@ -116,6 +116,7 @@ class BaseApiClient(metaclass=abc.ABCMeta):
         """
         return Retry(
             total=5,
+            connect=2,
             backoff_factor=2,
             respect_retry_after_header=True,
             status_forcelist=frozenset({413, 429, 500, 502, 503, 504}),
@@ -138,7 +139,9 @@ class BaseApiClient(metaclass=abc.ABCMeta):
     def _current_session(self) -> requests.Session:
         if self._session is None:
             self._session = requests.Session()
-            self._session.mount("", HTTPAdapter(max_retries=self._retry_strategy))
+            http_adapter = HTTPAdapter(max_retries=self._retry_strategy)
+            self._session.mount("https://", http_adapter)
+            self._session.mount("http://", http_adapter)
         return self._session
 
     def _on_before_do_request(self):
@@ -192,6 +195,7 @@ class BaseApiClient(metaclass=abc.ABCMeta):
         headers=None,
         session: requests.Session | None = None,
         raise_for_status: bool = True,
+        timeout: float | tuple[float, float] | None = None,
         **kwargs,
     ) -> requests.Response:
         headers = headers or self.default_headers
@@ -200,7 +204,9 @@ class BaseApiClient(metaclass=abc.ABCMeta):
 
         url = self._get_url_for_request(endpoint)
 
-        request_kwargs = dict(params=params, data=data, json=json, files=files, headers=headers, timeout=self.timeout)
+        request_kwargs = dict(
+            params=params, data=data, json=json, files=files, headers=headers, timeout=timeout or self.timeout
+        )
         request_kwargs.update(kwargs)
 
         s = session or self._current_session

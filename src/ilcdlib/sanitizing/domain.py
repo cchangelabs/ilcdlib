@@ -40,11 +40,12 @@ def cleanup_website(website: str | None) -> str | None:
     """
     Try to perform cleanup of the given website address.
 
-    If just domain name is given, add https:// and trailing slash.
+    If just domain name is given, add https:// and trailing slash. If there is a space, remove everything after it.
     """
     if website is None:
         return None
-    website = website.strip()
+    # Trim whitespace and remove any part after the first space
+    website = website.strip().partition(" ")[0]
     if not website.startswith("http"):
         return "https://" + website + "/"
     return website

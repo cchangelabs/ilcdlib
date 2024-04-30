@@ -1,3 +1,22 @@
+## 4.3.0 (2024-04-30)
+
+### Feat
+
+- overwrite ITB description
+- match impact units during ingestion
+- improve impact mapping
+- cleanup text after spaces for websites
+- handle exception during when retrieving epd links
+- **epdnorge**: add epd-norge dialect
+- **oekobaudat**: add category mapping support
+- add openepd category mapping
+- add ITB verifier email
+
+### Fix
+
+- fix http client to respect retry configuration
+- **soda4lca**: remove hardcoded classification_system
+
 ## 4.2.0 (2024-04-25)
 
 ### Feat
