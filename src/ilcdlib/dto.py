@@ -17,10 +17,12 @@
 #  Charles Pankow Foundation, Microsoft Sustainability Fund, Interface, MKA Foundation, and others.
 #  Find out more at www.BuildingTransparency.org
 #
-from typing import Any, Generic, NamedTuple
+import json
+from typing import Any, Generic, NamedTuple, Self
 
 from openepd.model.base import BaseOpenEpdSchema
 from openepd.model.org import Org
+from openepd.model.specs import Specs
 
 from ilcdlib.compat.pydantic import pyd
 from ilcdlib.const import IlcdTypeOfReview
@@ -57,6 +59,57 @@ class Category(pyd.BaseModel):
     name: str | None = None
     parent_id: str | None = None
     full_path: list[str] | None = None
+
+
+class MappedCategory(Category):
+    """Represent mapping between external classification and openEPD category."""
+
+    comment: str | None = None
+    openepd_category_original: str | None = None
+    openepd_category_id: str | None = None
+    openepd_material_specs: dict[str, Any] = pyd.Field(default_factory=dict)
+
+    @pyd.root_validator
+    def parse_openepd_category_id(cls, data: dict[str, Any]) -> dict[str, Any]:
+        """
+        Parse category id.
+
+        The input string might be either just a name of the category or some human-readable name and category id in {}.
+        """
+        if "{" in (data.get("openepd_category_original", "") or ""):
+            data["openepd_category_id"] = data["openepd_category_original"][
+                : data["openepd_category_original"].index("{")
+            ].strip()
+        return data
+
+    def openepd_material_specs_as_str(self) -> str:
+        """Return openepd_material_specs as a string."""
+        result: list[str] = []
+        if not self.openepd_material_specs:
+            return ""
+        for prop_name, prop_val in self.openepd_material_specs.items():
+            if prop_val == "TRUE" or prop_val == "FALSE":
+                converted_value = prop_val
+            elif isinstance(prop_val, str):
+                converted_value = '"' + prop_val + '"'
+            elif isinstance(prop_val, (int, float)):
+                converted_value = str(prop_val)
+            else:
+                converted_value = str(prop_val)
+            result.append(f"{prop_name} = {converted_value}")
+        return ", ".join(result)
+
+    @classmethod
+    def create_from(cls, other: Self) -> Self:
+        """Create a new instance from another instance."""
+        return cls.parse_obj(json.loads(other.json()))
+
+
+class CategoryCandidate(pyd.BaseModel):
+    """Class holding information about potential category and related properties for the given object."""
+
+    category: str
+    specs: Specs = pyd.fields.Field(default_factory=Specs)
 
 
 class ListResponseMeta(pyd.BaseModel):

@@ -21,7 +21,7 @@ from openepd.model.base import OpenEpdExtension
 
 from ilcdlib import const
 from ilcdlib.compat.pydantic import pyd
-from ilcdlib.dto import IlcdContactInfo, OpenEpdIlcdOrg, ValidationDto
+from ilcdlib.dto import CategoryCandidate, IlcdContactInfo, OpenEpdIlcdOrg, ValidationDto
 
 
 class IlcdEpdExtension(OpenEpdExtension):
@@ -34,6 +34,10 @@ class IlcdEpdExtension(OpenEpdExtension):
     epd_publishers: list[OpenEpdIlcdOrg] = pyd.Field(default_factory=list, description="List of EPD publishers")
     epd_verifiers: list[ValidationDto] = pyd.Field(
         default_factory=list, description="List of EPD verifiers (both, external and internal)"
+    )
+    category_candidates: list[CategoryCandidate] = pyd.Field(
+        default_factory=list,
+        description="List of category candidates for the EPD.",
     )
 
     @classmethod

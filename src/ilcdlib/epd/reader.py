@@ -18,6 +18,7 @@
 #  Find out more at www.BuildingTransparency.org
 #
 import datetime
+import itertools
 from typing import IO, Type
 
 from openepd.model.common import Amount, Measurement
@@ -29,7 +30,15 @@ from openepd.model.standard import Standard
 from ilcdlib import const
 from ilcdlib.common import BaseIlcdMediumSpecificReader, IlcdXmlReader, OpenEpdEdpSupportReader
 from ilcdlib.const import IlcdDatasetType, IlcdTypeOfReview
-from ilcdlib.dto import ComplianceDto, IlcdReference, OpenEpdIlcdOrg, ProductClassDef, ValidationDto
+from ilcdlib.dto import (
+    CategoryCandidate,
+    ComplianceDto,
+    IlcdReference,
+    MappedCategory,
+    OpenEpdIlcdOrg,
+    ProductClassDef,
+    ValidationDto,
+)
 from ilcdlib.entity.compliance import IlcdComplianceListReader
 from ilcdlib.entity.contact import IlcdContactReader
 from ilcdlib.entity.exchage import IlcdExchangesReader
@@ -39,6 +48,7 @@ from ilcdlib.entity.material import MatMlMaterial
 from ilcdlib.entity.pcr import IlcdPcrReader
 from ilcdlib.entity.validation import IlcdValidationListReader
 from ilcdlib.extension import IlcdEpdExtension
+from ilcdlib.mapping.category import CategoryMapper, CsvCategoryMapper, NoopCategoryMapper
 from ilcdlib.mapping.compliance import StandardNameToLCIAMethodMapper, default_standard_names_to_lcia_mapper
 from ilcdlib.sanitizing.text import trim_text
 from ilcdlib.type import LangDef
@@ -639,14 +649,32 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
             return None
         return reader.get_output_flows(scenario_names)
 
-    def _product_classes_to_openepd(self, classes: dict[str, list[ProductClassDef]]) -> dict[str, list[str] | str]:
-        result: dict[str, list[str] | str] = {}
+    def _product_classes_to_openepd(self, classes: dict[str, list[ProductClassDef]]) -> dict[str, str]:
+        result: dict[str, str] = {}
         for classification_name, class_defs in classes.items():
             if len(class_defs) > 0:
                 result[classification_name] = (
                     (class_defs[-1].id or "") + " " + " / ".join([none_throws(x.name) for x in class_defs])
                 ).strip()
         return result
+
+    def _get_mapped_categories(self, product_classes: dict[str, str]) -> list[MappedCategory]:
+        candidates: list[MappedCategory] = []
+        for classification_name, class_name in product_classes.items():
+            candidates += self.get_category_mapper(classification_name).map(class_name, [])  # type: ignore
+        return candidates
+
+    def _get_category_candidates(self, mapped_categories: list[MappedCategory]) -> list[CategoryCandidate]:
+        result: list[CategoryCandidate] = []
+        for mc in mapped_categories:
+
+            candidate = CategoryCandidate(category=mc.openepd_category_id)
+            result.append(candidate)
+        buckets = itertools.groupby(result, key=lambda x: x.category)
+        return [next(v) for k, v in buckets]
+
+    def _set_specs_for_category_candidate(self, candidate: CategoryCandidate):
+        pass
 
     def to_openepd_epd(
         self, lang: LangDef, base_url: str | None = None, provider_domain: str | None = None
@@ -701,6 +729,13 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
         epd_developer = self.get_data_entry_by(lang, base_url)
         epd_developer_contact = epd_developer.get_contact() if epd_developer else None
         ilcd_validations = self.get_ilcd_validations(lang, base_url, provider_domain)
+        product_classes = self._product_classes_to_openepd(self.get_product_classes())
+        # Category mapping
+        mapped_categories = self._get_mapped_categories(product_classes)
+        category_candidates = self._get_category_candidates(mapped_categories)
+        if const.OPENEPD_PRODUCT_CLASS_NAME not in product_classes and len(category_candidates) == 1:
+            product_classes[const.OPENEPD_PRODUCT_CLASS_NAME] = category_candidates[0].category
+        # Compose the final object
         epd = Epd(
             doctype="OpenEPD",
             language=lang_code,
@@ -715,7 +750,7 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
             epd_developer=epd_developer,
             epd_developer_email=epd_developer_contact.email if epd_developer_contact else None,
             program_operator=program_operator,
-            product_classes=self._product_classes_to_openepd(self.get_product_classes()),
+            product_classes=product_classes,
             manufacturing_description=self.get_technology_description(lang),
             product_usage_description=self.get_technological_applicability(lang),
             lca_discussion=self.get_lca_discussion(lang),
@@ -742,6 +777,7 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
             dataset_uuid=self.get_uuid(),
             production_location=self.get_production_location(),
             epd_verifiers=ilcd_validations,
+            category_candidates=category_candidates,
         )
         if publisher:
             ilcd_ext.epd_publishers.append(publisher)
@@ -757,3 +793,28 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
         """
 
         return False
+
+    @classmethod
+    def _create_category_mapper(cls, classification_name: str) -> CsvCategoryMapper | None:
+        """
+        Create category mapper for this reader.
+
+        This method should be overriden by the dialect and return the category mapper for this dialect.
+        Never call this method directly. Use get_category_mapper() instead.
+        """
+        return None
+
+    def get_category_mapper(self, classification_name: str) -> CategoryMapper:
+        """Return the category mapper for this reader.
+
+        It will either return a cached on a class-level instance or create a new one if it does not exist.
+        """
+        if not hasattr(self.__class__, "_category_mapper"):
+            self.__class__._category_mappers = {}  # type: ignore[attr-defined]
+        mappers: dict[str, CategoryMapper] = self.__class__._category_mappers  # type: ignore[attr-defined]
+        if classification_name not in mappers:
+            mapper: CategoryMapper | None = self._create_category_mapper(classification_name)
+            if mapper is None:
+                mapper = NoopCategoryMapper()
+            mappers[classification_name] = mapper
+        return mappers[classification_name]
