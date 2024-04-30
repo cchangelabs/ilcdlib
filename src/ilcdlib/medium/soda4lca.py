@@ -45,6 +45,8 @@ class IlcdRemotePointer:
 class Soda4LcaZipReader(ZipIlcdReader):
     """A reader for ILCD zip archives exported from the SODA4LCA interface."""
 
+    ATTEMPTS: int = 2
+
     def __init__(self, endpoint: str):
         pointer = self.soda_endpoint_to_pointer(endpoint)
         if pointer.ref.entity_type != "processes":
@@ -52,8 +54,18 @@ class Soda4LcaZipReader(ZipIlcdReader):
         self._soda4lca_client = Soda4LcaXmlApiClient(pointer.base_url)
         self._ref = pointer.ref
         zip_url = self.create_zip_export_endpoint(pointer)
-        zip_file = self.dowload_zip_archive(zip_url)
-        super().__init__(zip_file)
+        self.download_and_validate_zip_archive(zip_url)
+
+    def download_and_validate_zip_archive(self, zip_url: str) -> None:
+        """Download and validate the zip archive."""
+        for attempt in range(self.ATTEMPTS):
+            try:
+                zip_file = self.dowload_zip_archive(zip_url)
+                ZipIlcdReader.__init__(self, zip_file)
+                return
+            except ValueError as e:
+                if attempt == self.ATTEMPTS - 1:
+                    raise e
 
     @classmethod
     def create_zip_export_endpoint(cls, pointer: IlcdRemotePointer) -> str:
