@@ -19,6 +19,7 @@
 #
 from ilcdlib.dto import IlcdContactInfo, OpenEpdIlcdOrg, ValidationDto
 from ilcdlib.epd.reader import IlcdEpdReader
+from ilcdlib.type import LangDef
 
 
 class ItbIlcdXmlEpdReader(IlcdEpdReader):
@@ -42,3 +43,11 @@ class ItbIlcdXmlEpdReader(IlcdEpdReader):
         if contact is None:
             return None
         return IlcdContactInfo.parse_obj(contact).email
+
+    def get_product_description(self, lang: LangDef) -> str | None:
+        """Return the product description in the given language."""
+        return self._get_localized_text(
+            self.epd_el_tree,
+            ("process:processInformation", "process:technology", "process:technologicalApplicability"),
+            lang,
+        )
