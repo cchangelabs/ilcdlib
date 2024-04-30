@@ -19,13 +19,18 @@
 #
 from dataclasses import dataclass
 import datetime
-from typing import TYPE_CHECKING, Any, Optional, Self, TypeVar
+import logging
+import re
+from typing import TYPE_CHECKING, Any, Final, Iterable, Optional, Self, TypeVar
 import uuid
 
 import pytz
 
 from ilcdlib import const
 from ilcdlib.sanitizing.domain import domain_from_url
+
+PATTERN_WHITESPACE_SEQUENCE: Final[re.Pattern] = re.compile(r"\s+")
+LOGGER = logging.getLogger(__name__)
 
 T = TypeVar("T")
 
@@ -75,6 +80,70 @@ def date_to_datetime(date: datetime.date | None, timezone: str = "UTC") -> datet
     if date is None:
         return None
     return datetime.datetime(year=date.year, month=date.month, day=date.day, tzinfo=pytz.timezone(timezone))
+
+
+def csv_header_to_idx(col_name: str, header: list[str], raise_when_not_found=True) -> int | None:
+    """
+    Return index of the column in CSV line by given column name (as specified in header line).
+
+    :param col_name: name as per csv header line
+    :param header: header line (list of strings)
+    :param raise_when_not_found: whether to raise `ValueError` in case when column doesn't exist in header.
+    :return: index of the given column or None if it doesn't exist and `raise_when_not_found` == False
+    """
+    col_name_normalized = col_name.lower()
+    for idx, x in enumerate(header):
+        if x.strip().lower() == col_name_normalized:
+            return idx
+    if raise_when_not_found:
+        raise ValueError(f"Column {col_name} is not found")
+    return None
+
+
+def normalize_whitespace(row: Iterable[Any]) -> list[Any]:
+    """
+    Replace multiple spaces with single space in each string object from input data.
+
+    If object is not string - nothing changed. Does not change original data, return new object.
+    :param row: row to normalize
+    :return: list with same order as input data that contains same as original non-string objects and changed
+    string objects
+    """
+    result_row = []
+    for cell_value in row:
+        if isinstance(cell_value, str):
+            cell_value = PATTERN_WHITESPACE_SEQUENCE.sub(" ", cell_value)
+        result_row.append(cell_value)
+    return result_row
+
+
+def parse_float_from_string(value: str, _locale: str | None = None) -> float | None:
+    """
+    Parse a float from a string. If the string cannot be parsed, return None.
+
+    This function should handle a various representations of floats, including scientific notations.
+    """
+    if value is None:
+        return value
+    value = value.strip().replace("\n", " ").replace(" ", "")
+    import locale
+
+    original_locale = locale.getlocale(locale.LC_NUMERIC)
+    if _locale is None:
+        locale_settings = "en_US"
+    else:
+        locale_settings = _locale
+    try:
+        try:
+            locale.setlocale(locale.LC_NUMERIC, locale_settings)
+        except locale.Error as e:
+            LOGGER.warning("Unknown number locale: %s. Original error: %s", locale_settings, e)
+        try:
+            return locale.atof(value)
+        except ValueError:
+            return None
+    finally:
+        locale.setlocale(locale.LC_NUMERIC, original_locale)
 
 
 class MarkdownSectionBuilder:
