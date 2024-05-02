@@ -35,6 +35,7 @@ class IlcdReference(NamedTuple):
     entity_type: str
     entity_id: str
     entity_version: str | None
+    entity_uri: str | None = None
 
     def to_url(self, base_url: str | None) -> str:
         """Convert the reference to a URL."""
