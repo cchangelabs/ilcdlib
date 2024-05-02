@@ -52,7 +52,7 @@ class ImpactsKeywordToOpenIdMapper(KeyValueMapper[str]):
         "ep-marine": ["marine"],
         "ep-fresh": ["freshwater", "fw"],
         "ep-terr": ["terrestrial"],
-        "odp": ["odp", "depletion"],
+        "odp": ["odp", "ozone layer"],
         "ap": ["ap", "acidification"],
         "pocp": ["pocp", "photochemical", "smog", "ozone creation"],
     }
