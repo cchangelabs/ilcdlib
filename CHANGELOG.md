@@ -1,3 +1,9 @@
+## 4.4.0 (2024-05-02)
+
+### Feat
+
+- improve impact parsing
+
 ## 4.3.0 (2024-04-30)
 
 ### Feat
