@@ -17,13 +17,19 @@
 #  Charles Pankow Foundation, Microsoft Sustainability Fund, Interface, MKA Foundation, and others.
 #  Find out more at www.BuildingTransparency.org
 #
+from typing import Any
+
 from ilcdlib.dto import IlcdContactInfo, OpenEpdIlcdOrg, ValidationDto
+from ilcdlib.entity.flow import UriBasedIlcdFlowReader
 from ilcdlib.epd.reader import IlcdEpdReader
 from ilcdlib.type import LangDef
 
 
 class ItbIlcdXmlEpdReader(IlcdEpdReader):
     """Reader for EPDs in the Itb specific ILCD XML format."""
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs, flow_reader_cls=UriBasedIlcdFlowReader)
 
     @classmethod
     def is_known_url(cls, url: str) -> bool:

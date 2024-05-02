@@ -20,6 +20,7 @@
 import abc
 import datetime
 import logging
+import re
 from typing import IO, Literal, Self, Sequence, TextIO, overload
 
 from openepd.model.epd import Epd
@@ -176,6 +177,8 @@ class IlcdXmlReader:
     """Base class for ILCD xml readers. It provides a set of helper methods to read ILCD data from ILCD xml."""
 
     _LANG_ATTRIB_NAME = "{http://www.w3.org/XML/1998/namespace}lang"
+    _UUID_REGEX = re.compile(r"uuid=([0-9a-fA-F\-]{36})")
+    ALLOW_URI_BASED_LOOKUP: bool = False
 
     def __init__(self, data_provider: BaseIlcdMediumSpecificReader):
         self.data_provider = data_provider
@@ -200,14 +203,33 @@ class IlcdXmlReader:
         )
         self.__logger = logging.Logger(__name__)
 
+    def allow_uri_based_lookup(self) -> bool:
+        """Return whether URI based lookup is allowed."""
+        return self.ALLOW_URI_BASED_LOOKUP
+
     def remap_xml_ns(self, doc_ns_map: dict[str, str]) -> None:
         """Remap XML namespaces."""
         for n, url in doc_ns_map.items():
             if url and url.endswith("EPD/2019"):  # Some providers use outdated, non-standard namespace
                 self.xml_parser.xml_ns["epd2019"] = url
 
+    def get_xml_for_entity(
+        self, provider: BaseIlcdMediumSpecificReader, entity_type: str, entity_id: str, entity_version: str | None
+    ) -> T_ET.Element | None:
+        """Attempt to fetch XML for given entity details and return it if successful."""
+        if provider.entity_exists(entity_type, entity_id, entity_version):
+            with provider.get_entity_stream(entity_type, entity_id, entity_version) as stream:
+                return self.xml_parser.get_xml_tree(stream)
+        return None
+
     def get_xml_tree(
-        self, entity_type: str, entity_id: str, entity_version: str | None, *, allow_static_datasets: bool = True
+        self,
+        entity_type: str,
+        entity_id: str,
+        entity_version: str | None,
+        *,
+        entity_uri: str | None = None,
+        allow_static_datasets: bool = True,
     ) -> T_ET.Element:
         """
         Get the xml tree for the given entity.
@@ -215,6 +237,7 @@ class IlcdXmlReader:
         :param entity_type: The type of the entity. e.g. "process", "contact", "flow", etc.
         :param entity_id: The id of the entity, typically a GUID.
         :param entity_version: The version of the entity e.g. 12.34.56
+        :param entity_uri: The url of the entity e.g. https://epdnorway.lca-data.com/datasetdetail/flowproperty.xhtml?uuid=01846770-4cfe-4a25-8ad9-919d8d378345
         :param allow_static_datasets: whether to allow to check entity in static datasets if it doesn't
                                       exist in the given one.
         :raise: ValueError if the entity does not exist.
@@ -224,10 +247,17 @@ class IlcdXmlReader:
                 return self.xml_parser.get_xml_tree(stream)
         except ValueError:
             if allow_static_datasets:
+                uuid_from_uri = self._UUID_REGEX.search(entity_uri) if entity_uri else None
+                uuid = uuid_from_uri.group(1) if uuid_from_uri else None
                 for dataset_name, dataset_provider in self.reference_data_providers.items():
-                    if dataset_provider.entity_exists(entity_type, entity_id, entity_version):
-                        with dataset_provider.get_entity_stream(entity_type, entity_id, entity_version) as stream:
-                            return self.xml_parser.get_xml_tree(stream)
+                    xml_tree = self.get_xml_for_entity(dataset_provider, entity_type, entity_id, entity_version)
+                    if xml_tree:
+                        return xml_tree
+                    if self.allow_uri_based_lookup() and uuid:
+                        xml_tree = self.get_xml_for_entity(dataset_provider, entity_type, uuid, entity_version)
+                        if xml_tree:
+                            return xml_tree
+
         raise ValueError(f"Entity {entity_id} version {entity_version} (type: {entity_type}) does not exist.")
 
     def _preprocess_path(self, path: XmlPath) -> str:
@@ -343,13 +373,14 @@ class IlcdXmlReader:
             return default_value
         ref_id = el.attrib.get("refObjectId", None)
         ref_type = el.attrib.get("type", None)
+        ref_uri = el.attrib.get("uri", None)
         if ref_id is None or ref_type is None:
             return default_value
         try:
             ref_type = IlcdDatasetType(ref_type)
         except ValueError:
             pass
-        return IlcdReference(ref_type, ref_id, entity_version=None)
+        return IlcdReference(ref_type, ref_id, entity_version=None, entity_uri=ref_uri)
 
     def _get_external_tree(self, root: T_ET.Element, path: XmlPath) -> T_ET.Element | None:
         """
@@ -368,7 +399,13 @@ class IlcdXmlReader:
         if ref is None:
             return None
         try:
-            return self.get_xml_tree(ref.entity_type, ref.entity_id, ref.entity_version, allow_static_datasets=True)
+            return self.get_xml_tree(
+                ref.entity_type,
+                ref.entity_id,
+                ref.entity_version,
+                entity_uri=ref.entity_uri,
+                allow_static_datasets=True,
+            )
         except ValueError as e:
             self.__logger.warning(e)
             return None

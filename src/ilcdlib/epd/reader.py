@@ -96,7 +96,10 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
             self.__epd_entity_ref = entities[0]
         else:
             self.__epd_entity_ref = IlcdReference(IlcdDatasetType.Processes, epd_process_id, epd_version)
-        self.epd_el_tree = self.get_xml_tree(*self.__epd_entity_ref, allow_static_datasets=False)
+        entity_type, entity_id, entity_version, entity_uri = self.__epd_entity_ref
+        self.epd_el_tree = self.get_xml_tree(
+            entity_type, entity_id, entity_version, entity_uri=entity_uri, allow_static_datasets=False
+        )
         self.remap_xml_ns(self.epd_el_tree.nsmap)  # type: ignore
         self.post_init()
 

@@ -199,3 +199,9 @@ class IlcdFlowReader(IlcdXmlReader):
                 )
             )
         return result
+
+
+class UriBasedIlcdFlowReader(IlcdFlowReader):
+    """Read an ILCD Flow XML file with URI based lookup enabled."""
+
+    ALLOW_URI_BASED_LOOKUP: bool = True
