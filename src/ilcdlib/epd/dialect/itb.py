@@ -22,11 +22,14 @@ from typing import Any
 from ilcdlib.dto import IlcdContactInfo, OpenEpdIlcdOrg, ValidationDto
 from ilcdlib.entity.flow import UriBasedIlcdFlowReader
 from ilcdlib.epd.reader import IlcdEpdReader
+from ilcdlib.html.api_client import HTMLPageClient
 from ilcdlib.type import LangDef
 
 
 class ItbIlcdXmlEpdReader(IlcdEpdReader):
     """Reader for EPDs in the Itb specific ILCD XML format."""
+
+    EXTRA_WEBSITE_URL = "https://www.itb.pl/itb-epds/"
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs, flow_reader_cls=UriBasedIlcdFlowReader)
@@ -57,3 +60,20 @@ class ItbIlcdXmlEpdReader(IlcdEpdReader):
             ("process:processInformation", "process:technology", "process:technologicalApplicability"),
             lang,
         )
+
+    def get_pdf_url(self) -> str | None:
+        """
+        Return the URL of the PDF.
+
+        If not found, return the URL of the HTML page by the EPD program operator doc ID.
+        """
+        pdf_url = super().get_pdf_url()
+        if pdf_url:
+            return pdf_url
+
+        doc_id = self.get_program_operator_id()
+        if not doc_id:
+            return None
+
+        html_client = HTMLPageClient(self.EXTRA_WEBSITE_URL)
+        return html_client.fetch_first_matching_href(f"EPD {doc_id.split('/')[0]}")

@@ -770,7 +770,7 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
         if own_ref:
             epd.set_alt_id(provider_domain, own_ref.entity_id)
 
-        pdf_url = self.data_provider.get_pdf_url()
+        pdf_url = self.get_pdf_url()
         epd.set_attachment_if_any(const.PDF_ATTACHMENT, pdf_url)
         epd.set_attachment_if_any(const.URL_ATTACHMENT, self.get_url_attachment(lang))
 
@@ -786,6 +786,10 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
             ilcd_ext.epd_publishers.append(publisher)
         epd.set_ext(ilcd_ext)
         return epd
+
+    def get_pdf_url(self) -> str | None:
+        """Return URL to the PDF attachment."""
+        return self.data_provider.get_pdf_url()
 
     @classmethod
     def is_known_url(cls, url: str) -> bool:
