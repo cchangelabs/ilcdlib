@@ -1,3 +1,9 @@
+## 4.6.0 (2024-05-17)
+
+### Feat
+
+- **epdnorge**: add support for Norge EPDs
+
 ## 4.5.0 (2024-05-02)
 
 ### Feat
