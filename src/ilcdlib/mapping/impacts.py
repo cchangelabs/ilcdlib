@@ -48,7 +48,7 @@ class ImpactsKeywordToOpenIdMapper(KeyValueMapper[str]):
     KV = {
         "gwp-biogenic": ["biogenic"],
         "gwp-luluc": ["luluc"],
-        "gwp-nonCO2": ["CO2"],
+        "gwp-nonCO2": ["CO2", "non fossil"],
         "ep-marine": ["marine"],
         "ep-fresh": ["freshwater", "fw"],
         "ep-terr": ["terrestrial"],
