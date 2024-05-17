@@ -17,9 +17,12 @@
 #  Charles Pankow Foundation, Microsoft Sustainability Fund, Interface, MKA Foundation, and others.
 #  Find out more at www.BuildingTransparency.org
 #
-from ilcdlib.dto import MappedCategory
+import datetime
+
+from ilcdlib.dto import IlcdContactInfo, MappedCategory, OpenEpdIlcdOrg, ValidationDto
 from ilcdlib.epd.reader import IlcdEpdReader
 from ilcdlib.mapping.category import CsvCategoryMapper
+from ilcdlib.type import LangDef
 
 
 class EpdNorgeCategoryMapper(CsvCategoryMapper):
@@ -39,6 +42,7 @@ class EpdNorgeIlcdXmlEpdReader(IlcdEpdReader):
     """Reader for EPDs in the EpdNorge specific ILCD XML format."""
 
     EPDNORGE_CLASSIFICATION_NAME = "epdnorge"
+    _TIME_REPR_DESC_DELIMITER = "\r\n"
 
     @classmethod
     def is_known_url(cls, url: str) -> bool:
@@ -51,3 +55,58 @@ class EpdNorgeIlcdXmlEpdReader(IlcdEpdReader):
         if classification_name.lower() == cls.EPDNORGE_CLASSIFICATION_NAME:
             return EpdNorgeCategoryMapper.from_file("epdnorge.csv")
         return None
+
+    def get_third_party_verifier_email(self, validations: list[ValidationDto]) -> OpenEpdIlcdOrg | None:
+        """
+        Return first third party verifier email.
+
+        EpdNorge contains personal info instead of organization info.
+        """
+        verifier = self.get_third_party_verifier(validations)
+        if not verifier:
+            return None
+        contact = verifier.get_contact()
+        if contact is None:
+            return None
+        return IlcdContactInfo.parse_obj(contact).email
+
+    def get_product_description(self, lang: LangDef) -> str | None:
+        """Return the product description in the given language."""
+        return self._get_localized_text(
+            self.epd_el_tree,
+            ("process:processInformation", "process:technology", "process:technologicalApplicability"),
+            lang,
+        )
+
+    def _get_time_repr_description(self) -> str | None:
+        return self._get_localized_text(
+            self.epd_el_tree,
+            (
+                "process:processInformation",
+                "process:time",
+                "common:timeRepresentativenessDescription",
+            ),
+            ("en", None),
+        )
+
+    def get_validity_ends_date(self) -> datetime.date | None:
+        """Return the date the EPD is valid until."""
+        descr = self._get_time_repr_description()
+        if descr and self._TIME_REPR_DESC_DELIMITER in descr:
+            try:
+                date_str = descr.split(self._TIME_REPR_DESC_DELIMITER)[1].strip().rsplit(" ", 1)[-1].strip()
+                return datetime.date.fromisoformat(date_str)
+            except Exception:
+                pass
+        return super().get_validity_ends_date()
+
+    def get_date_published(self) -> datetime.date | None:
+        """Return the date the EPD was published."""
+        descr = self._get_time_repr_description()
+        if descr and self._TIME_REPR_DESC_DELIMITER in descr:
+            try:
+                date_str = descr.split(self._TIME_REPR_DESC_DELIMITER)[0].strip().rsplit(" ", 1)[-1].strip()
+                return datetime.date.fromisoformat(date_str)
+            except Exception:
+                pass
+        return super().get_date_published()
