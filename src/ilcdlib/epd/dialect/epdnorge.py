@@ -19,7 +19,7 @@
 #
 import datetime
 
-from ilcdlib.dto import IlcdContactInfo, MappedCategory, OpenEpdIlcdOrg, ValidationDto
+from ilcdlib.dto import MappedCategory, OpenEpdIlcdOrg, ValidationDto
 from ilcdlib.epd.reader import IlcdEpdReader
 from ilcdlib.mapping.category import CsvCategoryMapper
 from ilcdlib.type import LangDef
@@ -56,19 +56,30 @@ class EpdNorgeIlcdXmlEpdReader(IlcdEpdReader):
             return EpdNorgeCategoryMapper.from_file("epdnorge.csv")
         return None
 
-    def get_third_party_verifier_email(self, validations: list[ValidationDto]) -> OpenEpdIlcdOrg | None:
+    def get_third_party_verifier(self, validations: list[ValidationDto]) -> OpenEpdIlcdOrg | None:
         """
-        Return first third party verifier email.
+        Return the third party verifier.
 
-        EpdNorge contains personal info instead of organization info.
+        EPD Norge contains personal info instead of organization info.
         """
-        verifier = self.get_third_party_verifier(validations)
-        if not verifier:
-            return None
-        contact = verifier.get_contact()
-        if contact is None:
-            return None
-        return IlcdContactInfo.parse_obj(contact).email
+        validation_reader = self.get_validation_reader()
+        validation_el = validation_reader.entity if validation_reader else None
+        reviewer_el = (
+            self._get_el(validation_el[0], ("common:referenceToNameOfReviewerAndInstitution",))
+            if validation_el
+            else None
+        )
+        third_party_verifier = super().get_third_party_verifier(validations)
+        if reviewer_el:
+            reviewer_name = self._get_localized_text(reviewer_el, ("common:shortDescription",), ("en", None))
+            if not reviewer_name:
+                return third_party_verifier
+            normalized_reviewer_name = reviewer_name.split("-")[0].strip()
+            if not third_party_verifier:
+                third_party_verifier = OpenEpdIlcdOrg(name=normalized_reviewer_name)
+            else:
+                third_party_verifier.name = normalized_reviewer_name
+        return third_party_verifier
 
     def get_product_description(self, lang: LangDef) -> str | None:
         """Return the product description in the given language."""
