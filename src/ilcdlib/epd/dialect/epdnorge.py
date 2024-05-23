@@ -121,3 +121,19 @@ class EpdNorgeIlcdXmlEpdReader(IlcdEpdReader):
             except Exception:
                 pass
         return super().get_date_published()
+
+    def get_data_entry_by(self, lang: LangDef, base_url: str | None = None) -> OpenEpdIlcdOrg | None:
+        """Return the data entry by org."""
+        developer = self._get_localized_text(
+            self.epd_el_tree,
+            (
+                "process:administrativeInformation",
+                "process:dataGenerator",
+                "common:referenceToPersonOrEntityGeneratingTheDataSet",
+                "common:shortDescription",
+            ),
+            ("en", None),
+        )
+        if developer:
+            return OpenEpdIlcdOrg(name=developer)
+        return super().get_data_entry_by(lang, base_url)
