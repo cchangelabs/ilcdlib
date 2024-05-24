@@ -39,18 +39,18 @@ class IlcdValidationReader(IlcdXmlReader):
         contact_reader_cls: Type[IlcdContactReader] = IlcdContactReader,
     ):
         super().__init__(data_provider)
-        self._entity = element
+        self.entity = element
         self.contact_reader_cls = contact_reader_cls
 
     def get_validation(
         self, lang: LangDef, base_url: str | None = None, provider_domain: str | None = None
     ) -> ValidationDto | None:
         """Return single validation entity."""
-        tree = self._get_external_tree(self._entity, ("common:referenceToNameOfReviewerAndInstitution",))
+        tree = self._get_external_tree(self.entity, ("common:referenceToNameOfReviewerAndInstitution",))
         if tree is None:
             return None
         if contact := self.contact_reader_cls(tree, self.data_provider):
-            review_type = self._entity.attrib.get("type")
+            review_type = self.entity.attrib.get("type")
             validation = ValidationDto(
                 validation_type=IlcdTypeOfReview(review_type) if review_type else None,
                 org=contact.to_openepd_org(lang, base_url, provider_domain),
@@ -70,7 +70,7 @@ class IlcdValidationListReader(IlcdXmlReader):
         validation_reader_cls: Type[IlcdValidationReader] = IlcdValidationReader,
     ):
         super().__init__(data_provider)
-        self._entity = element
+        self.entity = element
         self.validation_reader_cls = validation_reader_cls
 
     def get_validations(
@@ -78,7 +78,7 @@ class IlcdValidationListReader(IlcdXmlReader):
     ) -> list[ValidationDto]:
         """Return all validation data."""
         result = []
-        for validation_el in self._entity:
+        for validation_el in self.entity:
             if validation_data := self.validation_reader_cls(validation_el, self.data_provider):
                 if validation := validation_data.get_validation(lang, base_url, provider_domain):
                     result.append(validation)
