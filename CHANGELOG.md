@@ -1,3 +1,10 @@
+## 4.7.0 (2024-05-24)
+
+### Feat
+
+- **epd-norge**: extract correct EPD Norge developer
+- **epd-norge**: overwrite third party name
+
 ## 4.6.0 (2024-05-17)
 
 ### Feat
