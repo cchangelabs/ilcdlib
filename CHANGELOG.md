@@ -1,3 +1,10 @@
+## 4.8.0 (2024-05-31)
+
+### Feat
+
+- **impacts**: improve gwp-biogenic search
+- **epd**: replace extra text for pcr
+
 ## 4.7.0 (2024-05-24)
 
 ### Feat
