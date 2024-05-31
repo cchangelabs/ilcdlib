@@ -24,6 +24,7 @@ from typing import IO, Type
 from openepd.model.common import Amount, Measurement
 from openepd.model.epd import Epd
 from openepd.model.lcia import Impacts, ImpactSet, OutputFlowSet, ResourceUseSet
+from openepd.model.pcr import Pcr
 from openepd.model.specs import Specs
 from openepd.model.standard import Standard
 
@@ -608,6 +609,12 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
             ("process:administrativeInformation", "process:publicationAndOwnership", "common:registrationNumber"),
         )
 
+    def get_pcr(self, lang: LangDef, base_url: str | None = None) -> Pcr | None:
+        """Return the PCR."""
+        pcr_reader = self.get_pcr_reader()
+        pcr = pcr_reader.to_openepd_pcr(lang, base_url) if pcr_reader else None
+        return pcr
+
     def get_lcia_results_reader(self) -> IlcdLciaResultsReader | None:
         """Return the LCIA results reader."""
         element = self._get_el(
@@ -698,8 +705,6 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
         program_operator = (
             program_operator_reader.to_openepd_org(lang, base_url, provider_domain) if program_operator_reader else None
         )
-        pcr_reader = self.get_pcr_reader()
-        pcr = pcr_reader.to_openepd_pcr(lang, base_url) if pcr_reader else None
         declared_unit = self.get_declared_unit()
         quantitative_props = self.get_quantitative_product_props_str(lang)
         own_ref = self.get_own_reference()
@@ -759,7 +764,7 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
             lca_discussion=self.get_lca_discussion(lang),
             third_party_verifier=self.get_third_party_verifier(ilcd_validations),
             third_party_verifier_email=self.get_third_party_verifier_email(ilcd_validations),
-            pcr=pcr,
+            pcr=self.get_pcr(lang, base_url),
             declared_unit=declared_unit,
             impacts=self.get_impacts(scenario_names, lca_method=lcia_method),
             resource_uses=self.get_resource_uses(scenario_names),
