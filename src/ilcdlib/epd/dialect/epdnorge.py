@@ -19,6 +19,8 @@
 #
 import datetime
 
+from openepd.model.pcr import Pcr
+
 from ilcdlib.dto import MappedCategory, OpenEpdIlcdOrg, ValidationDto
 from ilcdlib.epd.reader import IlcdEpdReader
 from ilcdlib.mapping.category import CsvCategoryMapper
@@ -137,3 +139,14 @@ class EpdNorgeIlcdXmlEpdReader(IlcdEpdReader):
         if developer:
             return OpenEpdIlcdOrg(name=developer)
         return super().get_data_entry_by(lang, base_url)
+
+    def get_pcr(self, lang: LangDef, base_url: str | None = None) -> Pcr | None:
+        """Return the PCR."""
+        pcr = super().get_pcr(lang, base_url)
+        if pcr is not None and pcr.name:
+            pcr.name = (
+                pcr.name.replace("Product descriptions and scenarios are based on", "")
+                .replace("This also applies for inorganic coatings", "")
+                .strip()
+            )
+        return pcr
