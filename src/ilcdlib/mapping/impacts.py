@@ -46,7 +46,6 @@ class ImpactsKeywordToOpenIdMapper(KeyValueMapper[str]):
     """Map keywords to openEPD impact names.""" ""
 
     KV = {
-        "gwp-biogenic": ["biogenic"],
         "gwp-luluc": ["luluc"],
         "gwp-nonCO2": ["CO2", "non fossil"],
         "ep-marine": ["marine"],
@@ -62,6 +61,7 @@ class ImpactsRegexToOpenIdMapper(RegexMapper[str]):
     """Map impact names using regex.""" ""
 
     PATTERNS = {
+        "gwp-biogenic": r"^(?!.*\b(non|except|IOBC)\b)(?=.*\b(biogenic)\b)(?=.*\b(gwp|global warming)\b).*$",
         "gwp-fossil": r"^(?!.*\bnon\b)(?=.*\b(fossil)\b)(?=.*\b(gwp|global warming)\b).*$",
         "gwp": r"^(?!.*\b(fossil|luluc|CO2|total)\b)(?=.*\b(gwp|global warming)\b).*$",
     }
