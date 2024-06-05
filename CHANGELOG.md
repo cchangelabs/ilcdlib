@@ -1,3 +1,9 @@
+## 4.9.0 (2024-06-05)
+
+### Feat
+
+- **epd**: update gwp mapping regex
+
 ## 4.8.0 (2024-05-31)
 
 ### Feat
