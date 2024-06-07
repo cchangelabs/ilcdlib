@@ -13,10 +13,6 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-#  This software was developed with support from the Skanska USA,
-#  Charles Pankow Foundation, Microsoft Sustainability Fund, Interface, MKA Foundation, and others.
-#  Find out more at www.BuildingTransparency.org
-#
 import argparse
 import sys
 
@@ -57,7 +53,7 @@ def main(argv: list[str]):
     app_manager = CliAppManager(
         "ilcdtool",
         description="CLI tool for ILCD data manipulation",
-        epilog=f"ILCD Tool is an open-source developed and maintained by BuildingTransparency.org.\n"
+        epilog=f"ILCD is an open-source tool developed and maintained by C-Change Labs.\n"
         f"\nVersion {__version__.VERSION}",
     )
     app_manager.parse_and_handle_global()
