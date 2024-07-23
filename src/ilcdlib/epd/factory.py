@@ -16,6 +16,7 @@
 from typing import Type
 
 from ilcdlib.epd.dialect.environdec import EnvirondecIlcdXmlEpdReader
+from ilcdlib.epd.dialect.epddenmark import EpdDenmarkIlcdXmlEpdReader
 from ilcdlib.epd.dialect.epditaly import EpdItalyIlcdXmlEpdReader
 from ilcdlib.epd.dialect.epdnorge import EpdNorgeIlcdXmlEpdReader
 from ilcdlib.epd.dialect.indata import IndataIlcdXmlEpdReader
@@ -35,6 +36,7 @@ class EpdReaderFactory:
         "epditaly": EpdItalyIlcdXmlEpdReader,
         "itb": ItbIlcdXmlEpdReader,
         "epdnorge": EpdNorgeIlcdXmlEpdReader,
+        "epddenmark": EpdDenmarkIlcdXmlEpdReader,
     }
     DEFAULT_READER_CLASS = IlcdEpdReader
 

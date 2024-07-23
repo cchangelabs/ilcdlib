@@ -124,7 +124,7 @@ class BaseIlcdScopeSetsReader(IlcdXmlReader):
             return None
         measurement = Measurement(mean=value, unit=unit_name)
 
-        if scenario_name is None:
+        if scenario_name is None or scenario_name == "Standard scenario":
             if ScopeSet.is_allowed_field_name(module_name):  # type: ignore
                 scopes[module_name] = measurement
             else:
