@@ -13,13 +13,9 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-#  This software was developed with support from the Skanska USA,
-#  Charles Pankow Foundation, Microsoft Sustainability Fund, Interface, MKA Foundation, and others.
-#  Find out more at www.BuildingTransparency.org
-#
 from hashlib import sha1
 from io import BytesIO
-from typing import IO, Iterable, Type
+from typing import IO, Any, Iterable, Type
 from urllib.parse import urlencode
 
 from requests import HTTPError, RequestException, Response
@@ -158,9 +154,24 @@ class Soda4LcaXmlApiClient(BaseApiClient):
                 ) from e
             raise e
 
-    def get_total_size(self):
+    def _get_endpoint(self, params: Any) -> str:
+        """Determine the API endpoint based on dataStocks or datastocks parameters."""
+        endpoint = "/processes"
+        datastock_id = params.pop("dataStocks", None) or params.pop("datastocks", None)
+        if datastock_id:
+            endpoint = f"/datastocks/{datastock_id}/processes"
+        return endpoint
+
+    def get_total_size(self, **other_params):
         """Get total number of processes."""
-        response = self._do_request("get", "/processes", params={"pageSize": 1})
+        endpoint = self._get_endpoint(other_params)
+        params = dict(
+            search="true",
+            format="xml",
+            pageSize=1,
+            **other_params,
+        )
+        response = self._do_request("get", endpoint, params=params)
         xml_response = T_ET.fromstring(response.content)
         return int(xml_response.attrib.get(f"{{{self.ns['sapi']}}}totalSize", 0))
 
@@ -186,7 +197,8 @@ class Soda4LcaXmlApiClient(BaseApiClient):
         if lang is not None:
             params["lang"] = lang
             params["langFallback"] = True
-        response = self._do_request("get", "/processes", params=params)
+        endpoint = self._get_endpoint(params)
+        response = self._do_request("get", endpoint, params=params)
 
         return self.__search_processes_xml(response)
 

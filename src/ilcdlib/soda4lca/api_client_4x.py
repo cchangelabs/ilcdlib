@@ -13,10 +13,6 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-#  This software was developed with support from the Skanska USA,
-#  Charles Pankow Foundation, Microsoft Sustainability Fund, Interface, MKA Foundation, and others.
-#  Find out more at www.BuildingTransparency.org
-#
 from ilcdlib.dto import Category, ProcessBasicInfo
 from ilcdlib.soda4lca.api_client import Soda4LcaXmlApiClient
 

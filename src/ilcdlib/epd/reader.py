@@ -13,10 +13,6 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-#  This software was developed with support from the Skanska USA,
-#  Charles Pankow Foundation, Microsoft Sustainability Fund, Interface, MKA Foundation, and others.
-#  Find out more at www.BuildingTransparency.org
-#
 import datetime
 import itertools
 from typing import IO, Type
@@ -659,6 +655,18 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
             return None
         return reader.get_output_flows(scenario_names)
 
+    def get_program_operator(
+        self,
+        program_operator_reader: IlcdContactReader | None,
+        lang: LangDef,
+        base_url: str | None = None,
+        provider_domain: str | None = None,
+    ) -> OpenEpdIlcdOrg | None:
+        """Return the program operator."""
+        return (
+            program_operator_reader.to_openepd_org(lang, base_url, provider_domain) if program_operator_reader else None
+        )
+
     def _product_classes_to_openepd(self, classes: dict[str, list[ProductClassDef]]) -> dict[str, str]:
         result: dict[str, str] = {}
         for classification_name, class_defs in classes.items():
@@ -702,9 +710,7 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
         publisher_reader = self.get_publisher_reader()
         publisher = publisher_reader.to_openepd_org(lang, base_url, provider_domain) if publisher_reader else None
         program_operator_reader = self.get_program_operator_reader()
-        program_operator = (
-            program_operator_reader.to_openepd_org(lang, base_url, provider_domain) if program_operator_reader else None
-        )
+        program_operator = self.get_program_operator(program_operator_reader, lang, base_url, provider_domain)
         declared_unit = self.get_declared_unit()
         quantitative_props = self.get_quantitative_product_props_str(lang)
         own_ref = self.get_own_reference()

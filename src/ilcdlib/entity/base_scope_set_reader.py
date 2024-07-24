@@ -13,10 +13,6 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-#  This software was developed with support from the Skanska USA,
-#  Charles Pankow Foundation, Microsoft Sustainability Fund, Interface, MKA Foundation, and others.
-#  Find out more at www.BuildingTransparency.org
-#
 from typing import Type
 
 from openepd.model.base import BaseOpenEpdSchema
@@ -128,7 +124,7 @@ class BaseIlcdScopeSetsReader(IlcdXmlReader):
             return None
         measurement = Measurement(mean=value, unit=unit_name)
 
-        if scenario_name is None:
+        if scenario_name is None or scenario_name == "Standard scenario":
             if ScopeSet.is_allowed_field_name(module_name):  # type: ignore
                 scopes[module_name] = measurement
             else:

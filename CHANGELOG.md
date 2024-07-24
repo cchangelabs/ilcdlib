@@ -1,3 +1,10 @@
+## 4.10.0 (2024-07-24)
+
+### Feat
+
+- **epd**: integrate EPD Denmark
+- add datastock argument support while searching for processes
+
 ## 4.9.0 (2024-06-05)
 
 ### Feat
