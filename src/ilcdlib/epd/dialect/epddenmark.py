@@ -25,6 +25,8 @@ from ilcdlib.type import LangDef
 class EpdDenmarkIlcdXmlEpdReader(IlcdEpdReader):
     """Reader for EPDs in the Denmark specific ILCD XML format."""
 
+    DENMARK_LANG_CODE: str = "da"
+
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs, flow_reader_cls=UriBasedIlcdFlowReader)
 
@@ -57,3 +59,22 @@ class EpdDenmarkIlcdXmlEpdReader(IlcdEpdReader):
             if program_operator_name:
                 return OpenEpdIlcdOrg(name=program_operator_name)
         return super().get_program_operator(program_operator_reader, lang, base_url, provider_domain)
+
+    def get_lang_code(self, lang: LangDef) -> str | None:
+        """Return the language of the PDF."""
+        pdf_title = self._get_localized_text(
+            self.epd_el_tree,
+            (
+                "process:modellingAndValidation",
+                "process:dataSourcesTreatmentAndRepresentativeness",
+                "common:other",
+                "epd2019:referenceToOriginalEPD",
+                "common:shortDescription",
+            ),
+            ("en", None),
+        )
+        return (
+            self.DENMARK_LANG_CODE
+            if pdf_title and pdf_title.lower().endswith(f"-{self.DENMARK_LANG_CODE}")
+            else super().get_lang_code(lang)
+        )
