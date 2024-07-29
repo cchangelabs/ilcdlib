@@ -120,6 +120,13 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
                 result.append(none_throws(x.attrib.get(self._LANG_ATTRIB_NAME)))
         return result
 
+    def get_lang_code(self, lang: LangDef) -> str | None:
+        """Return the language of the PDF."""
+        lang_code = lang if isinstance(lang, str) else None
+        if not isinstance(lang, str) and lang is not None:
+            lang_code = lang[0] if len(lang) > 0 else None
+        return lang_code
+
     def get_own_reference(self) -> IlcdReference | None:
         """Get the reference to this data set."""
         return IlcdReference(entity_type="processes", entity_id=self.get_uuid(), entity_version=self.get_version())
@@ -700,9 +707,7 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
         """Return the EPD as OpenEPD object."""
         if provider_domain is None:
             provider_domain = provider_domain_name_from_url(base_url)
-        lang_code = lang if isinstance(lang, str) else None
-        if not isinstance(lang, str) and lang is not None:
-            lang_code = lang[0] if len(lang) > 0 else None
+        lang_code = self.get_lang_code(lang)
         manufacturer_reader = self.get_manufacturer_reader()
         manufacturer = (
             manufacturer_reader.to_openepd_org(lang, base_url, provider_domain) if manufacturer_reader else None
