@@ -39,7 +39,7 @@ class LciaTestCase(TestCase):
     def test_missing_a1a2a3_impact(self):
         """If A1A2A3 values is missing, it should be calculated as sum of a1,a2,a3."""
 
-        impacts = self.epd_reader.to_openepd_epd(self.LANG).impacts.as_dict()
+        impacts = self.epd_reader.to_openepd_declaration(self.LANG).impacts.as_dict()
         impacts_value = list(impacts.values())[0].to_serializable()
 
         ext = impacts_value.pop("ext")

@@ -71,7 +71,7 @@ class EpdReaderTestCase(BaseEpdReaderTestCase):
         self.assertEqual(self.epd_reader.get_scenario_names(self.LANG), {"S1": "100% recycling", "S2": "Scenario 2"})
 
     def test_to_openepd(self):
-        openepd_org = self.epd_reader.to_openepd_epd("de")
+        openepd_org = self.epd_reader.to_openepd_declaration("de")
         if openepd_org:
             print(openepd_org.json(indent=2))
 

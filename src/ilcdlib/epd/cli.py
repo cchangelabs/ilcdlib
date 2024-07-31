@@ -19,9 +19,9 @@ from pathlib import Path
 from cli_rack import CLI
 from cli_rack.modular import CliExtension
 from cli_rack.utils import ensure_dir
-from openepd.model.epd import Epd
+from openepd.model.declaration import BaseDeclaration
 
-from ilcdlib.epd.factory import EpdReaderFactory
+from ilcdlib.epd.factory import DeclarationReaderFactory
 from ilcdlib.epd.reader import IlcdEpdReader
 from ilcdlib.medium.archive import ZipIlcdReader
 from ilcdlib.medium.soda4lca import Soda4LcaZipReader
@@ -137,7 +137,7 @@ class ConvertEpdCliExtension(CliExtension):
             CLI.fail("Extracting PDF requires saving the input document. Consider adding -s flag", 1)
         if target_dir.is_file():
             CLI.fail(f"Target directory {target_dir} is a file. It must be either dir or nor existing path.", 1)
-        epd_reader_factory = EpdReaderFactory()
+        epd_reader_factory = DeclarationReaderFactory()
         if dialect is not None and not epd_reader_factory.is_dialect_supported(dialect):
             CLI.fail(f"Dialect {dialect} is not supported.", 3)
         for doc in doc_refs:
@@ -157,7 +157,7 @@ class ConvertEpdCliExtension(CliExtension):
     def process_single_doc(
         self,
         doc_ref: str,
-        epd_reader_factory: EpdReaderFactory,
+        epd_reader_factory: DeclarationReaderFactory,
         *,
         dialect: str | None,
         in_format: str,
@@ -195,13 +195,20 @@ class ConvertEpdCliExtension(CliExtension):
             lang_list.insert(0, "en")
         CLI.print_info("Language priority: " + ",".join([x if x is not None else "any other" for x in lang_list]))
         base_url = self.__extract_base_url(doc_ref)
-        open_epd = epd_reader.to_openepd_epd(lang_list, base_url=base_url, provider_domain=provider_domain)
+        open_epd: BaseDeclaration = epd_reader.to_openepd_declaration(
+            lang_list, base_url=base_url, provider_domain=provider_domain
+        )
         CLI.print_data(open_epd.json(indent=2, exclude_none=True, exclude_unset=True))
         if save:
             self.save_results(epd_reader, open_epd, extract_pdf=extract_pdf, base_dir=target_dir)
 
     def save_results(
-        self, epd_reader: IlcdEpdReader, result: Epd, *, extract_pdf: bool = False, base_dir: Path | None = None
+        self,
+        epd_reader: IlcdEpdReader,
+        result: BaseDeclaration,
+        *,
+        extract_pdf: bool = False,
+        base_dir: Path | None = None,
     ):
         if base_dir is None:
             base_dir = Path.cwd()
