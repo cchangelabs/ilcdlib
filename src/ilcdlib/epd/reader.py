@@ -15,17 +15,25 @@
 #
 import datetime
 import itertools
+import logging
 from typing import IO, Type
 
 from openepd.model.common import Amount, Measurement
-from openepd.model.epd import Epd
+from openepd.model.declaration import BaseDeclaration
+from openepd.model.epd import Epd, EpdWithDeps
+from openepd.model.generic_estimate import GenericEstimateWithDeps
 from openepd.model.lcia import Impacts, ImpactSet, OutputFlowSet, ResourceUseSet
 from openepd.model.pcr import Pcr
 from openepd.model.specs import Specs
 from openepd.model.standard import Standard
 
 from ilcdlib import const
-from ilcdlib.common import BaseIlcdMediumSpecificReader, IlcdXmlReader, OpenEpdEdpSupportReader
+from ilcdlib.common import (
+    BaseIlcdMediumSpecificReader,
+    IlcdXmlReader,
+    OpenEpdDeclarationSupportReader,
+    TBaseDeclaration,
+)
 from ilcdlib.const import IlcdDatasetType, IlcdTypeOfReview
 from ilcdlib.dto import (
     CategoryCandidate,
@@ -44,6 +52,7 @@ from ilcdlib.entity.lcia import IlcdLciaResultsReader
 from ilcdlib.entity.material import MatMlMaterial
 from ilcdlib.entity.pcr import IlcdPcrReader
 from ilcdlib.entity.validation import IlcdValidationListReader
+from ilcdlib.epd.declaration_convertor import EpdToGenericEstimateConvertor
 from ilcdlib.extension import IlcdEpdExtension
 from ilcdlib.mapping.category import CategoryMapper, CsvCategoryMapper, NoopCategoryMapper
 from ilcdlib.mapping.compliance import StandardNameToLCIAMethodMapper, default_standard_names_to_lcia_mapper
@@ -59,7 +68,7 @@ from ilcdlib.utils import (
 )
 
 
-class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
+class IlcdEpdReader(OpenEpdDeclarationSupportReader, IlcdXmlReader):
     """Reader for ILCD+EPD datasets."""
 
     def __init__(
@@ -88,6 +97,8 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
         self.exchanges_reader_cls = exchanges_reader_cls
         self.standard_names_to_lcia_mapper = standard_names_to_lcia_mapper
         self.validation_reader_cls = validation_reader_cls
+        self.__logger = logging.Logger(__name__)
+        self.__epd_to_generic_estimates_convertor = EpdToGenericEstimateConvertor()
         if epd_process_id is None:
             entities = data_provider.list_entities(IlcdDatasetType.Processes)
             self.__epd_entity_ref = entities[0]
@@ -167,9 +178,17 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
             ("process:modellingAndValidation", "process:LCIMethodAndAllocation", "common:other", "epd2013:subType"),
         )
 
+    def is_product_epd(self) -> bool:
+        """Return True if the dataset represents a Product EPD."""
+        return self.get_dataset_type() == "specific dataset"
+
     def is_industry_epd(self):
         """Return True if the dataset represents an industry EPD."""
-        return self.get_dataset_type() == "average dataset"
+        return self.get_dataset_type() in ("average dataset", "average dataset")
+
+    def is_generic_estimate(self):
+        """Return True if the dataset represents an Generic Estimate."""
+        return self.get_dataset_type() == "generic dataset"
 
     def get_epd_document_stream(self) -> IO[bytes] | None:
         """Extract the EPD document."""
@@ -701,9 +720,13 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
     def _set_specs_for_category_candidate(self, candidate: CategoryCandidate):
         pass
 
-    def to_openepd_epd(
-        self, lang: LangDef, base_url: str | None = None, provider_domain: str | None = None
-    ) -> Epd:  # NOSONAR
+    def to_openepd_declaration(
+        self,
+        lang: LangDef,
+        base_url: str | None = None,
+        provider_domain: str | None = None,
+        expected_output_type: type[TBaseDeclaration] = BaseDeclaration,
+    ) -> TBaseDeclaration:  # NOSONAR
         """Return the EPD as OpenEPD object."""
         if provider_domain is None:
             provider_domain = provider_domain_name_from_url(base_url)
@@ -801,6 +824,13 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
         if publisher:
             ilcd_ext.epd_publishers.append(publisher)
         epd.set_ext(ilcd_ext)
+        if self.is_product_epd():
+            return epd
+        elif self.is_generic_estimate():
+            return self._convert_epd_to_generic_estimate(epd)
+        elif self.is_industry_epd():
+            pass
+        self.__logger.warning("Unknown declaration type. Defaulting to EPD but this might be incorrect.")
         return epd
 
     @classmethod
@@ -837,3 +867,8 @@ class IlcdEpdReader(OpenEpdEdpSupportReader, IlcdXmlReader):
                 mapper = NoopCategoryMapper()
             mappers[classification_name] = mapper
         return mappers[classification_name]
+
+    def _convert_epd_to_generic_estimate(self, epd: EpdWithDeps) -> GenericEstimateWithDeps:
+        generic_estimate = self.__epd_to_generic_estimates_convertor.convert(epd)
+        # Set specific terms here, e.g. license or geography
+        return generic_estimate
