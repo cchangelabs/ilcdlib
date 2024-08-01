@@ -1,3 +1,11 @@
+## 4.11.0 (2024-08-01)
+
+### Feat
+
+- extract mass
+- add generic estimates support
+- **denmark**: extract correct language code
+
 ## 4.10.0 (2024-07-24)
 
 ### Feat
