@@ -25,7 +25,7 @@ from ilcdlib.epd.dialect.oekobaudat import OekobauDatIlcdXmlEpdReader
 from ilcdlib.epd.reader import IlcdEpdReader
 
 
-class EpdReaderFactory:
+class DeclarationReaderFactory:
     """Factory for creating EPD readers."""
 
     __DIALECTS: dict[str, Type[IlcdEpdReader]] = {
@@ -88,3 +88,7 @@ class EpdReaderFactory:
                 if cls.is_known_url(url):
                     return cls, name
         return self.DEFAULT_READER_CLASS, "default"
+
+
+# EpdReaderFactory - is a deprecated alias, use DeclarationReaderFactory instead
+EpdReaderFactory = DeclarationReaderFactory

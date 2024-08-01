@@ -74,7 +74,7 @@ So very basic usage of the library would look like this:
 from ilcdlib.epd.reader import IlcdEpdReader
 from ilcdlib.medium.archive import ZipIlcdReader
 
-lang = ["en", None] # Means "en" or any available language
+lang = ["en", None]  # Means "en" or any available language
 
 # Create a medium capable to read data from the zip archive
 zip_reader = ZipIlcdReader("<path/to/archive.zip>")
@@ -86,8 +86,8 @@ epd_reader = IlcdEpdReader(
     zip_reader,
 )
 
-print(epd_reader.get_product_name(lang))    # Extract product name
-print(epd_reader.get_declared_unit())       # Extract declared unit  
+print(epd_reader.get_product_name(lang))  # Extract product name
+print(epd_reader.get_declared_unit())  # Extract declared unit  
 
 # Convert to openEPD format
 print(epd_reader.to_openepd_epd(lang).json(indent=2))

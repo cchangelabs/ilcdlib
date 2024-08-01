@@ -17,9 +17,12 @@ import abc
 import datetime
 import logging
 import re
-from typing import IO, Literal, Self, Sequence, TextIO, overload
+from typing import IO, Literal, Self, Sequence, TextIO, TypeVar, overload
 
-from openepd.model.epd import Epd
+from openepd.model.declaration import BaseDeclaration
+from openepd.model.epd import EpdWithDeps
+from openepd.model.generic_estimate import GenericEstimateWithDeps
+from openepd.model.industry_epd import IndustryEpdWithDeps
 from openepd.model.lcia import Impacts
 from openepd.model.pcr import Pcr
 
@@ -445,13 +448,42 @@ class OpenEpdPcrSupportReader(metaclass=abc.ABCMeta):
         pass
 
 
-class OpenEpdEdpSupportReader(metaclass=abc.ABCMeta):
+TBaseDeclaration = TypeVar("TBaseDeclaration", bound=BaseDeclaration)
+
+
+class OpenEpdDeclarationSupportReader(metaclass=abc.ABCMeta):
     """Base class for adding openEPD export support to EPD documents."""
 
     @abc.abstractmethod
-    def to_openepd_epd(self, lang: LangDef, base_url: str | None = None, provider_domain: str | None = None) -> Epd:
-        """Read as OpenEPD EPD object."""
+    def to_openepd_declaration(
+        self,
+        lang: LangDef,
+        base_url: str | None = None,
+        provider_domain: str | None = None,
+        expected_output_type: type[TBaseDeclaration] = BaseDeclaration,
+    ) -> TBaseDeclaration:
+        """Read as OpenEPD Declaration object."""
         pass
+
+    def to_openepd_epd(
+        self, lang: LangDef, base_url: str | None = None, provider_domain: str | None = None
+    ) -> EpdWithDeps:
+        """Read as openEPD EPD object."""
+        return self.to_openepd_declaration(lang, base_url, provider_domain, expected_output_type=EpdWithDeps)
+
+    def to_openepd_generic_estimate(
+        self, lang: LangDef, base_url: str | None = None, provider_domain: str | None = None
+    ) -> GenericEstimateWithDeps:
+        """Read as openEPD GenericEstimate object."""
+        return self.to_openepd_declaration(
+            lang, base_url, provider_domain, expected_output_type=GenericEstimateWithDeps
+        )
+
+    def to_openepd_industry_epd(
+        self, lang: LangDef, base_url: str | None = None, provider_domain: str | None = None
+    ) -> IndustryEpdWithDeps:
+        """Read as openEPD IndustryEpd object."""
+        return self.to_openepd_declaration(lang, base_url, provider_domain, expected_output_type=IndustryEpdWithDeps)
 
 
 class OpenEpdImpactSetSupportReader(metaclass=abc.ABCMeta):
