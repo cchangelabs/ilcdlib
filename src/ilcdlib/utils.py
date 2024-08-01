@@ -20,6 +20,7 @@ import re
 from typing import TYPE_CHECKING, Any, Final, Iterable, Optional, Self, TypeVar
 import uuid
 
+from openepd.model.common import Amount
 import pytz
 
 from ilcdlib import const
@@ -180,3 +181,19 @@ def is_valid_uuid(value: str) -> bool:
         return str(uuid_obj) == value.strip().lower()
     except ValueError:
         return False
+
+
+_amount_pattern = re.compile(r"^\s*(\d*\.?\d+)\s*([a-zA-Z]+)\s*$")
+"""Regular expression pattern to match the numeric value and unit."""
+
+
+def parse_unit_str(value: str) -> Amount:
+    """Parse a string with a numeric value and a unit."""
+    match = _amount_pattern.match(value)
+
+    if not match:
+        raise ValueError(f"Invalid unit string: {value}")
+
+    numeric_value = float(match.group(1))
+    unit = match.group(2)
+    return Amount(qty=numeric_value, unit=unit)

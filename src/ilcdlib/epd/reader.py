@@ -64,8 +64,11 @@ from ilcdlib.utils import (
     create_openepd_attachments,
     date_to_datetime,
     none_throws,
+    parse_unit_str,
     provider_domain_name_from_url,
 )
+
+_LOGGER = logging.getLogger(__name__)
 
 
 class IlcdEpdReader(OpenEpdDeclarationSupportReader, IlcdXmlReader):
@@ -805,6 +808,7 @@ class IlcdEpdReader(OpenEpdDeclarationSupportReader, IlcdXmlReader):
             output_flows=self.get_output_flows(scenario_names),
             specs=specs,
             compliance=compliance,
+            kg_per_declared_unit=self._get_mass_kg_from_properties(product_properties),
         )
         if own_ref:
             epd.set_alt_id(provider_domain, own_ref.entity_id)
@@ -872,3 +876,17 @@ class IlcdEpdReader(OpenEpdDeclarationSupportReader, IlcdXmlReader):
         generic_estimate = self.__epd_to_generic_estimates_convertor.convert(epd)
         # Set specific terms here, e.g. license or geography
         return generic_estimate
+
+    def _get_mass_kg_from_properties(self, material_properties: dict) -> Amount | None:
+        if "mass" in material_properties:
+            try:
+                amount = parse_unit_str(material_properties.get("mass", ""))
+                if amount.unit == "kg":
+                    return amount
+                if amount.unit in ("t", "ton"):
+                    return Amount(qty=none_throws(amount.qty) * 1000, unit="kg")
+                else:
+                    _LOGGER.warning("Unsupported unit for mass: %s", amount.unit)
+            except ValueError:
+                return None
+        return None
