@@ -1,3 +1,9 @@
+## 4.11.1 (2024-09-13)
+
+### Fix
+
+- add support for openEPD 6.0.0: moved specs
+
 ## 4.11.0 (2024-08-01)
 
 ### Feat
