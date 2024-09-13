@@ -24,7 +24,7 @@ from openepd.model.epd import Epd, EpdWithDeps
 from openepd.model.generic_estimate import GenericEstimateWithDeps
 from openepd.model.lcia import Impacts, ImpactSet, OutputFlowSet, ResourceUseSet
 from openepd.model.pcr import Pcr
-from openepd.model.specs import Specs
+from openepd.model.specs.singular import Specs
 from openepd.model.standard import Standard
 
 from ilcdlib import const

@@ -18,7 +18,7 @@ from typing import Any, Generic, NamedTuple, Self
 
 from openepd.model.base import BaseOpenEpdSchema
 from openepd.model.org import Org
-from openepd.model.specs import Specs
+from openepd.model.specs.singular import Specs
 
 from ilcdlib.compat.pydantic import pyd
 from ilcdlib.const import IlcdTypeOfReview
