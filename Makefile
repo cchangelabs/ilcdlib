@@ -164,6 +164,14 @@ publish: build
 		poetry publish -r test-pypi; \
 		echo "DONE: Publishing packages (TEST PYPI)"; \
 	)
+private-publish: build
+	@( \
+		echo "Publishing packages"; \
+		set -e; \
+		if [ -z $(SKIP_VENV) ]; then source $(VIRTUAL_ENV_PATH)/bin/activate; fi; \
+		poetry publish  --repository private; \
+		echo "DONE: Publishing packages"; \
+	)
 
 coverage:
 	@( \
