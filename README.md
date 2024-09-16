@@ -64,8 +64,8 @@ command.
 There are 3 primary concepts in the library:
 
 1. `Medium` is a way how application reads ILCD XML data. It could be a zip file, some http API or anything else. 
-1. `IlcdXmlReader` is a class that reads ILCD XML data from the medium and provides a set of methods to access the data.
-1. `Dialects` are just a subclasses of corresponding readers which override data extraction logic for some of 
+2. `IlcdXmlReader` is a class that reads ILCD XML data from the medium and provides a set of methods to access the data.
+3. `Dialects` are just a subclasses of corresponding readers which override data extraction logic for some of 
 the fields.
 
 So very basic usage of the library would look like this:
