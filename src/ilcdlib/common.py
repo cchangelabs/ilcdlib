@@ -250,7 +250,7 @@ class IlcdXmlReader:
                 uuid = uuid_from_uri.group(1) if uuid_from_uri else None
                 for dataset_name, dataset_provider in self.reference_data_providers.items():
                     xml_tree = self.get_xml_for_entity(dataset_provider, entity_type, entity_id, entity_version)
-                    if xml_tree:
+                    if xml_tree is not None:
                         return xml_tree
                     if self.allow_uri_based_lookup() and uuid:
                         xml_tree = self.get_xml_for_entity(dataset_provider, entity_type, uuid, entity_version)
