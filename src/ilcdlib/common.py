@@ -460,7 +460,7 @@ class OpenEpdDeclarationSupportReader(metaclass=abc.ABCMeta):
         lang: LangDef,
         base_url: str | None = None,
         provider_domain: str | None = None,
-        expected_output_type: type[TBaseDeclaration] = BaseDeclaration,
+        expected_output_type: type[TBaseDeclaration] = BaseDeclaration,  # type: ignore[assignment]
     ) -> TBaseDeclaration:
         """Read as OpenEPD Declaration object."""
         pass
