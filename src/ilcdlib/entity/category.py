@@ -43,14 +43,16 @@ class CategorySystemReader(IlcdXmlReader):
         result: list[Category] = []
         root = self._get_all_els(self._entity, ("sapi:category",))
         for x in root:
-            result.append(
-                Category(
-                    id=x.attrib.get("classId"),
-                    name=x.text,
-                    parent_id=parent.id if parent else None,
-                    full_path=([parent.name] if parent else []) + [x.text],
+            class_id = x.attrib.get("classId")
+            if class_id:
+                result.append(
+                    Category(
+                        id=class_id,
+                        name=x.text,
+                        parent_id=parent.id if parent else None,
+                        full_path=([parent.name] if parent and parent.name else []) + ([x.text] if x.text else []),
+                    )
                 )
-            )
         return result
 
     def __process_categories(

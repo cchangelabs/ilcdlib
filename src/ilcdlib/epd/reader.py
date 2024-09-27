@@ -16,16 +16,17 @@
 import datetime
 import itertools
 import logging
-from typing import IO, Type
+from typing import IO, Mapping, MutableMapping, Type, cast
 
 from openepd.model.common import Amount, Measurement
 from openepd.model.declaration import BaseDeclaration
-from openepd.model.epd import Epd, EpdWithDeps
+from openepd.model.epd import EpdWithDeps
 from openepd.model.generic_estimate import GenericEstimateWithDeps
 from openepd.model.lcia import Impacts, ImpactSet, OutputFlowSet, ResourceUseSet
 from openepd.model.pcr import Pcr
 from openepd.model.specs.singular import Specs
 from openepd.model.standard import Standard
+from openepd.model.validation.quantity import AmountMass
 
 from ilcdlib import const
 from ilcdlib.common import (
@@ -470,7 +471,7 @@ class IlcdEpdReader(OpenEpdDeclarationSupportReader, IlcdXmlReader):
                 return verifier.org
         return None
 
-    def get_third_party_verifier_email(self, validations: list[ValidationDto]) -> OpenEpdIlcdOrg | None:
+    def get_third_party_verifier_email(self, validations: list[ValidationDto]) -> str | None:
         """Return first third party verifier email."""
         return None
 
@@ -696,7 +697,7 @@ class IlcdEpdReader(OpenEpdDeclarationSupportReader, IlcdXmlReader):
             program_operator_reader.to_openepd_org(lang, base_url, provider_domain) if program_operator_reader else None
         )
 
-    def _product_classes_to_openepd(self, classes: dict[str, list[ProductClassDef]]) -> dict[str, str]:
+    def _product_classes_to_openepd(self, classes: dict[str, list[ProductClassDef]]) -> MutableMapping[str, str]:
         result: dict[str, str] = {}
         for classification_name, class_defs in classes.items():
             if len(class_defs) > 0:
@@ -705,7 +706,7 @@ class IlcdEpdReader(OpenEpdDeclarationSupportReader, IlcdXmlReader):
                 ).strip()
         return result
 
-    def _get_mapped_categories(self, product_classes: dict[str, str]) -> list[MappedCategory]:
+    def _get_mapped_categories(self, product_classes: Mapping[str, str]) -> list[MappedCategory]:
         candidates: list[MappedCategory] = []
         for classification_name, class_name in product_classes.items():
             candidates += self.get_category_mapper(classification_name).map(class_name, [])  # type: ignore
@@ -714,9 +715,9 @@ class IlcdEpdReader(OpenEpdDeclarationSupportReader, IlcdXmlReader):
     def _get_category_candidates(self, mapped_categories: list[MappedCategory]) -> list[CategoryCandidate]:
         result: list[CategoryCandidate] = []
         for mc in mapped_categories:
-
-            candidate = CategoryCandidate(category=mc.openepd_category_id)
-            result.append(candidate)
+            if mc.openepd_category_id:
+                candidate = CategoryCandidate(category=mc.openepd_category_id)
+                result.append(candidate)
         buckets = itertools.groupby(result, key=lambda x: x.category)
         return [next(v) for k, v in buckets]
 
@@ -728,7 +729,7 @@ class IlcdEpdReader(OpenEpdDeclarationSupportReader, IlcdXmlReader):
         lang: LangDef,
         base_url: str | None = None,
         provider_domain: str | None = None,
-        expected_output_type: type[TBaseDeclaration] = BaseDeclaration,
+        expected_output_type: type[TBaseDeclaration] = BaseDeclaration,  # type: ignore[assignment]
     ) -> TBaseDeclaration:  # NOSONAR
         """Return the EPD as OpenEPD object."""
         if provider_domain is None:
@@ -781,7 +782,7 @@ class IlcdEpdReader(OpenEpdDeclarationSupportReader, IlcdXmlReader):
         if const.OPENEPD_PRODUCT_CLASS_NAME not in product_classes and len(category_candidates) == 1:
             product_classes[const.OPENEPD_PRODUCT_CLASS_NAME] = category_candidates[0].category
         # Compose the final object
-        epd = Epd(
+        epd = EpdWithDeps(
             doctype="OpenEPD",
             language=lang_code,
             attachments=create_openepd_attachments(own_ref, base_url) if base_url else None,  # type: ignore
@@ -795,12 +796,12 @@ class IlcdEpdReader(OpenEpdDeclarationSupportReader, IlcdXmlReader):
             epd_developer=epd_developer,
             epd_developer_email=epd_developer_contact.email if epd_developer_contact else None,
             program_operator=program_operator,
-            product_classes=product_classes,
+            product_classes=product_classes,  # type: ignore[arg-type]
             manufacturing_description=self.get_technology_description(lang),
             product_usage_description=self.get_technological_applicability(lang),
             lca_discussion=self.get_lca_discussion(lang),
             third_party_verifier=self.get_third_party_verifier(ilcd_validations),
-            third_party_verifier_email=self.get_third_party_verifier_email(ilcd_validations),
+            third_party_verifier_email=self.get_third_party_verifier_email(ilcd_validations),  # type: ignore[arg-type]
             pcr=self.get_pcr(lang, base_url),
             declared_unit=declared_unit,
             impacts=self.get_impacts(scenario_names, lca_method=lcia_method),
@@ -829,13 +830,13 @@ class IlcdEpdReader(OpenEpdDeclarationSupportReader, IlcdXmlReader):
             ilcd_ext.epd_publishers.append(publisher)
         epd.set_ext(ilcd_ext)
         if self.is_product_epd():
-            return epd
+            return epd  # type: ignore[return-value]
         elif self.is_generic_estimate():
-            return self._convert_epd_to_generic_estimate(epd)
+            return self._convert_epd_to_generic_estimate(epd)  # type: ignore[return-value]
         elif self.is_industry_epd():
-            pass
+            pass  # Implement industry EPD
         self.__logger.warning("Unknown declaration type. Defaulting to EPD but this might be incorrect.")
-        return epd
+        return epd  # type: ignore[return-value]
 
     @classmethod
     def is_known_url(cls, url: str) -> bool:
@@ -877,14 +878,14 @@ class IlcdEpdReader(OpenEpdDeclarationSupportReader, IlcdXmlReader):
         # Set specific terms here, e.g. license or geography
         return generic_estimate
 
-    def _get_mass_kg_from_properties(self, material_properties: dict) -> Amount | None:
+    def _get_mass_kg_from_properties(self, material_properties: dict) -> AmountMass | None:
         if "mass" in material_properties:
             try:
                 amount = parse_unit_str(material_properties.get("mass", ""))
                 if amount.unit == "kg":
-                    return amount
+                    return cast(AmountMass, amount)
                 if amount.unit in ("t", "ton"):
-                    return Amount(qty=none_throws(amount.qty) * 1000, unit="kg")
+                    return AmountMass(qty=none_throws(amount.qty) * 1000, unit="kg")
                 else:
                     _LOGGER.warning("Unsupported unit for mass: %s", amount.unit)
             except ValueError:
