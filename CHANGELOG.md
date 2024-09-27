@@ -1,3 +1,10 @@
+## 4.11.3 (2024-09-27)
+
+### Fix
+
+- resolve typing issues
+- adjust condition to remove deprecation warning
+
 ## 4.11.2 (2024-09-16)
 
 ### Fix
