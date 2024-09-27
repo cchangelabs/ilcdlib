@@ -15,7 +15,7 @@
 #
 from typing import Any
 
-from ilcdlib.dto import IlcdContactInfo, OpenEpdIlcdOrg, ValidationDto
+from ilcdlib.dto import IlcdContactInfo, ValidationDto
 from ilcdlib.entity.flow import UriBasedIlcdFlowReader
 from ilcdlib.epd.reader import IlcdEpdReader
 from ilcdlib.type import LangDef
@@ -32,7 +32,7 @@ class ItbIlcdXmlEpdReader(IlcdEpdReader):
         """Return whether the URL recognized as a known Itb URL."""
         return "itb" in url.lower()
 
-    def get_third_party_verifier_email(self, validations: list[ValidationDto]) -> OpenEpdIlcdOrg | None:
+    def get_third_party_verifier_email(self, validations: list[ValidationDto]) -> str | None:
         """
         Return first third party verifier email.
 

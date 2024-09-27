@@ -23,6 +23,7 @@ from requests import HTTPError, RequestException, Response
 from ilcdlib.dto import Category, IlcdReference, ListResponseMeta, ProcessBasicInfo, ProcessSearchResponse
 from ilcdlib.entity.category import CategorySystemReader
 from ilcdlib.http_common import BaseApiClient
+from ilcdlib.utils import none_throws
 from ilcdlib.xml_parser import T_ET
 
 
@@ -217,15 +218,15 @@ class Soda4LcaXmlApiClient(BaseApiClient):
         processes = tree.findall("p:process", namespaces=self.ns)
 
         meta = ListResponseMeta(
-            offset=tree.attrib.get(f"{{{self.ns['sapi']}}}startIndex", 0),
-            page_size=tree.attrib.get(f"{{{self.ns['sapi']}}}pageSize", 0),
-            total_items_count=tree.attrib.get(f"{{{self.ns['sapi']}}}totalSize", 0),
+            offset=int(tree.attrib.get(f"{{{self.ns['sapi']}}}startIndex", 0)),
+            page_size=int(tree.attrib.get(f"{{{self.ns['sapi']}}}pageSize", 0)),
+            total_items_count=int(tree.attrib.get(f"{{{self.ns['sapi']}}}totalSize", 0)),
         )
         items = []
         for process in processes:
             items.append(
                 ProcessBasicInfo(
-                    uuid=self.__get_element_text(process, "sapi:uuid"),
+                    uuid=none_throws(self.__get_element_text(process, "sapi:uuid")),
                     name=self.__get_element_text(process, "sapi:name"),
                     version=self.__get_element_text(process, "sapi:dataSetVersion"),
                     class_id=self.__get_element_text(process, "sapi:classId"),

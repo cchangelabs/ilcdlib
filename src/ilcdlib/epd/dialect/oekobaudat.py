@@ -13,6 +13,8 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
+from typing import MutableMapping
+
 from ilcdlib.dto import MappedCategory, ProductClassDef
 from ilcdlib.epd.reader import IlcdEpdReader
 from ilcdlib.mapping.category import CsvCategoryMapper
@@ -54,7 +56,7 @@ class OekobauDatIlcdXmlEpdReader(IlcdEpdReader):
         """Configure Oekobau.DAT specific settings."""
         self.xml_parser.xml_ns["epd2019"] = self.xml_parser.xml_ns["epd2019_indata"]
 
-    def _product_classes_to_openepd(self, classes: dict[str, list[ProductClassDef]]) -> dict[str, str]:
+    def _product_classes_to_openepd(self, classes: dict[str, list[ProductClassDef]]) -> MutableMapping[str, str]:
         """
         Convert the product classes to OpenEPD format.
 
