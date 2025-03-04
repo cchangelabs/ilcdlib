@@ -65,15 +65,21 @@ class EpdReaderTestCase(BaseEpdReaderTestCase):
             ["02 Bauprodukte", "Produkte aus Bauholz", "Vollholzprodukte"],
         )
         self.assertEqual(self.epd_reader.get_program_operator_id(), "EPD-HAM-20220202-ICD1-DE")
-        self.assertEqual(self.epd_reader.get_date_published(), datetime.date.fromisoformat("2022-10-10"))
+        self.assertEqual(
+            self.epd_reader.get_date_published(),
+            datetime.date.fromisoformat("2022-10-10"),
+        )
 
     def test_read_basic_fields_scenario_epd(self):
-        self.assertEqual(self.epd_reader.get_scenario_names(self.LANG), {"S1": "100% recycling", "S2": "Scenario 2"})
+        self.assertEqual(
+            self.epd_reader.get_scenario_names(self.LANG),
+            {"S1": "100% recycling", "S2": "Scenario 2"},
+        )
 
     def test_to_openepd(self):
         openepd_org = self.epd_reader.to_openepd_declaration("de")
         if openepd_org:
-            print(openepd_org.json(indent=2))
+            print(openepd_org.model_dump_json(indent=2))
 
 
 class OekobaudatTestCase(BaseEpdReaderTestCase):
@@ -87,7 +93,10 @@ class OekobaudatTestCase(BaseEpdReaderTestCase):
         )
 
     def test_read_oekobaudat_fields_scenario(self):
-        self.assertEqual(self.epd_reader.get_scenario_names(self.LANG), {"S1": "100% recycling", "S2": "Scenario 2"})
+        self.assertEqual(
+            self.epd_reader.get_scenario_names(self.LANG),
+            {"S1": "100% recycling", "S2": "Scenario 2"},
+        )
 
 
 class EpdItalyTestCase(BaseEpdReaderTestCase):
@@ -103,5 +112,8 @@ class EpdItalyTestCase(BaseEpdReaderTestCase):
     def test_read_epditaly_fields_scenario(self):
         self.assertEqual(
             self.epd_reader.get_scenario_names(self.LANG),
-            {"100% riciclo": "100% riciclo", "100% incenerimento": "100% incenerimento"},
+            {
+                "100% riciclo": "100% riciclo",
+                "100% incenerimento": "100% incenerimento",
+            },
         )

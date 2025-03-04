@@ -63,4 +63,4 @@ class ContactReaderTestCase(TestCase):
     def test_to_openepd(self):
         openepd_org = self.contact_reader.to_openepd_org("de")
         if openepd_org:
-            print(openepd_org.json(indent=2))
+            print(openepd_org.model_dump_json(indent=2))

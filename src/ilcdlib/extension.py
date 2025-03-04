@@ -14,9 +14,9 @@
 #  limitations under the License.
 #
 from openepd.model.base import OpenEpdExtension
+import pydantic as pyd
 
 from ilcdlib import const
-from ilcdlib.compat.pydantic import pyd
 from ilcdlib.dto import CategoryCandidate, IlcdContactInfo, OpenEpdIlcdOrg, ValidationDto
 
 
@@ -29,7 +29,8 @@ class IlcdEpdExtension(OpenEpdExtension):
     production_location: str | None = None
     epd_publishers: list[OpenEpdIlcdOrg] = pyd.Field(default_factory=list, description="List of EPD publishers")
     epd_verifiers: list[ValidationDto] = pyd.Field(
-        default_factory=list, description="List of EPD verifiers (both, external and internal)"
+        default_factory=list,
+        description="List of EPD verifiers (both, external and internal)",
     )
     category_candidates: list[CategoryCandidate] = pyd.Field(
         default_factory=list,
