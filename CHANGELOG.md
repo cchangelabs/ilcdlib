@@ -1,3 +1,9 @@
+## 5.0.0 (2025-03-04)
+
+### Feat
+
+- drop support for openepd library v6 or less
+
 ## 4.11.3 (2024-09-27)
 
 ### Fix
