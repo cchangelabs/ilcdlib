@@ -91,14 +91,14 @@ jobs:
       pypi_private_token: '${{ secrets.pypi_private_token }}'
       pypi_private_url: '${{ secrets.pypi_private_url }}'
 
-attach-assets:
-  name: Attach release assets
-  needs: [ prepare-release, build-wheel ]
-  runs-on: ubuntu-latest
-  permissions:
-    contents: write
-  steps:
-    - name: Download wheels
-      uses: actions/download-artifact@v4
-      with:
-        name: wheels
+  attach-assets:
+    name: Attach release assets
+    needs: [ prepare-release, build-wheel ]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download wheels
+        uses: actions/download-artifact@v4
+        with:
+          name: wheels
