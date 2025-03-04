@@ -1,5 +1,5 @@
 #
-#  Copyright 2024 by C Change Labs Inc. www.c-change-labs.com
+#  Copyright 2025 by C Change Labs Inc. www.c-change-labs.com
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -98,6 +98,6 @@ class IlcdLciaResultsReader(OpenEpdImpactSetSupportReader, BaseIlcdScopeSetsRead
     ) -> Impacts:
         """Read as openEPD ImpactSet object."""
         impact_set = self.get_impact_set(scenario_names)
-        impacts = Impacts(__root__={})
+        impacts = Impacts(root={})
         impacts.set_impact_set(lcia_method, impact_set)
         return impacts
