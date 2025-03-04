@@ -1,3 +1,9 @@
+## 5.0.1 (2025-03-04)
+
+### Fix
+
+- resolve indentation issue in `release.yml`
+
 ## 5.0.0 (2025-03-04)
 
 ### Feat
