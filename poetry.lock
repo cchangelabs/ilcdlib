@@ -835,28 +835,24 @@ files = [
 
 [[package]]
 name = "openepd"
-version = "7.0.0"
+version = "7.0.1"
 description = "Python library to work with OpenEPD format"
 optional = false
-python-versions = "^3.11"
-files = []
-develop = false
+python-versions = "<4.0,>=3.11"
+files = [
+    {file = "openepd-7.0.1-py3-none-any.whl", hash = "sha256:160d3a8bfe031006ce4f09d6e7c5ccef2e32d5b965e963ae103912162bf0e296"},
+    {file = "openepd-7.0.1.tar.gz", hash = "sha256:aa74edd4fc08b37e525b005bc05f27128b14b93fedd5c628636fc9b252ffeca6"},
+]
 
 [package.dependencies]
 email-validator = ">=1.3.1"
 idna = ">=3.7"
-open-xpd-uuid = "~=0.2.1"
+open-xpd-uuid = ">=0.2.1,<0.3.0"
 openlocationcode = ">=1.0.1"
 pydantic = ">=2.0,<3"
 
 [package.extras]
 api-client = ["requests (>=2.0)"]
-
-[package.source]
-type = "git"
-url = "https://github.com/cchangelabs/openepd.git"
-reference = "fix/openepd-model-declarations"
-resolved_reference = "8abb96fc701d21351046662bb7f72a32f3589cec"
 
 [[package]]
 name = "openlocationcode"
@@ -1587,4 +1583,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "c8f3ffcb04adb3054954a9058bfae18be6bc704769f80835aeaf55c0656e6bad"
+content-hash = "a5353d757ed313f60b9e6e50cc4b40cd30421a15d2983e9b99f3a50aa4d66abd"
