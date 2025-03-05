@@ -35,7 +35,7 @@ openepd = { git = "https://github.com/cchangelabs/openepd.git", branch = "fix/op
 pytz = { version = ">=2023.3" }
 cli-rack = { version = ">=1.0.6" }
 lxml = { version = "~=4.9.2" }
-pydantic = ">=2.4,<3"
+pydantic = ">=2.0,<3"
 
 [tool.poetry.dev-dependencies]
 wheel = { version ="~=0.40.0" }
