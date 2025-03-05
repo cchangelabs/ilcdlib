@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "ilcdlib"
-version = "5.0.1"
+version = "5.0.2"
 license = "Apache-2.0"
 description = "A toolkit for reading and writing ILCD format and it's derivatives"
 authors = ["C-Change Labs <support@c-change-labs.com>"]
