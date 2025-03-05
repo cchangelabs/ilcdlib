@@ -1,5 +1,5 @@
 #
-#  Copyright 2024 by C Change Labs Inc. www.c-change-labs.com
+#  Copyright 2025 by C Change Labs Inc. www.c-change-labs.com
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -101,7 +101,10 @@ class MatMlReader:
                 continue
             unit = self.__map_unit_name(units_obj.attrib.get("name")) if units_obj.attrib else None
             result.properties[prop_name] = MatMlMaterialProperty(
-                value=prop_value, data_format=prop_format, unit=unit, internal_id=prop_ref  # type: ignore
+                value=prop_value,
+                data_format=prop_format,
+                unit=unit,
+                internal_id=prop_ref,
             )
         return result
 
@@ -121,9 +124,9 @@ class MatMlReader:
         prop_value_raw = prop_data.text if prop_data is not None else None
         match prop_format:
             case "float":
-                prop_value = float(prop_value_raw)
+                prop_value = float(prop_value_raw)  # type: ignore[arg-type]
             case "integer":
-                prop_value = int(prop_value_raw)
+                prop_value = int(prop_value_raw)  # type: ignore[arg-type]
             case _:
-                prop_value = prop_value_raw
-        return prop_format, prop_value
+                prop_value = prop_value_raw  # type: ignore[assignment]
+        return prop_format, prop_value  # type: ignore[return-value]

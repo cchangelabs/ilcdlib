@@ -1,5 +1,5 @@
 #
-#  Copyright 2024 by C Change Labs Inc. www.c-change-labs.com
+#  Copyright 2025 by C Change Labs Inc. www.c-change-labs.com
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -63,4 +63,4 @@ class ContactReaderTestCase(TestCase):
     def test_to_openepd(self):
         openepd_org = self.contact_reader.to_openepd_org("de")
         if openepd_org:
-            print(openepd_org.json(indent=2))
+            print(openepd_org.model_dump_json(indent=2))
