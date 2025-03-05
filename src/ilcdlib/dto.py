@@ -1,5 +1,5 @@
 #
-#  Copyright 2024 by C Change Labs Inc. www.c-change-labs.com
+#  Copyright 2025 by C Change Labs Inc. www.c-change-labs.com
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -19,8 +19,8 @@ from typing import Any, Generic, NamedTuple, Self
 from openepd.model.base import BaseOpenEpdSchema
 from openepd.model.org import Org
 from openepd.model.specs.singular import Specs
+import pydantic as pyd
 
-from ilcdlib.compat.pydantic import pyd
 from ilcdlib.const import IlcdTypeOfReview
 from ilcdlib.utils import T
 
@@ -66,7 +66,7 @@ class MappedCategory(Category):
     openepd_category_id: str | None = None
     openepd_material_specs: dict[str, Any] = pyd.Field(default_factory=dict)
 
-    @pyd.root_validator
+    @pyd.model_validator(mode="before")
     def parse_openepd_category_id(cls, data: dict[str, Any]) -> dict[str, Any]:
         """
         Parse category id.
@@ -153,13 +153,21 @@ class ProcessSearchResponse(BaseSearchResponse[ProcessBasicInfo]):
 class IlcdContactInfo(BaseOpenEpdSchema):
     """Contact information extracted from ILCD contact."""
 
-    contact_person: str | None = pyd.Field(description="Name of the contact person", example="John Doe", default=None)
-    email: pyd.EmailStr | None = pyd.Field(description="Email", example="contact@c-change-labs.com", default=None)
-    phone: str | None = pyd.Field(description="Phone number", example="+15263327352", default=None)
-    website: pyd.AnyUrl | None = pyd.Field(
-        description="Url of the website", example="http://buildingtransparency.org", default=None
+    contact_person: str | None = pyd.Field(
+        description="Name of the contact person", examples=["John Doe"], default=None
     )
-    address: str | None = pyd.Field(description="Address", example="123 Main St, San Francisco, CA 94105", default=None)
+    email: pyd.EmailStr | None = pyd.Field(description="Email", examples=["contact@c-change-labs.com"], default=None)
+    phone: str | None = pyd.Field(description="Phone number", examples=["+15263327352"], default=None)
+    website: pyd.AnyUrl | None = pyd.Field(
+        description="Url of the website",
+        examples=["http://buildingtransparency.org"],
+        default=None,
+    )
+    address: str | None = pyd.Field(
+        description="Address",
+        examples=["123 Main St, San Francisco, CA 94105"],
+        default=None,
+    )
 
 
 class OpenEpdIlcdOrg(Org):

@@ -1,3 +1,9 @@
+## 5.0.2 (2025-03-05)
+
+### Fix
+
+- **core**: resolve incompatibility issues with openepd
+
 ## 5.0.1 (2025-03-04)
 
 ### Fix

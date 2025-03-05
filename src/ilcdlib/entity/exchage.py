@@ -1,5 +1,5 @@
 #
-#  Copyright 2024 by C Change Labs Inc. www.c-change-labs.com
+#  Copyright 2025 by C Change Labs Inc. www.c-change-labs.com
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -97,4 +97,5 @@ class IlcdExchangesReader(BaseIlcdScopeSetsReader):
 
         if len(ext) == 0:
             del scope_sets["ext"]
-        return scope_set_type(**scope_sets)  # type: ignore
+
+        return scope_set_type.model_validate(scope_sets)
