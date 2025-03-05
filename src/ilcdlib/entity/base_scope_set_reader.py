@@ -76,7 +76,7 @@ class BaseIlcdScopeSetsReader(IlcdXmlReader):
             # In future, we should add context to the curator notes field for such cases.
             if unit_name := scope_to_units_mapper.map(impact_name, None):
                 scopes = self.__extract_scopes(el, unit_name, scenario_names)
-                return ScopeSet(**scopes), impact_name  # type: ignore
+                return ScopeSet.model_validate(scopes), impact_name  # type: ignore
             return None
         unit = self.unit_group_reader_cls(unit_el, self.data_provider).get_reference_unit(allow_mapping=True)
         if unit is not None:
@@ -89,7 +89,7 @@ class BaseIlcdScopeSetsReader(IlcdXmlReader):
             return None
         # Stages
         scopes = self.__extract_scopes(el, unit_name, scenario_names)
-        return ScopeSet(**scopes), impact_name  # type: ignore
+        return ScopeSet.model_validate(scopes), impact_name  # type: ignore
 
     def __extract_scopes(
         self, el: T_ET.Element, unit_name: str, scenario_names: dict[str, str]
