@@ -62,7 +62,7 @@ class IlcdLciaResultsReader(OpenEpdImpactSetSupportReader, BaseIlcdScopeSetsRead
         if len(ext) == 0:
             del impacts["ext"]
 
-        return ImpactSet(**impacts)
+        return ImpactSet.model_validate(impacts)
 
     @staticmethod
     def __process_a1a2a3_impact(scope_set: ScopeSet) -> None:
