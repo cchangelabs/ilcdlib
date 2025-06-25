@@ -43,7 +43,18 @@ deps:
 deps-lock:
 	@( \
 		if [ -z $(SKIP_VENV) ]; then source $(VIRTUAL_ENV_PATH)/bin/activate; fi; \
-		poetry lock --no-update; \
+		poetry lock; \
+	)
+
+# Synchronize installed dependencies to match the lock file
+.PHONY: deps-sync
+deps-sync:
+	@( \
+		$(call activate_venv) \
+		set -e; \
+		echo "Syncing dependencies..."; \
+		$(POETRY) sync --all-extras --no-root --with "$(POETRY_GROUPS)"; \
+		echo "DONE: all dependencies are synchronized"; \
 	)
 
 deps-update:
