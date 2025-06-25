@@ -18,6 +18,7 @@ classifiers = [
 readme = "README.md"
 packages = [{ include = "ilcdlib", from = "src" }]
 exclude = ["**/test_*.py"]
+requires-poetry = ">=2.0.0"
 
 [tool.poetry.scripts]
 ilcdtool = { callable = "ilcdlib:cli.entrypoint" }
@@ -31,7 +32,7 @@ pytz = { version = ">=2023.3" }
 cli-rack = { version = ">=1.0.6" }
 lxml = { version = "~=4.9.2" }
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
 wheel = { version ="~=0.40.0" }
 # Unit tests
 coverage = { version = "=6.5", extras = ["toml"] }
