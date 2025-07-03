@@ -14,6 +14,7 @@ LINT_PATH := $(SRC_ROOT)
 MYPY_PATH := $(SRC_ROOT)
 
 POETRY := poetry
+POETRY_GROUPS := dev
 
 pre_commit: pre_commit_hook lint
 
