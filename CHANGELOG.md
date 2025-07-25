@@ -1,3 +1,9 @@
+## 5.1.0 (2025-07-25)
+
+### Feat
+
+- **deps**: widen urllib3 version constraint to include 2.x series
+
 ## 5.0.2 (2025-03-05)
 
 ### Fix
