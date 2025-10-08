@@ -1,3 +1,9 @@
+## 5.1.1 (2025-10-08)
+
+### Fix
+
+- **cli**: use model_dump_json() to replace deprecated json() for output (#58)
+
 ## 5.1.0 (2025-07-25)
 
 ### Feat
