@@ -108,7 +108,7 @@ class ZipIlcdReader(BaseIlcdMediumSpecificReader):
         """
         List all entities of the given type.
 
-        :param entity_type: The type of the entity. e.g. "process", "contact", "flow", etc.
+        :param entity_type: The type of the entity. e.g. "processes", "contacts", "flows", etc.
         """
         if isinstance(entity_type, IlcdDatasetType):
             entity_type_str = self.DATASET_TO_FOLDER.get(entity_type, str(entity_type))
