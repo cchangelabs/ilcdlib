@@ -1,5 +1,5 @@
 #
-#  Copyright 2025 by C Change Labs Inc. www.c-change-labs.com
+#  Copyright 2026 by C Change Labs Inc. www.c-change-labs.com
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-from typing import Type
 
 from ilcdlib.common import BaseIlcdMediumSpecificReader, IlcdXmlReader
 from ilcdlib.dto import ValidationDto
@@ -32,14 +31,17 @@ class IlcdValidationReader(IlcdXmlReader):
         element: T_ET.Element,
         data_provider: BaseIlcdMediumSpecificReader,
         *,
-        contact_reader_cls: Type[IlcdContactReader] = IlcdContactReader,
+        contact_reader_cls: type[IlcdContactReader] = IlcdContactReader,
     ):
         super().__init__(data_provider)
         self.entity = element
         self.contact_reader_cls = contact_reader_cls
 
     def get_validation(
-        self, lang: LangDef, base_url: str | None = None, provider_domain: str | None = None
+        self,
+        lang: LangDef,
+        base_url: str | None = None,
+        provider_domain: str | None = None,
     ) -> ValidationDto | None:
         """Return single validation entity."""
         tree = self._get_external_tree(self.entity, ("common:referenceToNameOfReviewerAndInstitution",))
@@ -63,14 +65,17 @@ class IlcdValidationListReader(IlcdXmlReader):
         element: T_ET.Element,
         data_provider: BaseIlcdMediumSpecificReader,
         *,
-        validation_reader_cls: Type[IlcdValidationReader] = IlcdValidationReader,
+        validation_reader_cls: type[IlcdValidationReader] = IlcdValidationReader,
     ):
         super().__init__(data_provider)
         self.entity = element
         self.validation_reader_cls = validation_reader_cls
 
     def get_validations(
-        self, lang: LangDef, base_url: str | None = None, provider_domain: str | None = None
+        self,
+        lang: LangDef,
+        base_url: str | None = None,
+        provider_domain: str | None = None,
     ) -> list[ValidationDto]:
         """Return all validation data."""
         result = []

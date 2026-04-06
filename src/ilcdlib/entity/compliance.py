@@ -1,5 +1,5 @@
 #
-#  Copyright 2025 by C Change Labs Inc. www.c-change-labs.com
+#  Copyright 2026 by C Change Labs Inc. www.c-change-labs.com
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-from typing import Type
 
 from ilcdlib.common import BaseIlcdMediumSpecificReader, IlcdXmlReader
 from ilcdlib.dto import ComplianceDto
@@ -54,7 +53,7 @@ class IlcdComplianceListReader(IlcdXmlReader):
         element: T_ET.Element,
         data_provider: BaseIlcdMediumSpecificReader,
         *,
-        compliance_reader_cls: Type[IlcdComplianceReader] = IlcdComplianceReader,
+        compliance_reader_cls: type[IlcdComplianceReader] = IlcdComplianceReader,
     ):
         super().__init__(data_provider)
         self._entity = element

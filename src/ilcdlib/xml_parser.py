@@ -1,5 +1,5 @@
 #
-#  Copyright 2025 by C Change Labs Inc. www.c-change-labs.com
+#  Copyright 2026 by C Change Labs Inc. www.c-change-labs.com
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ except ImportError:
 ET = _lxml_ET if _lxml_ET is not None else T_ET
 
 
-class XmlParser(object):
+class XmlParser:
     """Entry point to Element tree interface + a few utility functions."""
 
     def __init__(self, ns_map: dict[str, str] | None = None):

@@ -1,5 +1,5 @@
 #
-#  Copyright 2025 by C Change Labs Inc. www.c-change-labs.com
+#  Copyright 2026 by C Change Labs Inc. www.c-change-labs.com
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-from typing import Type
 
 from openepd.model.base import BaseOpenEpdSchema
 from openepd.model.common import Measurement
@@ -33,7 +32,7 @@ class BaseIlcdScopeSetsReader(IlcdXmlReader):
         element: T_ET.Element,
         data_provider: BaseIlcdMediumSpecificReader,
         *,
-        unit_group_reader_cls: Type[IlcdUnitGroupReader] = IlcdUnitGroupReader,
+        unit_group_reader_cls: type[IlcdUnitGroupReader] = IlcdUnitGroupReader,
     ):
         super().__init__(data_provider)
         self._entity = element
@@ -151,7 +150,7 @@ class BaseIlcdScopeSetsReader(IlcdXmlReader):
         self,
         el: T_ET.Element,
         reference_path: XmlPath,
-        scope_set_type: Type[BaseOpenEpdSchema],
+        scope_set_type: type[BaseOpenEpdSchema],
         scope_set_dict: dict[str, ScopeSet | dict],
         ext: dict[str, ScopeSet],
         mapper: BaseDataMapper[str, str],

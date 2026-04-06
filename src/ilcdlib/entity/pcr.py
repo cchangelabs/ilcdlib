@@ -1,5 +1,5 @@
 #
-#  Copyright 2025 by C Change Labs Inc. www.c-change-labs.com
+#  Copyright 2026 by C Change Labs Inc. www.c-change-labs.com
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-from typing import Type
 
 from openepd.model.pcr import Pcr
 
@@ -34,7 +33,7 @@ class IlcdPcrReader(OpenEpdPcrSupportReader, IlcdSourceReader):
         element: T_ET.Element,
         data_provider: BaseIlcdMediumSpecificReader,
         *,
-        contact_reader_cls: Type[IlcdContactReader] = IlcdContactReader,
+        contact_reader_cls: type[IlcdContactReader] = IlcdContactReader,
     ):
         super().__init__(element, data_provider)
         self.contact_reader_cls = contact_reader_cls

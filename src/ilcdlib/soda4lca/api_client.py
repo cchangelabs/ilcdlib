@@ -1,5 +1,5 @@
 #
-#  Copyright 2025 by C Change Labs Inc. www.c-change-labs.com
+#  Copyright 2026 by C Change Labs Inc. www.c-change-labs.com
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -13,9 +13,10 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
+from collections.abc import Iterable
 from hashlib import sha1
 from io import BytesIO
-from typing import IO, Any, Iterable, Type
+from typing import IO, Any
 from urllib.parse import urlencode
 
 from requests import HTTPError, RequestException, Response
@@ -41,7 +42,7 @@ class Soda4LcaXmlApiClient(BaseApiClient):
     }
 
     def __init__(
-        self, base_url: str, *, category_reader_cls: Type[CategorySystemReader] = CategorySystemReader, **kwargs
+        self, base_url: str, *, category_reader_cls: type[CategorySystemReader] = CategorySystemReader, **kwargs
     ) -> None:
         """
         Create a new API client.
@@ -264,8 +265,7 @@ class Soda4LcaXmlApiClient(BaseApiClient):
         has_next = True
         while has_next:
             response = self.search_processes(offset=offset, page_size=page_size, **search_params)
-            for item in response.items:
-                yield item
+            yield from response.items
             total = response.meta.total_items_count
             processed_items_count = len(response.items)
             if processed_items_count == 0:
