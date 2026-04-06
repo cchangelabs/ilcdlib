@@ -1,5 +1,5 @@
 #
-#  Copyright 2025 by C Change Labs Inc. www.c-change-labs.com
+#  Copyright 2026 by C Change Labs Inc. www.c-change-labs.com
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-from typing import Type, TypeVar
+from typing import TypeVar
 
 from openepd.model.lcia import OutputFlowSet, ResourceUseSet, ScopeSet
 
@@ -72,7 +72,7 @@ class IlcdExchangesReader(BaseIlcdScopeSetsReader):
     def __get_exchanges(
         self,
         direction: str,
-        scope_set_type: Type[E],
+        scope_set_type: type[E],
         mapper: BaseDataMapper[str, str],
         scenario_names: dict[str, str],
         scope_to_units_mapper: BaseDataMapper[str, str],

@@ -1,5 +1,5 @@
 #
-#  Copyright 2025 by C Change Labs Inc. www.c-change-labs.com
+#  Copyright 2026 by C Change Labs Inc. www.c-change-labs.com
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
 #  limitations under the License.
 #
 from dataclasses import dataclass
-from typing import Optional, Type
+from typing import Optional
 
 from ilcdlib.common import BaseIlcdMediumSpecificReader, IlcdXmlReader
 from ilcdlib.entity.material import MatMlReader
@@ -33,7 +33,7 @@ class IlcdFlowPropertyReader(IlcdXmlReader):
         element: T_ET.Element,
         data_provider: BaseIlcdMediumSpecificReader,
         *,
-        unit_group_reader_cls: Type[IlcdUnitGroupReader] = IlcdUnitGroupReader,
+        unit_group_reader_cls: type[IlcdUnitGroupReader] = IlcdUnitGroupReader,
         property_uuid_mapper: PropertiesUUIDMapper = default_properties_uuid_mapper,
     ):
         super().__init__(data_provider)
@@ -98,8 +98,8 @@ class IlcdFlowReader(IlcdXmlReader):
         element: T_ET.Element,
         data_provider: BaseIlcdMediumSpecificReader,
         *,
-        flow_property_reader_cls: Type[IlcdFlowPropertyReader] = IlcdFlowPropertyReader,
-        mat_ml_reader_cls: Type[MatMlReader] = MatMlReader,
+        flow_property_reader_cls: type[IlcdFlowPropertyReader] = IlcdFlowPropertyReader,
+        mat_ml_reader_cls: type[MatMlReader] = MatMlReader,
     ):
         super().__init__(data_provider)
         self._entity = element

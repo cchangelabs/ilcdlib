@@ -1,5 +1,5 @@
 #
-#  Copyright 2025 by C Change Labs Inc. www.c-change-labs.com
+#  Copyright 2026 by C Change Labs Inc. www.c-change-labs.com
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ class EnvirondecIlcdXmlEpdReader(IlcdEpdReader):
     _PATTERN_ENVIRONDEC_DETAIL_URL_V1 = re.compile(r"https://www.environdec.com/library/_\?Epd=\d+")
     _PATTERN_ENVIRONDEC_HTML_FRIENDLY_URL = re.compile(r'"friendlyUrl": ?"(epd\d+)"')
     _PATTERN_ENVIRONDEC_DETAIL_URL_v2 = re.compile(r"https://www.environdec.com/Detail/epd\d+")
+    _HTTP_TIMEOUT_SEC = 10.0
 
     def get_epd_document_stream(self) -> IO[bytes] | None:
         """
@@ -50,7 +51,7 @@ class EnvirondecIlcdXmlEpdReader(IlcdEpdReader):
         if re.match(self._PATTERN_ENVIRONDEC_DETAIL_URL_V1, link):
             # If we have an older url to product page, we need to parse the html response to get the friendly url
             # For example, https://www.environdec.com/library/_?Epd=14879
-            response = requests.get(link)
+            response = requests.get(link, timeout=self._HTTP_TIMEOUT_SEC)
             if not response.status_code == 200:
                 return None
             foreign_ids = re.findall(self._PATTERN_ENVIRONDEC_HTML_FRIENDLY_URL, response.text)
@@ -66,12 +67,14 @@ class EnvirondecIlcdXmlEpdReader(IlcdEpdReader):
             # Otherwise, we can't get the foreign id
             return None
 
-        response = requests.get(f"https://api.environdec.com/api/v1/EPDLibrary/EPD/{foreign_id}")
+        response = requests.get(
+            f"https://api.environdec.com/api/v1/EPDLibrary/EPD/{foreign_id}", timeout=self._HTTP_TIMEOUT_SEC
+        )
         if response.status_code != 200:
             return None
         document_id = response.json()["documents"][0]["id"]
         pdf_link = f"https://api.environdec.com/api/v1/EPDLibrary/Files/{document_id}/Data"
-        pdf_response = requests.get(pdf_link)
+        pdf_response = requests.get(pdf_link, timeout=self._HTTP_TIMEOUT_SEC)
         if pdf_response.status_code != 200:
             return None
         return io.BytesIO(pdf_response.content)
