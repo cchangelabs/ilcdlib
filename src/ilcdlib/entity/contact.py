@@ -1,5 +1,5 @@
 #
-#  Copyright 2025 by C Change Labs Inc. www.c-change-labs.com
+#  Copyright 2026 by C Change Labs Inc. www.c-change-labs.com
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -119,9 +119,7 @@ class IlcdContactReader(OpenEpdContactSupportReader, IlcdXmlReader):
         org = OpenEpdIlcdOrg(
             name=self.get_name(lang),
             web_domain=domain_from_url(self.get_website()),  # type: ignore
-            attachments=create_openepd_attachments(self.get_own_reference(), base_url)
-            if base_url
-            else None,  # type: ignore
+            attachments=create_openepd_attachments(self.get_own_reference(), base_url) if base_url else None,  # type: ignore
         )
         if provider_domain is None:
             provider_domain = provider_domain_name_from_url(base_url)

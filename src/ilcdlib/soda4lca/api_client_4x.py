@@ -1,5 +1,5 @@
 #
-#  Copyright 2025 by C Change Labs Inc. www.c-change-labs.com
+#  Copyright 2026 by C Change Labs Inc. www.c-change-labs.com
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ class Soda4LcaXmlApiClient4x(Soda4LcaXmlApiClient):
     """
 
     def __init__(self, *args, **kwargs):
-        super(Soda4LcaXmlApiClient4x, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def get_item_url(self, item: ProcessBasicInfo) -> str | None:
         """Return the URL of the item."""

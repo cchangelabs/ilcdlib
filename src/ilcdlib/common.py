@@ -1,5 +1,5 @@
 #
-#  Copyright 2025 by C Change Labs Inc. www.c-change-labs.com
+#  Copyright 2026 by C Change Labs Inc. www.c-change-labs.com
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -14,10 +14,11 @@
 #  limitations under the License.
 #
 import abc
+from collections.abc import Sequence
 import datetime
 import logging
 import re
-from typing import IO, Literal, Self, Sequence, TextIO, TypeVar, overload
+from typing import IO, Literal, Self, TextIO, TypeVar, overload
 
 from openepd.model.declaration import BaseDeclaration
 from openepd.model.epd import EpdWithDeps
@@ -45,14 +46,12 @@ class BaseIlcdMediumSpecificReader(metaclass=abc.ABCMeta):
     @overload
     def get_entity_stream(
         self, entity_type: str, entity_id: str, entity_version: str | None = None, *, binary: Literal[True]
-    ) -> IO[bytes]:
-        ...
+    ) -> IO[bytes]: ...
 
     @overload
     def get_entity_stream(
         self, entity_type: str, entity_id: str, entity_version: str | None = None, *, binary: Literal[False] = False
-    ) -> TextIO:
-        ...
+    ) -> TextIO: ...
 
     @abc.abstractmethod
     def get_entity_stream(
@@ -140,14 +139,12 @@ class NoopBaseReader(BaseIlcdMediumSpecificReader):
     @overload
     def get_entity_stream(
         self, entity_type: str, entity_id: str, entity_version: str | None = None, *, binary: Literal[True]
-    ) -> IO[bytes]:
-        ...
+    ) -> IO[bytes]: ...
 
     @overload
     def get_entity_stream(
         self, entity_type: str, entity_id: str, entity_version: str | None = None, *, binary: Literal[False] = False
-    ) -> TextIO:
-        ...
+    ) -> TextIO: ...
 
     def get_entity_stream(
         self, entity_type: str, entity_id: str, entity_version: str | None = None, *, binary: bool = False
@@ -208,7 +205,7 @@ class IlcdXmlReader:
 
     def remap_xml_ns(self, doc_ns_map: dict[str, str]) -> None:
         """Remap XML namespaces."""
-        for n, url in doc_ns_map.items():
+        for _, url in doc_ns_map.items():
             if url and url.endswith("EPD/2019"):  # Some providers use outdated, non-standard namespace
                 self.xml_parser.xml_ns["epd2019"] = url
 
@@ -248,7 +245,7 @@ class IlcdXmlReader:
             if allow_static_datasets:
                 uuid_from_uri = self._UUID_REGEX.search(entity_uri) if entity_uri else None
                 uuid = uuid_from_uri.group(1) if uuid_from_uri else None
-                for dataset_name, dataset_provider in self.reference_data_providers.items():
+                for _dataset_name, dataset_provider in self.reference_data_providers.items():
                     xml_tree = self.get_xml_for_entity(dataset_provider, entity_type, entity_id, entity_version)
                     if xml_tree is not None:
                         return xml_tree

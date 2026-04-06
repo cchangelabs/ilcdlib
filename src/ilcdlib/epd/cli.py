@@ -1,5 +1,5 @@
 #
-#  Copyright 2025 by C Change Labs Inc. www.c-change-labs.com
+#  Copyright 2026 by C Change Labs Inc. www.c-change-labs.com
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -186,8 +186,7 @@ class ConvertEpdCliExtension(CliExtension):
             lang = supported_langs[0]
         elif lang.lower() not in supported_langs:
             CLI.fail(
-                f"Language {lang} is not supported by the input document. "
-                f"Supported languages are: {supported_langs}",
+                f"Language {lang} is not supported by the input document. Supported languages are: {supported_langs}",
                 4,
             )
         lang_list = [lang, None]

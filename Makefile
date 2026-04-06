@@ -16,11 +16,16 @@ MYPY_PATH := $(SRC_ROOT)
 POETRY := poetry
 POETRY_GROUPS := dev
 
+# Helper function to activate virtual environment if not skipped
+define activate_venv
+  if [ -z "$(SKIP_VENV)" ]; then source $(VIRTUAL_ENV_PATH)/bin/activate; fi;
+endef
+
 pre_commit: pre_commit_hook lint
 
 pre_commit_hook:
 	@( \
-		if [ -z $(SKIP_VENV) ]; then source $(VIRTUAL_ENV_PATH)/bin/activate; fi; \
+		$(call activate_venv) \
 		pre-commit run --all --hook-stage=commit; \
 	)
 
@@ -29,7 +34,7 @@ verify-prerequisites:
 
 setup: verify-prerequisites venv deps
 	@( \
-		if [ -z $(SKIP_VENV) ]; then source $(VIRTUAL_ENV_PATH)/bin/activate; fi; \
+		$(call activate_venv) \
 		pre-commit install; \
 		echo "Pre-commit hooks installed"; \
 		./development/install-cli-commands.sh "$(VIRTUAL_ENV_PATH)" "$(SRC_ROOT)"; \
@@ -39,13 +44,13 @@ setup: verify-prerequisites venv deps
 deps:
 	@( \
 		set -e; \
-		if [ -z $(SKIP_VENV) ]; then source $(VIRTUAL_ENV_PATH)/bin/activate; fi; \
+		$(call activate_venv) \
 		$(POETRY) install --all-extras --no-root; \
 	)
 
 deps-lock:
 	@( \
-		if [ -z $(SKIP_VENV) ]; then source $(VIRTUAL_ENV_PATH)/bin/activate; fi; \
+		$(call activate_venv) \
 		$(POETRY) lock; \
 	)
 
@@ -62,13 +67,13 @@ deps-sync:
 
 deps-update:
 	@( \
-		if [ -z $(SKIP_VENV) ]; then source $(VIRTUAL_ENV_PATH)/bin/activate; fi; \
+		$(call activate_venv) \
 		$(POETRY) lock; \
 	)
 
 deps-tree:
 	@( \
-		if [ -z $(SKIP_VENV) ]; then source $(VIRTUAL_ENV_PATH)/bin/activate; fi; \
+		$(call activate_venv) \
 		$(POETRY) show --tree; \
 	)
 
@@ -82,7 +87,7 @@ venv:
 
 copyright:
 	@( \
-       if [ -z $(SKIP_VENV) ]; then source $(VIRTUAL_ENV_PATH)/bin/activate; fi; \
+       $(call activate_venv) \
        echo "Applying copyright..."; \
        for p in $(FORMAT_PATH); do \
        	 licenseheaders -t ./development/copyright.tmpl -E ".py" -cy -d $$p; \
@@ -90,72 +95,82 @@ copyright:
        echo "DISABLED: copyright"; \
     )
 
-black:
+ruff-fix-pyupgrade:
 	@( \
-       if [ -z $(SKIP_VENV) ]; then source $(VIRTUAL_ENV_PATH)/bin/activate; fi; \
-       echo "Running Black code formatter..."; \
-       black $(FORMAT_PATH); \
-       \
-       echo "DONE: Black"; \
+	   $(call activate_venv) \
+       echo "Applying pyupgrade..."; \
+       ruff check --select UP --fix; \
+       echo "DONE: pyupgrade"; \
     )
 
-black-check:
+.PHONY: ruff-fix-pyupgrade-unsafe
+ruff-fix-pyupgrade-unsafe:
 	@( \
-       if [ -z $(SKIP_VENV) ]; then source $(VIRTUAL_ENV_PATH)/bin/activate; fi; \
-       set -e; \
-       echo "Running Black format check..."; \
-       black --check $(FORMAT_PATH); \
-       \
-       echo "DONE: Black format check"; \
-    )
+	   $(call activate_venv) \
+	   echo "Applying pyupgrade..."; \
+	   ruff check --select UP --fix --unsafe-fixes; \
+	   echo "DONE: pyupgrade"; \
+	)
 
-isort:
+ruff-format:
 	@( \
-       if [ -z $(SKIP_VENV) ]; then source $(VIRTUAL_ENV_PATH)/bin/activate; fi; \
-       echo "Running isort formatter..."; \
-       isort $(FORMAT_PATH); \
-       \
-       echo "DONE: isort formatter"; \
-    )
+	   $(call activate_venv) \
+	   echo "Running Ruff code formatter..."; \
+	   ruff format $(FORMAT_PATH); \
+	   echo "DONE: Ruff"; \
+	)
 
-isort-check:
+ruff-format-check:
 	@( \
-       if [ -z $(SKIP_VENV) ]; then source $(VIRTUAL_ENV_PATH)/bin/activate; fi; \
-       set -e; \
-       echo "Running isort validation..."; \
-       isort --check $(FORMAT_PATH); \
-       \
-       echo "DONE: isort validation"; \
-    )
+	   $(call activate_venv) \
+	   echo "Running Ruff format check..."; \
+	   ruff format --diff $(FORMAT_PATH) || exit 1; \
+	   echo "DONE: Ruff"; \
+	)
 
-format: isort black
-check-format: isort-check black-check
-
-flake8:
+ruff-import-sort:
 	@( \
-       set -e; \
-       if [ -z $(SKIP_VENV) ]; then source $(VIRTUAL_ENV_PATH)/bin/activate; fi; \
-       echo "Running Flake8 checks..."; \
-       flake8 $(LINT_PATH) --count --statistics; \
-       echo "DONE: Flake8"; \
-    )
+	   $(call activate_venv) \
+	   echo "Running Ruff import sort..."; \
+	   ruff check --select I --fix; \
+	   echo "DONE: Ruff"; \
+	)
+
+ruff-import-sort-check:
+	@( \
+	   $(call activate_venv) \
+	   echo "Running Ruff import sort..."; \
+	   ruff check --select I || exit 1; \
+	   echo "DONE: Ruff"; \
+	)
+
+ruff-lint:
+	@( \
+	   $(call activate_venv) \
+	   echo "Running Ruff lint..."; \
+	   ruff check $(LINT_PATH) || exit 1; \
+	   echo "DONE: Ruff"; \
+	)
+
+format: ruff-import-sort ruff-format
+check-format: ruff-import-sort-check ruff-format-check
 
 mypy:
 	@( \
        set -e; \
-       if [ -z $(SKIP_VENV) ]; then source $(VIRTUAL_ENV_PATH)/bin/activate; fi; \
+       $(call activate_venv) \
        echo "Running MyPy checks..."; \
        mypy $(MYPY_PATH); \
        echo "DONE: MyPy"; \
     )
 
-lint: flake8 mypy check-format
+lint: ruff-lint mypy check-format
 
 build:
 	@( \
 		echo "Building packages"; \
 		set -e; \
-		if [ -z $(SKIP_VENV) ]; then source $(VIRTUAL_ENV_PATH)/bin/activate; fi; \
+		$(call activate_venv) \
 		rm -rf dist/*; \
 		$(POETRY) build; \
 		echo "DONE: Building packages"; \
@@ -165,7 +180,7 @@ publish: build
 	@( \
 		echo "Publishing packages"; \
 		set -e; \
-		if [ -z $(SKIP_VENV) ]; then source $(VIRTUAL_ENV_PATH)/bin/activate; fi; \
+		$(call activate_venv) \
 		$(POETRY) publish; \
 		echo "DONE: Publishing packages"; \
 	)
@@ -174,7 +189,7 @@ publish: build
 	@( \
 		echo "Publishing packages to the TEST PYPI"; \
 		set -e; \
-		if [ -z $(SKIP_VENV) ]; then source $(VIRTUAL_ENV_PATH)/bin/activate; fi; \
+		$(call activate_venv) \
 		$(POETRY) publish -r test-pypi; \
 		echo "DONE: Publishing packages (TEST PYPI)"; \
 	)
@@ -182,7 +197,7 @@ private-publish: build
 	@( \
 		echo "Publishing packages"; \
 		set -e; \
-		if [ -z $(SKIP_VENV) ]; then source $(VIRTUAL_ENV_PATH)/bin/activate; fi; \
+		$(call activate_venv) \
 		$(POETRY) publish  --repository private; \
 		echo "DONE: Publishing packages"; \
 	)
@@ -191,7 +206,7 @@ coverage:
 	@( \
 		echo "Running coverage"; \
 		set -e; \
-		if [ -z $(SKIP_VENV) ]; then source $(VIRTUAL_ENV_PATH)/bin/activate; fi; \
+		$(call activate_venv) \
 		coverage run --source $(SRC_ROOT)/cqd_etl -m pytest; \
 		coverage html; \
 		echo "DONE: Coverage"; \
@@ -201,7 +216,7 @@ test:
 	@( \
 		echo "Running tests"; \
 		set -e; \
-		if [ -z $(SKIP_VENV) ]; then source $(VIRTUAL_ENV_PATH)/bin/activate; fi; \
+		$(call activate_venv) \
 		echo pytest -v --cov-report term-missing --cov=$(SRC_ROOT)/cqd_etl; \
 		pytest -v; \
 		echo "DONE: Tests"; \
@@ -211,14 +226,14 @@ changelog:
 	@( \
 		echo "Generating changelog"; \
 		set -e; \
-		if [ -z $(SKIP_VENV) ]; then source $(VIRTUAL_ENV_PATH)/bin/activate; fi; \
+		$(call activate_venv) \
 		cz changelog --incremental; \
 		echo "DONE: Changelog"; \
 	)
 
 print-changelog:
 	@( \
-		if [ -z $(SKIP_VENV) ]; then source $(VIRTUAL_ENV_PATH)/bin/activate; fi; \
+		$(call activate_venv) \
 		cz changelog --dry-run --incremental; \
 	)
 
@@ -226,13 +241,13 @@ release:
 	@( \
 		echo "Preparing release"; \
 		set -e; \
-		if [ -z $(SKIP_VENV) ]; then source $(VIRTUAL_ENV_PATH)/bin/activate; fi; \
+		$(call activate_venv) \
 		cz bump --changelog; \
 		echo "DONE: Preparing release"; \
 	)
 
 print-version:
 	@( \
-		if [ -z $(SKIP_VENV) ]; then source $(VIRTUAL_ENV_PATH)/bin/activate; fi; \
+		$(call activate_venv) \
 		cz version --project; \
 	)

@@ -1,5 +1,5 @@
 #
-#  Copyright 2025 by C Change Labs Inc. www.c-change-labs.com
+#  Copyright 2026 by C Change Labs Inc. www.c-change-labs.com
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -13,8 +13,9 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
+from collections.abc import Sequence
 from os import PathLike
-from typing import IO, Literal, Sequence, TextIO, overload
+from typing import IO, Literal, TextIO, overload
 from zipfile import Path as ZipPath
 from zipfile import ZipFile
 
@@ -42,8 +43,8 @@ class ZipIlcdReader(BaseIlcdMediumSpecificReader):
     def __init__(self, zip_file: PathLike | IO[bytes]):
         try:
             self._zip_file = ZipFile(zip_file, "r")
-        except Exception:
-            raise ValueError("Could not open zip file. Please check if this is a valid zip file.")
+        except Exception as e:
+            raise ValueError("Could not open zip file. Please check if this is a valid zip file.") from e
         self.__ilcd_dir = ZipPath(self._zip_file) / "ILCD"
         if not self.__ilcd_dir.is_dir():
             raise ValueError("Could not find ILCD directory in the archive root. Is it really an ILCD archive?")
@@ -51,14 +52,12 @@ class ZipIlcdReader(BaseIlcdMediumSpecificReader):
     @overload
     def get_entity_stream(
         self, entity_type: str, entity_id: str, entity_version: str | None = None, *, binary: Literal[True]
-    ) -> IO[bytes]:
-        ...
+    ) -> IO[bytes]: ...
 
     @overload
     def get_entity_stream(
         self, entity_type: str, entity_id: str, entity_version: str | None = None, *, binary: Literal[False] = False
-    ) -> TextIO:
-        ...
+    ) -> TextIO: ...
 
     def get_entity_stream(
         self, entity_type: str, entity_id: str, entity_version: str | None = None, *, binary: bool = False

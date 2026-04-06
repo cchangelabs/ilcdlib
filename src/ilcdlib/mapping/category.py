@@ -1,5 +1,5 @@
 #
-#  Copyright 2025 by C Change Labs Inc. www.c-change-labs.com
+#  Copyright 2026 by C Change Labs Inc. www.c-change-labs.com
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -14,10 +14,11 @@
 #  limitations under the License.
 #
 import abc
+from collections.abc import Callable, Iterable
 import csv
 import logging
 from pathlib import Path
-from typing import Any, Callable, Iterable, Self, cast
+from typing import Any, Self, cast
 
 from ilcdlib.dto import Category, MappedCategory
 from ilcdlib.mapping.common import BaseDataMapper, T

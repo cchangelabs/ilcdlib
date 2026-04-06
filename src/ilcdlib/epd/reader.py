@@ -1,5 +1,5 @@
 #
-#  Copyright 2025 by C Change Labs Inc. www.c-change-labs.com
+#  Copyright 2026 by C Change Labs Inc. www.c-change-labs.com
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -13,10 +13,11 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
+from collections.abc import Mapping, MutableMapping
 import datetime
 import itertools
 import logging
-from typing import IO, Mapping, MutableMapping, Type, cast
+from typing import IO, cast
 
 from openepd.model.common import Amount, Measurement
 from openepd.model.declaration import BaseDeclaration
@@ -82,14 +83,14 @@ class IlcdEpdReader(OpenEpdDeclarationSupportReader, IlcdXmlReader):
         data_provider: BaseIlcdMediumSpecificReader,
         timezone: str = "UTC",
         *,
-        contact_reader_cls: Type[IlcdContactReader] = IlcdContactReader,
-        pcr_reader_cls: Type[IlcdPcrReader] = IlcdPcrReader,
-        flow_reader_cls: Type[IlcdFlowReader] = IlcdFlowReader,
-        lcia_results_reader_cls: Type[IlcdLciaResultsReader] = IlcdLciaResultsReader,
-        exchanges_reader_cls: Type[IlcdExchangesReader] = IlcdExchangesReader,
-        compliance_reader_cls: Type[IlcdComplianceListReader] = IlcdComplianceListReader,
+        contact_reader_cls: type[IlcdContactReader] = IlcdContactReader,
+        pcr_reader_cls: type[IlcdPcrReader] = IlcdPcrReader,
+        flow_reader_cls: type[IlcdFlowReader] = IlcdFlowReader,
+        lcia_results_reader_cls: type[IlcdLciaResultsReader] = IlcdLciaResultsReader,
+        exchanges_reader_cls: type[IlcdExchangesReader] = IlcdExchangesReader,
+        compliance_reader_cls: type[IlcdComplianceListReader] = IlcdComplianceListReader,
         standard_names_to_lcia_mapper: StandardNameToLCIAMethodMapper = default_standard_names_to_lcia_mapper,
-        validation_reader_cls: Type[IlcdValidationListReader] = IlcdValidationListReader,
+        validation_reader_cls: type[IlcdValidationListReader] = IlcdValidationListReader,
     ):
         super().__init__(data_provider)
         self.timezone = timezone
