@@ -1,3 +1,9 @@
+## 5.2.0 (2026-04-06)
+
+### Feat
+
+- relax lxml version constraint to adjust python version compatibility
+
 ## 5.1.1 (2025-10-08)
 
 ### Fix

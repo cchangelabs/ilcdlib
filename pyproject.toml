@@ -1,6 +1,6 @@
 [project]
 name = "ilcdlib"
-version = "5.1.1"
+version = "5.2.0"
 license = "Apache-2.0"
 description = "A toolkit for reading and writing ILCD format and it's derivatives"
 authors = [{ name = "WAP Sustainability", email = "support@wapsustainability.com" }]
