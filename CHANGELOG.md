@@ -1,3 +1,9 @@
+## 4.13.0 (2026-04-29)
+
+### Feat
+
+- **deps**: broaden lxml constraint to include 5.x and 6.x
+
 ## 4.12.0 (2025-07-03)
 
 ### Feat
