@@ -30,7 +30,7 @@ requests = { version = ">=2.1.0,<3.0.0" }
 openepd = { version = ">=6.0.0,<7.0.0" }
 pytz = { version = ">=2023.3" }
 cli-rack = { version = ">=1.0.6" }
-lxml = { version = "~=4.9.2" }
+lxml = { version = ">=4.9.2,<7" }
 
 [tool.poetry.group.dev.dependencies]
 wheel = { version ="~=0.40.0" }
