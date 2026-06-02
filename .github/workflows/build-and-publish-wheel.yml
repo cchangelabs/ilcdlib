@@ -31,19 +31,23 @@ jobs:
           python-version: 3.11
           poetry-version: 2.1.3
 
-      - name: Build and publish packages
+      - name: Build packages
         run: |
-          export POETRY_HTTP_BASIC_PYPI_USERNAME=__token__
-          export POETRY_HTTP_BASIC_PYPI_PASSWORD="${{ secrets.pypi_token }}"
-          make publish
-
-      - name: Build and publish packages to private PYPI
-        run: |
-          poetry config repositories.private "${{ secrets.pypi_private_url }}"
-          poetry config pypi-token.private "${{ secrets.pypi_private_token }}"
-          make private-publish
+          make build
 
       - uses: actions/upload-artifact@v4
         with:
           name: wheels
           path: dist/*
+
+      - name: Publish packages
+        run: |
+          export POETRY_HTTP_BASIC_PYPI_USERNAME=__token__
+          export POETRY_HTTP_BASIC_PYPI_PASSWORD="${{ secrets.pypi_token }}"
+          make publish-only
+
+      - name: Publish packages to private PYPI
+        run: |
+          poetry config repositories.private "${{ secrets.pypi_private_url }}"
+          poetry config pypi-token.private "${{ secrets.pypi_private_token }}"
+          make private-publish-only
