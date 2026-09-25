@@ -15,6 +15,11 @@
 
 Python library providing parsing capabilities for ILCD XML files.
 
+## Version 4.x maintenance status
+
+Version 4.x is no longer maintained and is retained for archive purposes only. Because version 4.x and `dev` have been
+developed in parallel, changes from the `v4` branch cannot be merged into `dev`.
+
 ## Installation
 
 Install the library from PyPi. The following command will install the library with all optional dependencies:
