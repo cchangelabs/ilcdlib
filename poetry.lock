@@ -1514,14 +1514,14 @@ files = [
 
 [[package]]
 name = "teamcity-messages"
-version = "1.32"
+version = "1.33"
 description = "Send test results to TeamCity continuous integration server from unittest, nose, py.test, twisted trial, behave (Python 2.6+)"
 optional = false
 python-versions = "*"
 groups = ["dev"]
 files = [
-    {file = "teamcity-messages-1.32.tar.gz", hash = "sha256:6991d95642c8d067524c90985b650d89caab6ac0bf47b721b931b04951abbfc1"},
-    {file = "teamcity_messages-1.32-py3-none-any.whl", hash = "sha256:1dbd30e24e80ee80083a5ce01d8898c8157a974fd7cd13ee219834b918f4ab8c"},
+    {file = "teamcity_messages-1.33-py3-none-any.whl", hash = "sha256:74ab9cdf8f86acd42b15fae7f8eaf6c8d7b65f694c232ca209943c288fe5daad"},
+    {file = "teamcity_messages-1.33.tar.gz", hash = "sha256:ceb5a80105f0fb2f3b1c7840d40b3570052e6ebe921f9463a3b0a4f91631f731"},
 ]
 
 [[package]]
@@ -1797,4 +1797,4 @@ dev = ["pytest", "setuptools"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.11,<4.0"
-content-hash = "9a50fcf8b0124d3ea4d2ae6aefaa43feea732dc9cbc106bffba50f32a3b61fbe"
+content-hash = "a183c805fb95bcec9ee6fda96926da79dbe05995d27e45f252251ce290ddaac7"
