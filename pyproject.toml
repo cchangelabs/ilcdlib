@@ -46,9 +46,9 @@ pydantic = ">=2.0,<3"
 [tool.poetry.group.dev.dependencies]
 wheel = { version = "~=0.40.0" }
 # Unit tests
-coverage = { version = "=6.5", extras = ["toml"] }
+coverage = { version = ">=7.16.1", extras = ["toml"] }
 pytest = ">=9.1.1"
-pytest-cov = "~=4.0"
+pytest-cov = ">=7.1.0"
 teamcity-messages = ">=1.31"
 lxml-stubs = { version = ">=0.4.0" }
 types-requests = { version = ">=2.1.0" }
