@@ -49,7 +49,7 @@ wheel = { version = "~=0.40.0" }
 coverage = { version = ">=7.16.1", extras = ["toml"] }
 pytest = ">=9.1.1"
 pytest-cov = ">=7.1.0"
-teamcity-messages = ">=1.31"
+teamcity-messages = ">=1.33"
 lxml-stubs = { version = ">=0.4.0" }
 types-requests = { version = ">=2.1.0" }
 
