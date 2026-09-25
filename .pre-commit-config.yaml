@@ -1,10 +1,10 @@
 ---
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v3.2.0
+    rev: v6.0.0
     hooks:
       - id: detect-aws-credentials
-        args: [ --allow-missing-credentials ]
+        args: [--allow-missing-credentials]
       - id: detect-private-key
       - id: debug-statements
         name: Detect accidentally committed debug statements
@@ -18,7 +18,7 @@ repos:
       - id: check-yaml
         name: Check XML files with xmllint
   - repo: https://github.com/adrienverge/yamllint
-    rev: v1.28.0
+    rev: v1.38.0
     hooks:
       - id: yamllint
         name: Check YAML files with yamllint
@@ -28,7 +28,7 @@ repos:
         id: ruff-fix
         language: system
         pass_filenames: true
-        stages: [ commit ]
+        stages: [ pre-commit ]
         types: [ python ]
         entry: ruff
         args: [ "check", "--select", "I,UP", "--fix" ]
@@ -36,7 +36,7 @@ repos:
         id: ruff-format
         language: system
         pass_filenames: true
-        stages: [ commit ]
+        stages: [ pre-commit ]
         types: [ python ]
         entry: ruff
         args: [ "format" ]
@@ -46,7 +46,7 @@ repos:
         id: check-poetry
         language: system
         pass_filenames: false
-        stages: [ commit ]
+        stages: [ pre-commit ]
         entry: poetry check
   - repo: local
     hooks:
@@ -54,5 +54,5 @@ repos:
         id: apply-copyright
         language: script
         pass_filenames: true
-        stages: [ commit ]
+        stages: [ pre-commit ]
         entry: development/apply-copyright.sh
