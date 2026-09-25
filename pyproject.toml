@@ -44,7 +44,7 @@ lxml = { version = ">=4.9.2,<7" }
 pydantic = ">=2.0,<3"
 
 [tool.poetry.group.dev.dependencies]
-wheel = { version = "~=0.40.0" }
+wheel = { version = "~=0.48.0" }
 # Unit tests
 coverage = { version = ">=7.16.1", extras = ["toml"] }
 pytest = ">=9.1.1"
