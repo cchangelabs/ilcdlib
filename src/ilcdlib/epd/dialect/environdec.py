@@ -89,7 +89,7 @@ class EnvirondecIlcdXmlEpdReader(IlcdEpdReader):
                 "process:referenceToDataSource",
             ),
         )
-        if not element:
+        if element is None:
             return None
 
         url = self._get_localized_text(
@@ -111,7 +111,7 @@ class EnvirondecIlcdXmlEpdReader(IlcdEpdReader):
                 "epd2019:referenceToOriginalEPD",
             ),
         )
-        if not external_tree:
+        if external_tree is None:
             return None
 
         el = self._get_el(
