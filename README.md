@@ -28,6 +28,15 @@ If you don't need CLI tool, you can omit `cli` extra. The following extras are a
 * `lxml` - install lxml library for faster XML parsing
 * `cli` - install CLI tool so it could be used from command line via `ilcdtool` command.
 
+Python's `zoneinfo` needs an IANA time zone database, which is not bundled with Python or
+installed by `ilcdlib`. On Windows or in minimal container images without system time zone
+data, install `tzdata` in your application environment to avoid `ZoneInfoNotFoundError`,
+including when using the default `UTC` time zone:
+
+```bash
+pip install tzdata
+```
+
 ## Usage
 
 ### CLI

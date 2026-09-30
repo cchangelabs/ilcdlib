@@ -56,9 +56,17 @@ class SimpleDataMapper(BaseDataMapper[T, T], Generic[T]):
 
 
 class KeyValueMapper(BaseDataMapper[str, T], Generic[T]):
-    """A data mapper that maps input values to output values using keywords."""
+    """Map input strings to outputs using alternative matching and disqualifying keywords.
+
+    A mapping matches when any keyword in its ``KV`` list occurs in the input.
+    If any keyword in the corresponding ``ANTI_KV`` list occurs, that mapping
+    is skipped, even when a ``KV`` keyword also matches.
+    """
 
     KV: dict[str, list[T]] = {}
+    """Output values mapped to alternative keywords; any one keyword can match."""
+    ANTI_KV: dict[str, list[str]] = {}
+    """Output values mapped to veto keywords; any one keyword disqualifies a match."""
 
     def map(self, input_value: str, default_value: T | None) -> T | None:
         """
@@ -67,9 +75,13 @@ class KeyValueMapper(BaseDataMapper[str, T], Generic[T]):
         :param input_value: The input value to map.
         :param default_value: The default value to return if there is no mapping for input value.
         """
+        normalized_input = input_value.strip().lower()
         for impact_name, keywords in self.KV.items():
+            anti_keywords = self.ANTI_KV.get(impact_name, [])
+            if any(keyword.strip().lower() in normalized_input for keyword in anti_keywords):
+                continue
             for keyword in keywords:
-                if str(keyword).strip().lower() in input_value.strip().lower():
+                if str(keyword).strip().lower() in normalized_input:
                     return cast(T, impact_name)
         return default_value
 
