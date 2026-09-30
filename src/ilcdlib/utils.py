@@ -20,9 +20,9 @@ import logging
 import re
 from typing import TYPE_CHECKING, Any, Final, Optional, Self, TypeVar
 import uuid
+from zoneinfo import ZoneInfo
 
 from openepd.model.common import Amount
-import pytz
 
 from ilcdlib import const
 from ilcdlib.sanitizing.domain import domain_from_url
@@ -77,7 +77,7 @@ def date_to_datetime(date: datetime.date | None, timezone: str = "UTC") -> datet
     """Convert a date to a datetime object with the given timezone."""
     if date is None:
         return None
-    return datetime.datetime(year=date.year, month=date.month, day=date.day, tzinfo=pytz.timezone(timezone))
+    return datetime.datetime(year=date.year, month=date.month, day=date.day, tzinfo=ZoneInfo(timezone))
 
 
 def csv_header_to_idx(col_name: str, header: list[str], raise_when_not_found=True) -> int | None:
