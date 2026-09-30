@@ -52,6 +52,8 @@ class ImpactsKeywordToOpenIdMapper(KeyValueMapper[str]):
         "pocp": ["pocp", "photochemical", "smog", "ozone creation"],
     }
 
+    ANTI_KV = {"ep-fresh": ["toxicity"]}
+
 
 class ImpactsRegexToOpenIdMapper(RegexMapper[str]):
     """Map impact names using regex.""" ""
