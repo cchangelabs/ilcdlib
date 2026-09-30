@@ -1,3 +1,14 @@
+## 5.4.0 (2026-09-30)
+
+### Feat
+
+- replace pytz with zoneinfo
+
+### Fix
+
+- **impacts**: exclude toxicity indicators from ep-fresh mapping
+- avoid element truthiness checks in Environdec reader
+
 ## 5.3.0 (2026-09-25)
 
 ### Feat
