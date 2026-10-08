@@ -22,9 +22,8 @@ from typing import TYPE_CHECKING, Any, Final, Optional, Self, TypeVar
 import uuid
 from zoneinfo import ZoneInfo
 
-from openepd.model.common import Amount
-
 from ilcdlib import const
+from ilcdlib.compat.openepd import NonNegativeAmount
 from ilcdlib.sanitizing.domain import domain_from_url
 
 PATTERN_WHITESPACE_SEQUENCE: Final[re.Pattern] = re.compile(r"\s+")
@@ -188,7 +187,7 @@ _amount_pattern = re.compile(r"^\s*(\d*\.?\d+)\s*([a-zA-Z]+)\s*$")
 """Regular expression pattern to match the numeric value and unit."""
 
 
-def parse_unit_str(value: str) -> Amount:
+def parse_unit_str(value: str) -> NonNegativeAmount:
     """Parse a string with a numeric value and a unit."""
     match = _amount_pattern.match(value)
 
@@ -197,4 +196,4 @@ def parse_unit_str(value: str) -> Amount:
 
     numeric_value = float(match.group(1))
     unit = match.group(2)
-    return Amount(qty=numeric_value, unit=unit)
+    return NonNegativeAmount(qty=numeric_value, unit=unit)
