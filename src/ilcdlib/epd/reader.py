@@ -19,7 +19,7 @@ import itertools
 import logging
 from typing import IO, cast
 
-from openepd.model.common import Amount, Measurement
+from openepd.model.common import Measurement
 from openepd.model.declaration import BaseDeclaration
 from openepd.model.epd import EpdWithDeps
 from openepd.model.generic_estimate import GenericEstimateWithDeps
@@ -36,6 +36,7 @@ from ilcdlib.common import (
     OpenEpdDeclarationSupportReader,
     TBaseDeclaration,
 )
+from ilcdlib.compat.openepd import NonNegativeAmount
 from ilcdlib.const import IlcdDatasetType, IlcdTypeOfReview
 from ilcdlib.dto import (
     CategoryCandidate,
@@ -614,7 +615,7 @@ class IlcdEpdReader(OpenEpdDeclarationSupportReader, IlcdXmlReader):
 
         return result
 
-    def get_declared_unit(self) -> Amount | None:
+    def get_declared_unit(self) -> NonNegativeAmount | None:
         """Return the reader for the flow."""
         exchange_dto = self.get_product_flow()
         if exchange_dto is None:
@@ -627,7 +628,7 @@ class IlcdEpdReader(OpenEpdDeclarationSupportReader, IlcdXmlReader):
         if unit is None:
             return None
         amount = (exchange_dto.mean_value or 1.0) * (reference_flow_property.mean_value or 1.0) * unit.mean_value
-        return Amount(qty=amount, unit=unit.name)
+        return NonNegativeAmount(qty=amount, unit=unit.name)
 
     def get_program_operator_id(self) -> str | None:
         """Get document identifier assigned by program operator."""

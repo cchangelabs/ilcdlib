@@ -1,6 +1,6 @@
 [project]
 name = "ilcdlib"
-version = "5.4.0"
+version = "5.5.0"
 license = "Apache-2.0"
 description = "A toolkit for reading and writing ILCD format and it's derivatives"
 authors = [{ name = "WAP Sustainability", email = "support@wapsustainability.com" }]
@@ -37,7 +37,7 @@ ilcdtool = { callable = "ilcdlib:cli.entrypoint" }
 python = ">=3.11,<4.0"
 urllib3 = { version = ">=1.26.17,<3.0.0" }
 requests = { version = ">=2.1.0,<3.0.0" }
-openepd = { version = ">=7.0.1,<=8.0.0" }
+openepd = { version = ">=7.0.1,<9.0.0" }
 cli-rack = { version = ">=1.0.6" }
 lxml = { version = ">=4.9.2,<7" }
 pydantic = ">=2.0,<3"

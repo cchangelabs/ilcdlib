@@ -1,3 +1,9 @@
+## 5.5.0 (2026-10-08)
+
+### Feat
+
+- support OpenEPD 8.x versions
+
 ## 5.4.0 (2026-09-30)
 
 ### Feat
