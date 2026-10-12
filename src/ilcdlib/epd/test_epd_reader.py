@@ -18,6 +18,9 @@ import datetime
 from pathlib import Path
 from unittest import TestCase
 
+from openepd.model.lcia import EolScenario, LCIAMethod
+
+from ilcdlib.epd.dialect.environdec import EnvirondecIlcdXmlEpdReader
 from ilcdlib.epd.dialect.epditaly import EpdItalyIlcdXmlEpdReader
 from ilcdlib.epd.dialect.oekobaudat import OekobauDatIlcdXmlEpdReader
 from ilcdlib.epd.reader import IlcdEpdReader
@@ -117,3 +120,30 @@ class EpdItalyTestCase(BaseEpdReaderTestCase):
                 "100% incenerimento": "100% incenerimento",
             },
         )
+
+
+class EnvirondecTestCase(BaseEpdReaderTestCase):
+    __test__ = True
+
+    def setUp(self):
+        self.epd_reader = EnvirondecIlcdXmlEpdReader(
+            "2f0a9725-0aad-4cce-8c97-08dd8baae985",
+            "07.02.006",
+            ZipIlcdReader(self.TEST_DATA_BASE / "2f0a9725-0aad-4cce-8c97-08dd8baae985_dependencies.zip"),
+        )
+
+    def test_to_openepd_epd(self):
+        epd = self.epd_reader.to_openepd_epd(self.LANG)
+
+        self.assertEqual(
+            epd.product_name.strip(),
+            "ABT16 100/150 AN 10 LTA asphalt from Umeå asphalt plant - Brännland",
+        )
+        self.assertEqual(epd.date_of_issue.date(), datetime.date(2025, 6, 19))
+        self.assertEqual(epd.valid_until.date(), datetime.date(2030, 6, 19))
+        self.assertEqual(epd.program_operator_doc_id, "EPD-IES-0022654:003")
+        self.assertEqual(epd.manufacturer.name, "NCC Industry AB")
+
+        gwp = epd.impacts.root[LCIAMethod.UNKNOWN].gwp
+        self.assertEqual(gwp.A1A2A3.mean, 17.9766951999211)
+        EolScenario.model_validate(gwp.C_scenarios[0].model_dump())

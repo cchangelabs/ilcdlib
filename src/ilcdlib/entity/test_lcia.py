@@ -15,9 +15,28 @@
 #
 from pathlib import Path
 from unittest import TestCase
+from unittest.mock import patch
 
+from annotated_types import MaxLen
+from openepd.model.lcia import EolScenario
+
+from ilcdlib.entity.base_scope_set_reader import _truncate_scenario_name
 from ilcdlib.epd.reader import IlcdEpdReader
 from ilcdlib.medium.archive import ZipIlcdReader
+
+
+class ScenarioNameTestCase(TestCase):
+    def test_truncation_uses_field_constraint(self):
+        with patch.object(EolScenario.model_fields["name"], "metadata", [MaxLen(12)]):
+            self.assertEqual(_truncate_scenario_name("Recycling"), "Recycling")
+            self.assertEqual(_truncate_scenario_name("a" * 12), "a" * 12)
+            self.assertEqual(_truncate_scenario_name("a" * 13), "a" * 9 + "...")
+            self.assertEqual(_truncate_scenario_name("Recycle  asphalt"), "Recycle...")
+
+    def test_no_length_constraint(self):
+        with patch.object(EolScenario.model_fields["name"], "metadata", []):
+            name = "a" * 100
+            self.assertEqual(_truncate_scenario_name(name), name)
 
 
 class LciaTestCase(TestCase):
