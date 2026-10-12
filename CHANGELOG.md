@@ -1,3 +1,9 @@
+## 5.5.1 (2026-10-12)
+
+### Fix
+
+- **lcia**: respect OpenEPD scenario name length constraints
+
 ## 5.5.0 (2026-10-08)
 
 ### Feat
