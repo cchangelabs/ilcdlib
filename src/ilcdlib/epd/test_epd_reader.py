@@ -17,9 +17,11 @@ from abc import abstractmethod
 import datetime
 from pathlib import Path
 from unittest import TestCase
+from unittest.mock import Mock, patch
 
 from openepd.model.lcia import EolScenario, LCIAMethod
 
+from ilcdlib.entity.flow import IlcdExchangeDto, IlcdFlowPropertyDto
 from ilcdlib.epd.dialect.environdec import EnvirondecIlcdXmlEpdReader
 from ilcdlib.epd.dialect.epditaly import EpdItalyIlcdXmlEpdReader
 from ilcdlib.epd.dialect.oekobaudat import OekobauDatIlcdXmlEpdReader
@@ -83,6 +85,37 @@ class EpdReaderTestCase(BaseEpdReaderTestCase):
         openepd_org = self.epd_reader.to_openepd_declaration("de")
         if openepd_org:
             print(openepd_org.model_dump_json(indent=2))
+
+    def test_zero_flow_property_values_are_preserved(self):
+        unit = Mock()
+        unit.mean_value = 1.0
+        unit.name = "kg"
+        unit_group_reader = Mock()
+        unit_group_reader.get_reference_unit.return_value = unit
+        property_reader = Mock()
+        property_reader.get_unit_group_reader.return_value = unit_group_reader
+        property_reader.get_name.return_value = "Carbon content (biogenic)"
+        flow_property = IlcdFlowPropertyDto(dataset_reader=property_reader, mean_value=0.0)
+        flow_reader = Mock()
+        flow_reader.get_flow_other_properties.return_value = [flow_property]
+        flow_reader.get_reference_flow_property.return_value = flow_property
+        exchange = IlcdExchangeDto(flow_dataset_reader=flow_reader, mean_value=None)
+
+        with patch.object(self.epd_reader, "get_product_flow", return_value=exchange):
+            product_properties = self.epd_reader.get_product_flow_properties()
+            declared_unit = self.epd_reader.get_declared_unit()
+
+        self.assertEqual(product_properties["carbon content (biogenic)"].mean, 0.0)
+        self.assertEqual(declared_unit.qty, 0.0)
+
+        exchange.mean_value = 0.0
+        flow_property.mean_value = 1.0
+        with patch.object(self.epd_reader, "get_product_flow", return_value=exchange):
+            product_properties = self.epd_reader.get_product_flow_properties()
+            declared_unit = self.epd_reader.get_declared_unit()
+
+        self.assertEqual(product_properties["carbon content (biogenic)"].mean, 0.0)
+        self.assertEqual(declared_unit.qty, 0.0)
 
 
 class OekobaudatTestCase(BaseEpdReaderTestCase):

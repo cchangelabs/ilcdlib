@@ -558,7 +558,9 @@ class IlcdEpdReader(OpenEpdDeclarationSupportReader, IlcdXmlReader):
             unit = unit_group_reader.get_reference_unit() if unit_group_reader is not None else None
             if unit is None:
                 continue
-            amount = (exchange_dto.mean_value or 1.0) * (rfp.mean_value or 1.0) * unit.mean_value
+            exchange_amount = exchange_dto.mean_value if exchange_dto.mean_value is not None else 1.0
+            property_amount = rfp.mean_value if rfp.mean_value is not None else 1.0
+            amount = exchange_amount * property_amount * unit.mean_value
             prop_name = rfp.dataset_reader.get_name(["en", None])
             if prop_name is None:
                 continue
@@ -627,7 +629,9 @@ class IlcdEpdReader(OpenEpdDeclarationSupportReader, IlcdXmlReader):
         unit = unit_group_reader.get_reference_unit() if unit_group_reader is not None else None
         if unit is None:
             return None
-        amount = (exchange_dto.mean_value or 1.0) * (reference_flow_property.mean_value or 1.0) * unit.mean_value
+        exchange_amount = exchange_dto.mean_value if exchange_dto.mean_value is not None else 1.0
+        property_amount = reference_flow_property.mean_value if reference_flow_property.mean_value is not None else 1.0
+        amount = exchange_amount * property_amount * unit.mean_value
         return NonNegativeAmount(qty=amount, unit=unit.name)
 
     def get_program_operator_id(self) -> str | None:
