@@ -22,12 +22,12 @@ INDICATOR_DATA = {
         "f7c73bb9-ab1a-4249-9c6d-379a0de6f67e": (
             "Abiotic depletion potential for non fossil resources (ADPE)",
             None,
-            "gwp-nonCO2",
+            "ADP-mineral",
         ),
         "804ebcdf-309d-4098-8ed8-fdaf2f389981": (
             "Abiotic depletion potential for fossil resources (ADPF)",
             None,
-            None,
+            "ADP-fossil",
         ),
         "b4274add-93b7-4905-a5e4-2e878c4e4216": (
             "Acidification potential of soil and water (AP)",
@@ -51,12 +51,12 @@ INDICATOR_DATA = {
         "b2ad6110-c78d-11e6-9d9d-cec0c932ce01": (
             "Abiotic depletion potential - fossil resources (ADPF)",
             None,
-            None,
+            "ADP-fossil",
         ),
         "b2ad6494-c78d-11e6-9d9d-cec0c932ce01": (
             "Abiotic depletion potential - non-fossil resources (ADPE)",
             None,
-            None,
+            "ADP-mineral",
         ),
         "b5c611c6-def3-11e6-bf01-fe55135034f3": (
             "Acidifcation potential, Accumulated Exceedance (AP)",
@@ -126,6 +126,10 @@ MAPPING_EXAMPLES = (
     ),
     ("freshwater eutrophication", "Europhication potential - freshwater (EP-freshwater)", None, "ep-fresh"),
     ("freshwater ecotoxicity", "Eco-toxicity - freshwater (ETP-fw)", None, None),
+    ("adpf keyword", "Abiotic depletion potential for fossil resources (ADPF)", None, "ADP-fossil"),
+    ("adpe keyword", "Abiotic depletion potential for non fossil resources (ADPE)", None, "ADP-mineral"),
+    ("adpf regex", "Abiotic depletion potential for fossil resources", None, "ADP-fossil"),
+    ("adpe regex", "Abiotic depletion potential for non fossil resources", None, "ADP-mineral"),
     ("regex match", "Global warming potential (GWP)", None, "gwp"),
     ("unmatched input uses default", "Unknown metric", "custom", "custom"),
 )

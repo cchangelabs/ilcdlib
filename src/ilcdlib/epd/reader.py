@@ -59,7 +59,7 @@ from ilcdlib.epd.declaration_convertor import EpdToGenericEstimateConvertor
 from ilcdlib.extension import IlcdEpdExtension
 from ilcdlib.mapping.category import CategoryMapper, CsvCategoryMapper, NoopCategoryMapper
 from ilcdlib.mapping.compliance import StandardNameToLCIAMethodMapper, default_standard_names_to_lcia_mapper
-from ilcdlib.sanitizing.text import trim_text
+from ilcdlib.sanitizing.text import trim_to_model_field_max_length
 from ilcdlib.type import LangDef
 from ilcdlib.utils import (
     MarkdownSectionBuilder,
@@ -558,7 +558,9 @@ class IlcdEpdReader(OpenEpdDeclarationSupportReader, IlcdXmlReader):
             unit = unit_group_reader.get_reference_unit() if unit_group_reader is not None else None
             if unit is None:
                 continue
-            amount = (exchange_dto.mean_value or 1.0) * (rfp.mean_value or 1.0) * unit.mean_value
+            exchange_amount = exchange_dto.mean_value if exchange_dto.mean_value is not None else 1.0
+            property_amount = rfp.mean_value if rfp.mean_value is not None else 1.0
+            amount = exchange_amount * property_amount * unit.mean_value
             prop_name = rfp.dataset_reader.get_name(["en", None])
             if prop_name is None:
                 continue
@@ -627,7 +629,9 @@ class IlcdEpdReader(OpenEpdDeclarationSupportReader, IlcdXmlReader):
         unit = unit_group_reader.get_reference_unit() if unit_group_reader is not None else None
         if unit is None:
             return None
-        amount = (exchange_dto.mean_value or 1.0) * (reference_flow_property.mean_value or 1.0) * unit.mean_value
+        exchange_amount = exchange_dto.mean_value if exchange_dto.mean_value is not None else 1.0
+        property_amount = reference_flow_property.mean_value if reference_flow_property.mean_value is not None else 1.0
+        amount = exchange_amount * property_amount * unit.mean_value
         return NonNegativeAmount(qty=amount, unit=unit.name)
 
     def get_program_operator_id(self) -> str | None:
@@ -789,8 +793,10 @@ class IlcdEpdReader(OpenEpdDeclarationSupportReader, IlcdXmlReader):
             language=lang_code,
             attachments=create_openepd_attachments(own_ref, base_url) if base_url else None,  # type: ignore
             declaration_url=own_ref.to_url(base_url) if own_ref and base_url else None,  # type: ignore
-            product_name=product_name,
-            product_description=trim_text(self.get_product_description(lang), 2000, ellipsis="..."),
+            product_name=trim_to_model_field_max_length(EpdWithDeps, "product_name", product_name),
+            product_description=trim_to_model_field_max_length(
+                EpdWithDeps, "product_description", self.get_product_description(lang)
+            ),
             date_of_issue=date_to_datetime(self.get_date_published(), self.timezone),
             valid_until=date_to_datetime(self.get_validity_ends_date(), self.timezone),
             program_operator_doc_id=self.get_program_operator_id(),

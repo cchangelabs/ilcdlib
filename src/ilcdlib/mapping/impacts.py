@@ -39,29 +39,33 @@ class ImpactsUUIDToOpenIdMapper(SimpleDataMapper[str]):
 
 
 class ImpactsKeywordToOpenIdMapper(KeyValueMapper[str]):
-    """Map keywords to openEPD impact names.""" ""
+    """Map keywords to openEPD impact names."""
 
     KV = {
         "gwp-luluc": ["luluc"],
-        "gwp-nonCO2": ["CO2", "non fossil"],
+        "gwp-nonCO2": ["CO2"],
         "ep-marine": ["marine"],
         "ep-fresh": ["freshwater", "fw"],
         "ep-terr": ["terrestrial"],
         "odp": ["odp", "ozone layer"],
         "ap": ["ap", "acidification"],
         "pocp": ["pocp", "photochemical", "smog", "ozone creation"],
+        "ADP-mineral": ["adpe", "adp-e", "adp-minerals", "adp-mineral", "adp-elements"],
+        "ADP-fossil": ["adpf", "adp-f", "adp-fossil"],
     }
 
     ANTI_KV = {"ep-fresh": ["toxicity"]}
 
 
 class ImpactsRegexToOpenIdMapper(RegexMapper[str]):
-    """Map impact names using regex.""" ""
+    """Map impact names using regex."""
 
     PATTERNS = {
         "gwp-biogenic": r"^(?!.*\b(non|except|IOBC)\b)(?=.*\b(biogenic)\b)(?=.*\b(gwp|global warming)\b).*$",
         "gwp-fossil": r"^(?!.*\bnon\b)(?=.*\b(fossil)\b)(?=.*\b(gwp|global warming)\b).*$",
         "gwp": r"^(?!.*\b(fossil|luluc|CO2|IOBC|non|except)\b)(?=.*\b(gwp|global warming)\b).*$",
+        "ADP-fossil": r"^(?!.*\bnon\b)(?=.*\b(abiotic|adp)\b)(?=.*\bfossil\b).*$",
+        "ADP-mineral": r"^(?=.*\b(abiotic|adp)\b)(?=.*\b(non[\s-]?fossil|minerals?|elements?|metals?)\b).*$",
     }
 
 

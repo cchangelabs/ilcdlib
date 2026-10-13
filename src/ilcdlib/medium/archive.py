@@ -116,15 +116,25 @@ class ZipIlcdReader(BaseIlcdMediumSpecificReader):
         type_dir = self.__ilcd_dir / entity_type_str
         if not type_dir.is_dir():
             return []
-        return [
-            IlcdReference(
-                entity_type=entity_type,
-                entity_id=x.name.split("_")[0],
-                entity_version=x.name.split("_")[1].replace(".xml", ""),
+        refs = []
+        entity_version: str | None
+        for x in type_dir.iterdir():
+            if not x.is_file() or not x.name.endswith(".xml"):
+                continue
+            file_stem = x.name[: -len(x.suffix)]
+            entity_id, separator, entity_version = file_stem.rpartition("_")
+            if not separator:
+                entity_id, entity_version = file_stem, None
+            elif not entity_id or not entity_version:
+                continue
+            refs.append(
+                IlcdReference(
+                    entity_type=entity_type,
+                    entity_id=entity_id,
+                    entity_version=entity_version,
+                )
             )
-            for x in type_dir.iterdir()
-            if x.is_file() and x.name.endswith(".xml")
-        ]
+        return refs
 
     def __resolve_entity_path(
         self, entity_type: str, entity_id: str, entity_version: str | None = None
