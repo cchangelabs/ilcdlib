@@ -1,3 +1,12 @@
+## 5.5.2 (2026-10-13)
+
+### Fix
+
+- **impacts**: map ADPF and ADPE indicators to OpenEPD impacts
+- support unversioned ILCD entity filenames in ZIP archives
+- **epd**: preserve zero flow property values
+- **epd**: truncate product names to OpenEPD field limits
+
 ## 5.5.1 (2026-10-12)
 
 ### Fix
