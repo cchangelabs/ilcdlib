@@ -122,28 +122,79 @@ class EpdItalyTestCase(BaseEpdReaderTestCase):
         )
 
 
-class EnvirondecTestCase(BaseEpdReaderTestCase):
-    __test__ = True
+class BaseEnvirondecTestCase(BaseEpdReaderTestCase):
+    EPD_UUID: str
+    EPD_VERSION: str
+    DATA_FILE: str
 
     def setUp(self):
         self.epd_reader = EnvirondecIlcdXmlEpdReader(
-            "2f0a9725-0aad-4cce-8c97-08dd8baae985",
-            "07.02.006",
-            ZipIlcdReader(self.TEST_DATA_BASE / "2f0a9725-0aad-4cce-8c97-08dd8baae985_dependencies.zip"),
+            self.EPD_UUID,
+            self.EPD_VERSION,
+            ZipIlcdReader(self.TEST_DATA_BASE / self.DATA_FILE),
         )
+
+    def assert_epd_basics(
+        self,
+        epd,
+        *,
+        product_name: str,
+        date_of_issue: datetime.date,
+        valid_until: datetime.date,
+        program_operator_doc_id: str,
+        manufacturer: str,
+        gwp_a1a2a3: float | None = None,
+    ):
+        self.assertEqual(epd.product_name.strip(), product_name)
+        self.assertEqual(epd.date_of_issue.date(), date_of_issue)
+        self.assertEqual(epd.valid_until.date(), valid_until)
+        self.assertEqual(epd.program_operator_doc_id, program_operator_doc_id)
+        self.assertEqual(epd.manufacturer.name, manufacturer)
+        if gwp_a1a2a3 is not None:
+            gwp = epd.impacts.root[LCIAMethod.UNKNOWN].gwp
+            self.assertEqual(gwp.A1A2A3.mean, gwp_a1a2a3)
+
+
+class EnvirondecTestCase(BaseEnvirondecTestCase):
+    __test__ = True
+
+    EPD_UUID = "2f0a9725-0aad-4cce-8c97-08dd8baae985"
+    EPD_VERSION = "07.02.006"
+    DATA_FILE = "2f0a9725-0aad-4cce-8c97-08dd8baae985_dependencies.zip"
 
     def test_to_openepd_epd(self):
         epd = self.epd_reader.to_openepd_epd(self.LANG)
 
-        self.assertEqual(
-            epd.product_name.strip(),
-            "ABT16 100/150 AN 10 LTA asphalt from Umeå asphalt plant - Brännland",
+        self.assert_epd_basics(
+            epd,
+            product_name="ABT16 100/150 AN 10 LTA asphalt from Umeå asphalt plant - Brännland",
+            date_of_issue=datetime.date(2025, 6, 19),
+            valid_until=datetime.date(2030, 6, 19),
+            program_operator_doc_id="EPD-IES-0022654:003",
+            manufacturer="NCC Industry AB",
+            gwp_a1a2a3=17.9766951999211,
         )
-        self.assertEqual(epd.date_of_issue.date(), datetime.date(2025, 6, 19))
-        self.assertEqual(epd.valid_until.date(), datetime.date(2030, 6, 19))
-        self.assertEqual(epd.program_operator_doc_id, "EPD-IES-0022654:003")
-        self.assertEqual(epd.manufacturer.name, "NCC Industry AB")
-
         gwp = epd.impacts.root[LCIAMethod.UNKNOWN].gwp
-        self.assertEqual(gwp.A1A2A3.mean, 17.9766951999211)
         EolScenario.model_validate(gwp.C_scenarios[0].model_dump())
+
+
+class EnvirondecLongNameTestCase(BaseEnvirondecTestCase):
+    __test__ = True
+
+    EPD_UUID = "fb47e4d3-95ba-4c2f-e3db-08de02c10684"
+    EPD_VERSION = "07.10.003"
+    DATA_FILE = "fb47e4d3-95ba-4c2f-e3db-08de02c10684_dependencies.zip"
+
+    def test_to_openepd_epd(self):
+        epd = self.epd_reader.to_openepd_epd(self.LANG)
+
+        # The original name exceeds the OpenEPD limit of 200 chars and must be trimmed
+        self.assertLessEqual(len(epd.product_name), 200)
+        self.assertTrue(epd.product_name.strip().startswith("PPG Tikkurila Akvilac FD 25"))
+        self.assertTrue(epd.product_name.endswith("..."))
+        self.assertEqual(epd.date_of_issue.date(), datetime.date(2025, 12, 19))
+        self.assertEqual(epd.valid_until.date(), datetime.date(2030, 12, 19))
+        self.assertEqual(epd.program_operator_doc_id, "EPD-IES-0026131:004")
+        self.assertEqual(epd.manufacturer.name, "PPG Industries")
+        gwp = epd.impacts.root[LCIAMethod.UNKNOWN].gwp
+        self.assertEqual(gwp.A1A2A3.mean, 1.82387952738546)
