@@ -14,7 +14,6 @@
 #  limitations under the License.
 #
 
-from annotated_types import MaxLen
 from openepd.model.base import BaseOpenEpdSchema
 from openepd.model.common import Measurement
 from openepd.model.lcia import EolScenario, ScopeSet
@@ -22,23 +21,17 @@ from openepd.model.lcia import EolScenario, ScopeSet
 from ilcdlib.common import BaseIlcdMediumSpecificReader, IlcdXmlReader, XmlPath
 from ilcdlib.entity.unit import IlcdUnitGroupReader
 from ilcdlib.mapping.common import BaseDataMapper
+from ilcdlib.sanitizing.text import trim_to_model_field_max_length
 from ilcdlib.xml_parser import T_ET
 
 
 def _truncate_scenario_name(name: str) -> str:
-    """Truncate a scenario label to the maximum length allowed by OpenEPD."""
-    max_length = next(
-        (
-            constraint.max_length
-            for constraint in EolScenario.model_fields["name"].metadata
-            if isinstance(constraint, MaxLen)
-        ),
-        None,
-    )
-    if max_length is None or len(name) <= max_length:
-        return name
-    truncation_suffix = "..."[:max_length]
-    return name[: max_length - len(truncation_suffix)].rstrip() + truncation_suffix
+    """Trim a scenario label to the maximum length allowed by OpenEPD.
+
+    :param name: Scenario label to trim.
+    :return: The label trimmed to the model field's maximum length.
+    """
+    return trim_to_model_field_max_length(EolScenario, "name", name)
 
 
 class BaseIlcdScopeSetsReader(IlcdXmlReader):

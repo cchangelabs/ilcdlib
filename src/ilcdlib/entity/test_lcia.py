@@ -31,7 +31,7 @@ class ScenarioNameTestCase(TestCase):
             self.assertEqual(_truncate_scenario_name("Recycling"), "Recycling")
             self.assertEqual(_truncate_scenario_name("a" * 12), "a" * 12)
             self.assertEqual(_truncate_scenario_name("a" * 13), "a" * 9 + "...")
-            self.assertEqual(_truncate_scenario_name("Recycle  asphalt"), "Recycle...")
+            self.assertEqual(_truncate_scenario_name("Recycle  asphalt"), "Recycle  ...")
 
     def test_no_length_constraint(self):
         with patch.object(EolScenario.model_fields["name"], "metadata", []):
