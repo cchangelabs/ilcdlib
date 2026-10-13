@@ -127,6 +127,8 @@ class ScopeToUnitsMapper(SimpleDataMapper[str]):
         "ep-fresh": "kgPO4e",
         "ep-marine": "kgNe",
         "ep-terr": "molNe",
+        "ADP-mineral": "kgSbe",
+        "ADP-fossil": "MJ",
         "cru": "kg",
         "ee": "MJ",
         "hwd": "kg",
