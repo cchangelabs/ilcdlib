@@ -13,8 +13,10 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
+from io import BytesIO
 from pathlib import Path
 from unittest import TestCase
+from zipfile import ZipFile
 
 from ilcdlib.medium.archive import ZipIlcdReader
 
@@ -51,3 +53,21 @@ class ZipMediumTestCase(TestCase):
         reader = ZipIlcdReader(self.TEST_DATA_BASE / "environdec_with_dependencies.zip")
         with reader.get_entity_stream("external_docs", "EPD_logotype_stor_rgb.jpg", binary=True) as f:
             self.assertEqual(len(f.read()), 28859)
+
+    def test_list_entities_with_and_without_versions(self):
+        archive = BytesIO()
+        with ZipFile(archive, "w") as zip_file:
+            zip_file.writestr("ILCD/processes/12345678-1234-1234-1234-123456789012_00.00.001.xml", "")
+            zip_file.writestr("ILCD/processes/12345678-1234-1234-1234-123456789013.xml", "")
+            zip_file.writestr("ILCD/processes/not_an_entity.txt", "")
+
+        archive.seek(0)
+        reader = ZipIlcdReader(archive)
+        self.assertEqual(
+            reader.list_entities("processes"),
+            [
+                ("processes", "12345678-1234-1234-1234-123456789012", "00.00.001", None),
+                ("processes", "12345678-1234-1234-1234-123456789013", None, None),
+            ],
+        )
+        reader.close()
