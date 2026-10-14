@@ -262,6 +262,27 @@ class EnvirondecTestCase(BaseEnvirondecTestCase):
         EolScenario.model_validate(gwp.C_scenarios[0].model_dump())
 
 
+class EnvirondecNegativeReferenceFlowTestCase(BaseEnvirondecTestCase):
+    __test__ = True
+
+    EPD_UUID = "5000a3e9-9d7e-4c95-45db-08db71fe4796"
+    EPD_VERSION = "07.01.012"
+    DATA_FILE = "5000a3e9-9d7e-4c95-45db-08db71fe4796_dependencies.zip"
+
+    def test_to_openepd_epd_with_negative_reference_flow(self):
+        epd = self.epd_reader.to_openepd_epd(self.LANG)
+
+        self.assert_epd_basics(
+            epd,
+            product_name="Flügger H2O Primer",
+            date_of_issue=datetime.date(2023, 7, 11),
+            valid_until=datetime.date(2028, 7, 11),
+            program_operator_doc_id="EPD-IES-0009757:001 (S-P-09757)",
+            manufacturer="Flügger Group A/S",
+        )
+        self.assertEqual(epd.declared_unit.qty, 1.0)
+
+
 class EnvirondecLongNameTestCase(BaseEnvirondecTestCase):
     __test__ = True
 
