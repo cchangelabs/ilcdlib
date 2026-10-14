@@ -1,3 +1,10 @@
+## 5.5.3 (2026-10-14)
+
+### Fix
+
+- normalize negative ILCD reference flow amounts
+- handle leap-day publication dates in EPD validity calculation
+
 ## 5.5.2 (2026-10-13)
 
 ### Fix
