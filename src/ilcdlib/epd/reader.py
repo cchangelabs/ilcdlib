@@ -633,7 +633,7 @@ class IlcdEpdReader(OpenEpdDeclarationSupportReader, IlcdXmlReader):
             return None
         exchange_amount = exchange_dto.mean_value if exchange_dto.mean_value is not None else 1.0
         property_amount = reference_flow_property.mean_value if reference_flow_property.mean_value is not None else 1.0
-        amount = exchange_amount * property_amount * unit.mean_value
+        amount = abs(exchange_amount * property_amount * unit.mean_value)
         return NonNegativeAmount(qty=amount, unit=unit.name)
 
     def get_program_operator_id(self) -> str | None:
