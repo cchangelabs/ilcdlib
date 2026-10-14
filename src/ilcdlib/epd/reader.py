@@ -13,6 +13,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
+import calendar
 from collections.abc import Mapping, MutableMapping
 import datetime
 import itertools
@@ -261,7 +262,7 @@ class IlcdEpdReader(OpenEpdDeclarationSupportReader, IlcdXmlReader):
         return pub_date
 
     def get_validity_ends_date(self) -> datetime.date | None:
-        """Return the date the EPD is valid until."""
+        """Return the expiry date, clamping February 29 to February 28 in non-leap years."""
 
         pub_date = self._get_date(
             self.epd_el_tree,
@@ -276,7 +277,8 @@ class IlcdEpdReader(OpenEpdDeclarationSupportReader, IlcdXmlReader):
             ),
         )
         if pub_date is not None and valid_until_year is not None:
-            return pub_date.replace(year=valid_until_year)
+            last_day = calendar.monthrange(valid_until_year, pub_date.month)[1]
+            return pub_date.replace(year=valid_until_year, day=min(pub_date.day, last_day))
         elif valid_until_year is not None:
             return datetime.date(year=valid_until_year, month=1, day=1)
         return None
@@ -631,7 +633,7 @@ class IlcdEpdReader(OpenEpdDeclarationSupportReader, IlcdXmlReader):
             return None
         exchange_amount = exchange_dto.mean_value if exchange_dto.mean_value is not None else 1.0
         property_amount = reference_flow_property.mean_value if reference_flow_property.mean_value is not None else 1.0
-        amount = exchange_amount * property_amount * unit.mean_value
+        amount = abs(exchange_amount * property_amount * unit.mean_value)
         return NonNegativeAmount(qty=amount, unit=unit.name)
 
     def get_program_operator_id(self) -> str | None:

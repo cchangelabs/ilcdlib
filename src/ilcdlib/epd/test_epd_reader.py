@@ -15,9 +15,11 @@
 #
 from abc import abstractmethod
 import datetime
+from io import BytesIO
 from pathlib import Path
 from unittest import TestCase
 from unittest.mock import Mock, patch
+from zipfile import ZipFile
 
 from openepd.model.lcia import EolScenario, LCIAMethod
 
@@ -43,6 +45,55 @@ class BaseEpdReaderTestCase(TestCase):
 
     def tearDown(self) -> None:
         self.epd_reader.data_provider.close()
+
+
+class EpdValidityDateTestCase(TestCase):
+    def test_validity_ends_date(self):
+        cases = [
+            ("2024-02-29", 2025, datetime.date(2025, 2, 28)),
+            ("2024-02-29", 2028, datetime.date(2028, 2, 29)),
+            ("2096-02-29", 2100, datetime.date(2100, 2, 28)),
+            ("1996-02-29", 2000, datetime.date(2000, 2, 29)),
+            ("2024-02-28", 2025, datetime.date(2025, 2, 28)),
+            ("2024-06-19", 2025, datetime.date(2025, 6, 19)),
+            (None, 2025, datetime.date(2025, 1, 1)),
+            ("2024-02-29", None, None),
+            (None, None, None),
+        ]
+        for reader_cls in (IlcdEpdReader, EnvirondecIlcdXmlEpdReader):
+            for publication_date, valid_until_year, expected in cases:
+                with self.subTest(
+                    reader=reader_cls.__name__, publication_date=publication_date, valid_until_year=valid_until_year
+                ):
+                    publication_xml = (
+                        f"<epd2019:publicationDateOfEPD>{publication_date}</epd2019:publicationDateOfEPD>"
+                        if publication_date is not None
+                        else ""
+                    )
+                    validity_xml = (
+                        f"<common:dataSetValidUntil>{valid_until_year}</common:dataSetValidUntil>"
+                        if valid_until_year is not None
+                        else ""
+                    )
+                    xml = f"""
+                        <process:processDataSet xmlns:process="http://lca.jrc.it/ILCD/Process"
+                            xmlns:common="http://lca.jrc.it/ILCD/Common"
+                            xmlns:epd2019="http://www.indata.network/EPD/2019">
+                            <process:processInformation>
+                                <process:time>
+                                    {validity_xml}
+                                    <common:other>{publication_xml}</common:other>
+                                </process:time>
+                            </process:processInformation>
+                        </process:processDataSet>
+                    """
+                    with BytesIO() as archive:
+                        with ZipFile(archive, "w") as zip_file:
+                            zip_file.writestr("ILCD/processes/12345678-1234-1234-1234-123456789012.xml", xml)
+                        archive.seek(0)
+                        with ZipIlcdReader(archive) as medium:
+                            reader = reader_cls("12345678-1234-1234-1234-123456789012", None, medium)
+                            self.assertEqual(reader.get_validity_ends_date(), expected)
 
 
 class EpdReaderTestCase(BaseEpdReaderTestCase):
@@ -209,6 +260,27 @@ class EnvirondecTestCase(BaseEnvirondecTestCase):
         )
         gwp = epd.impacts.root[LCIAMethod.UNKNOWN].gwp
         EolScenario.model_validate(gwp.C_scenarios[0].model_dump())
+
+
+class EnvirondecNegativeReferenceFlowTestCase(BaseEnvirondecTestCase):
+    __test__ = True
+
+    EPD_UUID = "5000a3e9-9d7e-4c95-45db-08db71fe4796"
+    EPD_VERSION = "07.01.012"
+    DATA_FILE = "5000a3e9-9d7e-4c95-45db-08db71fe4796_dependencies.zip"
+
+    def test_to_openepd_epd_with_negative_reference_flow(self):
+        epd = self.epd_reader.to_openepd_epd(self.LANG)
+
+        self.assert_epd_basics(
+            epd,
+            product_name="Flügger H2O Primer",
+            date_of_issue=datetime.date(2023, 7, 11),
+            valid_until=datetime.date(2028, 7, 11),
+            program_operator_doc_id="EPD-IES-0009757:001 (S-P-09757)",
+            manufacturer="Flügger Group A/S",
+        )
+        self.assertEqual(epd.declared_unit.qty, 1.0)
 
 
 class EnvirondecLongNameTestCase(BaseEnvirondecTestCase):
