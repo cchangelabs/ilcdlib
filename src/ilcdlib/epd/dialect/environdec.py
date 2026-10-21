@@ -33,6 +33,14 @@ class EnvirondecIlcdXmlEpdReader(IlcdEpdReader):
     _PATTERN_ENVIRONDEC_DETAIL_URL_v2 = re.compile(r"https://www.environdec.com/Detail/epd\d+")
     _HTTP_TIMEOUT_SEC = 10.0
 
+    def get_program_operator_id(self) -> str | None:
+        """Get the registration number, falling back to the dataset synonyms."""
+        return super().get_program_operator_id() or self._get_localized_text(
+            self.epd_el_tree,
+            ("process:processInformation", "process:dataSetInformation", "common:synonyms"),
+            ("en", None),
+        )
+
     def get_epd_document_stream(self) -> IO[bytes] | None:
         """
         Download the EPD document from the Environdec API, if it is possible.

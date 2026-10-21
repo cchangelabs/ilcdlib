@@ -262,6 +262,26 @@ class EnvirondecTestCase(BaseEnvirondecTestCase):
         EolScenario.model_validate(gwp.C_scenarios[0].model_dump())
 
 
+class EnvirondecMissingRegistrationNumberTestCase(BaseEnvirondecTestCase):
+    __test__ = True
+
+    EPD_UUID = "2ad76e1d-7fcf-4810-e8c9-08dc95894b34"
+    EPD_VERSION = "07.01.003"
+    DATA_FILE = "2ad76e1d-7fcf-4810-e8c9-08dc95894b34_dependencies.zip"
+
+    def test_get_program_operator_id_without_registration_number(self):
+        self.assertEqual(self.epd_reader.get_program_operator_id(), "EPD-IES-0005280:001")
+
+    def test_registration_number_takes_precedence_over_synonyms(self):
+        with patch.object(IlcdEpdReader, "get_program_operator_id", return_value="EPD-IES-0005280:002"):
+            self.assertEqual(self.epd_reader.get_program_operator_id(), "EPD-IES-0005280:002")
+
+    def test_to_openepd_preserves_program_operator_doc_id(self):
+        epd = self.epd_reader.to_openepd_epd(self.LANG)
+
+        self.assertEqual(epd.program_operator_doc_id, "EPD-IES-0005280:001")
+
+
 class EnvirondecNegativeReferenceFlowTestCase(BaseEnvirondecTestCase):
     __test__ = True
 
