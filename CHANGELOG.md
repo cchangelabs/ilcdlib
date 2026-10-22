@@ -1,3 +1,9 @@
+## 5.5.4 (2026-10-22)
+
+### Fix
+
+- fall back to synonyms for Environdec program operator document ID
+
 ## 5.5.3 (2026-10-14)
 
 ### Fix
