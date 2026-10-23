@@ -185,14 +185,14 @@ class ComplianceDto(pyd.BaseModel):
     """Basic information about a Compliance."""
 
     uuid: str
-    short_name: str | None
-    name: str | None
-    link: str | None
-    issuer: OpenEpdIlcdOrg | None
+    short_name: str | None = None
+    name: str | None = None
+    link: str | None = None
+    issuer: OpenEpdIlcdOrg | None = None
 
 
 class ValidationDto(pyd.BaseModel):
     """Basic information about a Compliance."""
 
-    validation_type: IlcdTypeOfReview | None
+    validation_type: IlcdTypeOfReview | None = None
     org: OpenEpdIlcdOrg
