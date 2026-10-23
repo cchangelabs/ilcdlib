@@ -1,3 +1,9 @@
+## 5.5.5 (2026-10-23)
+
+### Fix
+
+- default nullable DTO fields to None
+
 ## 5.5.4 (2026-10-22)
 
 ### Fix
