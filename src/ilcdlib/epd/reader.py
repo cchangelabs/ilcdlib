@@ -104,7 +104,7 @@ class IlcdEpdReader(OpenEpdDeclarationSupportReader, IlcdXmlReader):
         self.exchanges_reader_cls = exchanges_reader_cls
         self.standard_names_to_lcia_mapper = standard_names_to_lcia_mapper
         self.validation_reader_cls = validation_reader_cls
-        self.__logger = logging.Logger(__name__)
+        self.__logger = logging.getLogger(__name__)
         self.__epd_to_generic_estimates_convertor = EpdToGenericEstimateConvertor()
         if epd_process_id is None:
             entities = data_provider.list_entities(IlcdDatasetType.Processes)
@@ -124,7 +124,6 @@ class IlcdEpdReader(OpenEpdDeclarationSupportReader, IlcdXmlReader):
 
         It could be overriden by subclasses to perform additional initialization actions.
         """
-        pass
 
     def get_supported_langs(self) -> list[str]:
         """Return the list of supported languages."""
@@ -605,7 +604,7 @@ class IlcdEpdReader(OpenEpdDeclarationSupportReader, IlcdXmlReader):
             ),
         )
 
-        result: dict[str, str] = dict()
+        result: dict[str, str] = {}
 
         for scenario in scenarios:
             if not scenario.attrib:

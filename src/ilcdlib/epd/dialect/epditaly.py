@@ -42,7 +42,7 @@ class EpdItalyIlcdXmlEpdReader(IlcdEpdReader):
             ),
         )
 
-        result: dict[str, str] = dict()
+        result: dict[str, str] = {}
 
         for scenario in scenarios:
             if not scenario.attrib:

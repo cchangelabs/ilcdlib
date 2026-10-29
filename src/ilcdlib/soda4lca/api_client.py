@@ -63,7 +63,7 @@ class Soda4LcaXmlApiClient(BaseApiClient):
         :param str category_system: category system
         """
         xml_doc = self._do_xml_request(
-            "get", f"/categorySystems/{self._urlencode(category_system)}", params=dict(format="xml", lang=lang)
+            "get", f"/categorySystems/{self._urlencode(category_system)}", params={"format": "xml", "lang": lang}
         )
         reader = self.category_reader_cls(xml_doc)
         return reader.get_categories_flat_list(data_type)
@@ -75,7 +75,7 @@ class Soda4LcaXmlApiClient(BaseApiClient):
         :param IlcdReference ref: reference to the entity
         :param str stock: stock ID (optional)
         """
-        params = dict(format="zip")
+        params = {"format": "zip"}
         if stock is not None:
             params["stock"] = stock
         if ref.entity_version is not None:
@@ -112,7 +112,7 @@ class Soda4LcaXmlApiClient(BaseApiClient):
         :param str version: version of the process (optional)
         :param verify: if True, the method will check if document behind url exists
         """
-        params = dict()
+        params = {}
         if version is not None:
             params["version"] = version
         url = f"{self.base_url}/processes/{self._urlencode(process_uuid)}/epd"
@@ -124,7 +124,7 @@ class Soda4LcaXmlApiClient(BaseApiClient):
 
     def get_entity_url(self, ref: IlcdReference, digital_file: str | None, verify: bool = False) -> str | None:
         """Get URL to download an ILCD entity or a digital file attached to it."""
-        params = dict()
+        params = {}
         if ref.entity_version is not None:
             params["version"] = ref.entity_version
         url = f"{self.base_url}/{ref.entity_type}/{self._urlencode(ref.entity_id)}"
@@ -154,7 +154,7 @@ class Soda4LcaXmlApiClient(BaseApiClient):
                 raise FileNotFoundError(
                     f"Process {process_uuid} (ver={version}) doesn't have EPD document attached"
                 ) from e
-            raise e
+            raise
 
     def _get_endpoint(self, params: Any) -> str:
         """Determine the API endpoint based on dataStocks or datastocks parameters."""

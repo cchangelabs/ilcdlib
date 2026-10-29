@@ -53,7 +53,7 @@ lxml-stubs = { version = ">=0.4.0" }
 types-requests = { version = ">=2.1.0" }
 
 # Dev tools
-ruff = ">=0.13.0"
+ruff = ">=0.17.1"
 licenseheaders = ">=0.8"
 mypy = ">=2.4.0"
 pre-commit = ">=4.7.0"
@@ -163,6 +163,9 @@ extend-ignore = [
     "B027",
     "B024",
     "S110",
+    "RUF012", # Mutable default value for class attribute
+    "PYI059", # `Generic[]` should always be the last base class
+    "BLE001", # Do not catch blind exception: `Exception`
 ]
 extend-select = ["S", "E", "B", "A", "EM", "UP"]
 

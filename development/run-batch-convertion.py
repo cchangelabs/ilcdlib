@@ -20,7 +20,7 @@ import shutil
 import sys
 
 from cli_rack import CLI
-from cli_rack.utils import ensure_dir, run_bash, run_executable
+from cli_rack.utils import ensure_dir, run_executable
 
 BATCH_SIZE = 5
 

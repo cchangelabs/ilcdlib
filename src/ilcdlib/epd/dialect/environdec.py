@@ -13,6 +13,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
+import contextlib
 import datetime
 import io
 import re
@@ -60,7 +61,7 @@ class EnvirondecIlcdXmlEpdReader(IlcdEpdReader):
             # If we have an older url to product page, we need to parse the html response to get the friendly url
             # For example, https://www.environdec.com/library/_?Epd=14879
             response = requests.get(link, timeout=self._HTTP_TIMEOUT_SEC)
-            if not response.status_code == 200:
+            if response.status_code != 200:
                 return None
             foreign_ids = re.findall(self._PATTERN_ENVIRONDEC_HTML_FRIENDLY_URL, response.text)
             if not foreign_ids:
@@ -144,22 +145,18 @@ class EnvirondecIlcdXmlEpdReader(IlcdEpdReader):
         """Return the date the EPD is valid until."""
         descr = self.__get_time_repr_description()
         if descr and self._TIME_REPR_DESC_DELIMITER in descr:
-            try:
+            with contextlib.suppress(Exception):
                 date_str = descr.split(self._TIME_REPR_DESC_DELIMITER)[1].strip().rsplit(" ", 1)[-1].strip()
                 return datetime.date.fromisoformat(date_str)
-            except Exception:
-                pass
         return super().get_validity_ends_date()
 
     def get_date_published(self) -> datetime.date | None:
         """Return the date the EPD was published."""
         descr = self.__get_time_repr_description()
         if descr and self._TIME_REPR_DESC_DELIMITER in descr:
-            try:
+            with contextlib.suppress(Exception):
                 date_str = descr.split(self._TIME_REPR_DESC_DELIMITER)[0].strip().rsplit(" ", 1)[-1].strip()
                 return datetime.date.fromisoformat(date_str)
-            except Exception:
-                pass
         return super().get_date_published()
 
     @classmethod

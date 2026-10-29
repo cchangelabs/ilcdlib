@@ -73,7 +73,7 @@ class MatMlReader:
             self._entity = self.xml_parser.get_xml_tree(element_or_stream)
         else:
             self._entity = element_or_stream
-        if hasattr(self._entity, "nsmap") and None not in self._entity.nsmap.keys():  # type: ignore
+        if hasattr(self._entity, "nsmap") and None not in self._entity.nsmap:  # type: ignore
             self._entity.nsmap[None] = "http://www.matml.org/"
 
     def get_material(self) -> MatMlMaterial | None:

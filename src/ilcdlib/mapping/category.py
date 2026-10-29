@@ -16,7 +16,9 @@
 import abc
 from collections.abc import Callable, Iterable
 import csv
+import functools
 import logging
+import operator
 from pathlib import Path
 from typing import Any, Self, cast
 
@@ -129,7 +131,9 @@ class CsvCategoryMapper(CategoryMapper):
         with open(file_path, "w") as f:
             writer = csv.writer(f, dialect="excel", quoting=csv.QUOTE_ALL)
             writer.writerow(self.CATEGORY_MAPPING_FILE_FIELDS)
-            values: list[MappedCategory] = sum([val for k, val in self._mapping.items()], start=[])
+            values: list[MappedCategory] = functools.reduce(
+                operator.iadd, [val for k, val in self._mapping.items()], []
+            )
             for x in sorted(values, key=lambda a: a.full_path):  # type: ignore
                 writer.writerow(
                     [
@@ -150,7 +154,6 @@ class CsvCategoryMapper(CategoryMapper):
 
         This method might be overridden in a subclass to provide additional processing of the mapped category.
         """
-        pass
 
     @classmethod
     def _read_mapping_from_csv(cls, file_path: Path) -> dict[str, list[MappedCategory]]:

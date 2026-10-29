@@ -21,7 +21,7 @@ LangDef = str | Sequence[str | None] | None
 class LocalizedStr(str):
     """A string with language code attached."""
 
-    def __new__(cls, *args, **kwargs):  # noqa: D102
+    def __new__(cls, *args, **kwargs):
         return super().__new__(cls, args[0])
 
     def __init__(self, s: str, lang: str | None = None):

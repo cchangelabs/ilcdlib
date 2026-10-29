@@ -80,7 +80,8 @@ class IlcdValidationListReader(IlcdXmlReader):
         """Return all validation data."""
         result = []
         for validation_el in self.entity:
-            if validation_data := self.validation_reader_cls(validation_el, self.data_provider):
-                if validation := validation_data.get_validation(lang, base_url, provider_domain):
-                    result.append(validation)
+            if (validation_data := self.validation_reader_cls(validation_el, self.data_provider)) and (
+                validation := validation_data.get_validation(lang, base_url, provider_domain)
+            ):
+                result.append(validation)
         return result
