@@ -37,7 +37,6 @@ class BaseDataMapper(Generic[T, K], abc.ABC):
         :param input_value: The input value to map.
         :param default_value: The default value to return if there is no mapping for input value.
         """
-        pass
 
 
 class SimpleDataMapper(BaseDataMapper[T, T], Generic[T]):

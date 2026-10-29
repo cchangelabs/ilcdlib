@@ -36,8 +36,7 @@ class IlcdReference(NamedTuple):
     def to_url(self, base_url: str | None) -> str:
         """Convert the reference to a URL."""
         prefix = base_url if base_url is not None else "https://unknown.tld"
-        if prefix.endswith("/"):
-            prefix = prefix[:-1]
+        prefix = prefix.removesuffix("/")
         prefix = prefix.removesuffix("/resource")
         return f"{prefix}/resource/{self.entity_type}/{self.entity_id}?version={self.entity_version}"
 
@@ -146,8 +145,6 @@ class BaseSearchResponse(Generic[T]):
 
 class ProcessSearchResponse(BaseSearchResponse[ProcessBasicInfo]):
     """A search response for processes."""
-
-    pass
 
 
 class IlcdContactInfo(BaseOpenEpdSchema):

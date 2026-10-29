@@ -45,7 +45,7 @@ class Soda4LcaXmlApiClient4x(Soda4LcaXmlApiClient):
         xml_doc = self._do_xml_request(
             "get",
             "/processes/categories/",
-            params=dict(format="xml", lang=lang, catSystem=category_system),
+            params={"format": "xml", "lang": lang, "catSystem": category_system},
         )
         reader = self.category_reader_cls(xml_doc)
         categories = reader.get_categories_flat_list_4x()
@@ -59,7 +59,7 @@ class Soda4LcaXmlApiClient4x(Soda4LcaXmlApiClient):
 
     def __list_subcategories(self, category: Category, lang: str = "en") -> list[Category]:
         xml_doc = self._do_xml_request(
-            "get", f"/processes/categories/{category.name}/subcategories", params=dict(format="xml", lang=lang)
+            "get", f"/processes/categories/{category.name}/subcategories", params={"format": "xml", "lang": lang}
         )
         reader = self.category_reader_cls(xml_doc)
         return reader.get_categories_flat_list_4x(parent=category)

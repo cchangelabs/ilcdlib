@@ -13,6 +13,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
+import contextlib
 import datetime
 
 from openepd.model.pcr import Pcr
@@ -102,22 +103,18 @@ class EpdNorgeIlcdXmlEpdReader(IlcdEpdReader):
         """Return the date the EPD is valid until."""
         descr = self._get_time_repr_description()
         if descr and self._TIME_REPR_DESC_DELIMITER in descr:
-            try:
+            with contextlib.suppress(Exception):
                 date_str = descr.split(self._TIME_REPR_DESC_DELIMITER)[1].strip().rsplit(" ", 1)[-1].strip()
                 return datetime.date.fromisoformat(date_str)
-            except Exception:
-                pass
         return super().get_validity_ends_date()
 
     def get_date_published(self) -> datetime.date | None:
         """Return the date the EPD was published."""
         descr = self._get_time_repr_description()
         if descr and self._TIME_REPR_DESC_DELIMITER in descr:
-            try:
+            with contextlib.suppress(Exception):
                 date_str = descr.split(self._TIME_REPR_DESC_DELIMITER)[0].strip().rsplit(" ", 1)[-1].strip()
                 return datetime.date.fromisoformat(date_str)
-            except Exception:
-                pass
         return super().get_date_published()
 
     def get_data_entry_by(self, lang: LangDef, base_url: str | None = None) -> OpenEpdIlcdOrg | None:

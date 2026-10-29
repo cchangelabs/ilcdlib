@@ -68,7 +68,6 @@ class BaseIlcdMediumSpecificReader(metaclass=abc.ABCMeta):
         :param binary: If True, the stream is opened in binary mode, otherwise in text mode.
         :raise: ValueError if the entity does not exist.
         """
-        pass
 
     @abc.abstractmethod
     def get_binary_stream_by_name(self, name: str, entity_type: str | None = None) -> IO[bytes] | None:
@@ -78,7 +77,6 @@ class BaseIlcdMediumSpecificReader(metaclass=abc.ABCMeta):
         :param name: The name of the file.
         :param entity_type: The type of the entity. e.g. "process", "contact", "flow", etc.
         """
-        pass
 
     @abc.abstractmethod
     def entity_exists(self, entity_type: str, entity_id: str, entity_version: str | None = None) -> bool:
@@ -91,7 +89,6 @@ class BaseIlcdMediumSpecificReader(metaclass=abc.ABCMeta):
         :param entity_id: The id of the entity, typically a GUID.
         :param entity_version: The version of the entity e.g. 12.34.56
         """
-        pass
 
     @abc.abstractmethod
     def close(self):
@@ -100,7 +97,6 @@ class BaseIlcdMediumSpecificReader(metaclass=abc.ABCMeta):
 
         This method is called automatically when used in a context manager.
         """
-        pass
 
     @abc.abstractmethod
     def list_entities(self, entity_type: str) -> Sequence[IlcdReference]:
@@ -109,7 +105,6 @@ class BaseIlcdMediumSpecificReader(metaclass=abc.ABCMeta):
 
         :param entity_type: The type of the entity. e.g. "process", "contact", "flow", etc.
         """
-        pass
 
     def resolve_entity_url(self, ref: IlcdReference, digital_file: str | None) -> str | None:
         """
@@ -162,7 +157,6 @@ class NoopBaseReader(BaseIlcdMediumSpecificReader):
 
     def close(self):
         """Do nothing. This implementation does not need to be closed."""
-        pass
 
     def list_entities(self, entity_type: str) -> Sequence[IlcdReference]:
         """Return empty list. NoopBaseReader does not support get_entity_stream."""
@@ -182,22 +176,22 @@ class IlcdXmlReader:
             "epd_ref_data": get_ilcd_epd_reference_data_provider()
         }
         self.xml_parser = XmlParser(
-            ns_map=dict(
-                xml="http://www.w3.org/XML/1998/namespace",
-                common="http://lca.jrc.it/ILCD/Common",
-                contact="http://lca.jrc.it/ILCD/Contact",
-                flow="http://lca.jrc.it/ILCD/Flow",
-                process="http://lca.jrc.it/ILCD/Process",
-                source="http://lca.jrc.it/ILCD/Source",
-                ug="http://lca.jrc.it/ILCD/UnitGroup",
-                fp="http://lca.jrc.it/ILCD/FlowProperty",
-                mm="http://www.matml.org/",
-                epd2013="http://www.iai.kit.edu/EPD/2013",
-                epd2019="http://www.iai.kit.edu/EPD/2019",
-                epd2019_indata="http://www.indata.network/EPD/2019",
-            )
+            ns_map={
+                "xml": "http://www.w3.org/XML/1998/namespace",
+                "common": "http://lca.jrc.it/ILCD/Common",
+                "contact": "http://lca.jrc.it/ILCD/Contact",
+                "flow": "http://lca.jrc.it/ILCD/Flow",
+                "process": "http://lca.jrc.it/ILCD/Process",
+                "source": "http://lca.jrc.it/ILCD/Source",
+                "ug": "http://lca.jrc.it/ILCD/UnitGroup",
+                "fp": "http://lca.jrc.it/ILCD/FlowProperty",
+                "mm": "http://www.matml.org/",
+                "epd2013": "http://www.iai.kit.edu/EPD/2013",
+                "epd2019": "http://www.iai.kit.edu/EPD/2019",
+                "epd2019_indata": "http://www.indata.network/EPD/2019",
+            }
         )
-        self.__logger = logging.Logger(__name__)
+        self.__logger = logging.getLogger(__name__)
 
     def allow_uri_based_lookup(self) -> bool:
         """Return whether URI based lookup is allowed."""
@@ -205,7 +199,7 @@ class IlcdXmlReader:
 
     def remap_xml_ns(self, doc_ns_map: dict[str, str]) -> None:
         """Remap XML namespaces."""
-        for _, url in doc_ns_map.items():
+        for url in doc_ns_map.values():
             if url and url.endswith("EPD/2019"):  # Some providers use outdated, non-standard namespace
                 self.xml_parser.xml_ns["epd2019"] = url
 
@@ -245,7 +239,7 @@ class IlcdXmlReader:
             if allow_static_datasets:
                 uuid_from_uri = self._UUID_REGEX.search(entity_uri) if entity_uri else None
                 uuid = uuid_from_uri.group(1) if uuid_from_uri else None
-                for _dataset_name, dataset_provider in self.reference_data_providers.items():
+                for dataset_provider in self.reference_data_providers.values():
                     xml_tree = self.get_xml_for_entity(dataset_provider, entity_type, entity_id, entity_version)
                     if xml_tree is not None:
                         return xml_tree
@@ -433,7 +427,6 @@ class OpenEpdContactSupportReader(metaclass=abc.ABCMeta):
         self, lang: LangDef, base_url: str | None = None, provider_domain: str | None = None
     ) -> OpenEpdIlcdOrg:
         """Read as openEPD Org object."""
-        pass
 
 
 class OpenEpdPcrSupportReader(metaclass=abc.ABCMeta):
@@ -442,7 +435,6 @@ class OpenEpdPcrSupportReader(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def to_openepd_pcr(self, lang: LangDef, base_url: str | None = None, provider_domain: str | None = None) -> Pcr:
         """Read as openEPD Pcr object."""
-        pass
 
 
 TBaseDeclaration = TypeVar("TBaseDeclaration", bound=BaseDeclaration)
@@ -460,7 +452,6 @@ class OpenEpdDeclarationSupportReader(metaclass=abc.ABCMeta):
         expected_output_type: type[TBaseDeclaration] = BaseDeclaration,  # type: ignore[assignment]
     ) -> TBaseDeclaration:
         """Read as OpenEPD Declaration object."""
-        pass
 
     def to_openepd_epd(
         self, lang: LangDef, base_url: str | None = None, provider_domain: str | None = None
@@ -495,4 +486,3 @@ class OpenEpdImpactSetSupportReader(metaclass=abc.ABCMeta):
         provider_domain: str | None = None,
     ) -> Impacts:
         """Read as openEPD ImpactSet object."""
-        pass

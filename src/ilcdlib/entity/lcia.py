@@ -24,6 +24,8 @@ from ilcdlib.mapping.common import BaseDataMapper
 from ilcdlib.mapping.impacts import default_impacts_mapper
 from ilcdlib.mapping.units import default_scope_to_units_mapper
 
+LOGGER = logging.getLogger(__name__)
+
 
 class IlcdLciaResultsReader(OpenEpdImpactSetSupportReader, BaseIlcdScopeSetsReader):
     """Read an ILCD PCR XML file."""
@@ -73,7 +75,7 @@ class IlcdLciaResultsReader(OpenEpdImpactSetSupportReader, BaseIlcdScopeSetsRead
             for a_impact in (scope_set.A1, scope_set.A2, scope_set.A3):
                 if a_impact:
                     if unit and unit != a_impact.unit:
-                        logging.warning(f"Units in A impacts does not match each other in {scope_set}")
+                        LOGGER.warning(f"Units in A impacts does not match each other in {scope_set}")
                         return
                     unit = a_impact.unit
                     s += a_impact.mean

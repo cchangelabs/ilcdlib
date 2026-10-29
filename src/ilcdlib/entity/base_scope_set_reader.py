@@ -126,11 +126,11 @@ class BaseIlcdScopeSetsReader(IlcdXmlReader):
         scenario_name = el.attrib.get("{http://www.iai.kit.edu/EPD/2013}scenario") if el.attrib else None
 
         if module_name is None or el.text is None:
-            return None
+            return
         try:
             value = float(el.text)
         except ValueError:
-            return None
+            return
         measurement = Measurement(mean=value, unit=unit_name)
 
         if scenario_name is None or scenario_name == "Standard scenario":
@@ -140,12 +140,12 @@ class BaseIlcdScopeSetsReader(IlcdXmlReader):
                 ext[module_name] = measurement
         else:
             if not EolScenario.is_allowed_field_name(module_name) or scenario_name not in scenario_names:
-                return None
+                return
 
-            scenarios = scopes.get("C_scenarios") or list()
-            scenario: dict[str, Measurement | str] = dict(
-                name=_truncate_scenario_name(scenario_names[scenario_name]),
-            )
+            scenarios = scopes.get("C_scenarios") or []
+            scenario: dict[str, Measurement | str] = {
+                "name": _truncate_scenario_name(scenario_names[scenario_name]),
+            }
             scenario[module_name] = measurement
             scenarios.append(EolScenario(**scenario))  # type: ignore
             scopes["C_scenarios"] = scenarios
@@ -172,7 +172,7 @@ class BaseIlcdScopeSetsReader(IlcdXmlReader):
             el, reference_path, mapper, scenario_names, scope_to_units_mapper
         )
         if scope_set_and_impact_name is None:
-            return None
+            return
         scope_set, impact_name = scope_set_and_impact_name
         if scope_set_type.is_allowed_field_name(impact_name):
             scope_set_dict[impact_name] = scope_set

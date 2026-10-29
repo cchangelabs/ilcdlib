@@ -142,7 +142,6 @@ class BaseApiClient(metaclass=abc.ABCMeta):
 
     def _on_before_do_request(self):
         """Run some custom logic before `do_request`. Can be overridden to check / refresh access tokens."""
-        pass
 
     def download_by_url(self, url, method="get", **kwargs) -> BytesIO:
         """
@@ -200,9 +199,14 @@ class BaseApiClient(metaclass=abc.ABCMeta):
 
         url = self._get_url_for_request(endpoint)
 
-        request_kwargs = dict(
-            params=params, data=data, json=json, files=files, headers=headers, timeout=timeout or self.timeout
-        )
+        request_kwargs = {
+            "params": params,
+            "data": data,
+            "json": json,
+            "files": files,
+            "headers": headers,
+            "timeout": timeout or self.timeout,
+        }
         request_kwargs.update(kwargs)
 
         s = session or self._current_session
