@@ -55,7 +55,7 @@ types-requests = { version = ">=2.1.0" }
 # Dev tools
 ruff = ">=0.13.0"
 licenseheaders = ">=0.8"
-mypy = ">=1.18.1"
+mypy = ">=2.4.0"
 pre-commit = ">=4.7.0"
 commitizen = ">=4.19.2"
 
